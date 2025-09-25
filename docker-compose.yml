@@ -1,0 +1,25 @@
+services:
+  frontend-blue:
+    image: seu_usuario/expo_tech_front:blue
+    build: .
+    container_name: frontend-blue
+    expose:
+      - "3000"
+
+  frontend-green:
+    image: seu_usuario/expo_tech_front:green
+    build: .
+    container_name: frontend-green
+    expose:
+      - "3000"
+
+  proxy:
+    image: nginx:latest
+    container_name: frontend-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend-blue
+      - frontend-green
