@@ -2,7 +2,11 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --azul-claro: #A1AEF4;
+  --azul-escuro: #152348;
+  --roxo: #27336F;
+  --azul-primario: #001489;
+  --azul-opaco: #415884;
 }
 
 @theme inline {
@@ -14,7 +18,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #ffffff;
     --foreground: #ededed;
   }
 }
