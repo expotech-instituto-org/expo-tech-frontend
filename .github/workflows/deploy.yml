@@ -1,0 +1,48 @@
+name: Deploy Frontend (Zero Downtime)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: SSH and Deploy
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd /caminho/para/frontend
+
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:${{ github.sha }}
+
+            docker-compose up -d frontend-green
+
+            docker exec frontend-proxy nginx -s reload
+
+            docker-compose rm -sf frontend-blue
+
+            docker rename frontend-green frontend-blue
+
+            echo "Deploy concluído: ${GITHUB_SHA}"
