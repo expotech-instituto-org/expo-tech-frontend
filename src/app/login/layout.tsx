@@ -4,8 +4,7 @@ export default function LayoutLogin({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="bg-white">
-      <img src="/images/Logo.svg" alt="" className="w-[50rem] h-[50rem]" />
+    <div className="bg-white h-[100vh] bg-[url(/images/Background.png)] bg-fixed bg-clip-border bg-origin-border bg-center bg-no-repeat bg-cover">
       {children}
     </div>
   );
