@@ -26,18 +26,6 @@ jobs:
           docker build -t $IMAGE .
           docker push $IMAGE
 
-      - name: Prepare Deploy Directory on VM
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          port: 22
-          script: |
-            # cria a pasta se não existir
-            mkdir -p $DEPLOY_PATH
-            chown ${{ secrets.VM_USER }}:$DEPLOY_PATH $DEPLOY_PATH
-
       - name: Copy docker-compose.yml to VM
         uses: appleboy/scp-action@v0.1.3
         with:
@@ -60,7 +48,6 @@ jobs:
             cd $DEPLOY_PATH
 
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:${{ github.sha }}
-
             docker-compose up -d frontend-green
             docker exec frontend-proxy nginx -s reload
             docker-compose rm -sf frontend-blue
