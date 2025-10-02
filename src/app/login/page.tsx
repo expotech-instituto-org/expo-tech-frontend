@@ -1,8 +1,9 @@
 "use client";
+
 export default function Login() {
   return (
-    <div>
-      <h1>Login</h1>
+    <div className="flex justify-center items-center w-full h-full">
+      <img src="/images/Logo.svg" alt="Logo image" />
     </div>
   );
 }
