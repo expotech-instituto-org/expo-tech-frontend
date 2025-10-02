@@ -34,7 +34,7 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           source: "docker-compose.yml"
-          target: "$DEPLOY_PATH/"
+          target: "/home/expo_tech/frontend/"
 
       - name: SSH and Deploy
         uses: appleboy/ssh-action@v0.1.7
@@ -45,7 +45,7 @@ jobs:
           port: 22
           script: |
             set -e
-            cd $DEPLOY_PATH
+            cd /home/expo_tech/frontend
 
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:${{ github.sha }}
             docker-compose up -d frontend-green
