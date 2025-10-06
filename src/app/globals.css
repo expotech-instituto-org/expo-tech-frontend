@@ -8,7 +8,9 @@
   --roxo: #27336F;
   --azul-primario: #001489;
   --azul-opaco: #415884;
-  --rounded: 1.875rem
+  --rounded: 1.875rem;
+  --error: #FF6262;
+  --text: #000629;
 }
 
 @theme inline {
