@@ -1,14 +1,14 @@
+version: '3.8'
+
 services:
   frontend-blue:
-    image: seu_usuario/expo_tech_front:blue
-    build: .
+    image: expotech2025/expo_tech_front:blue
     container_name: frontend-blue
     expose:
       - "3000"
 
   frontend-green:
-    image: seu_usuario/expo_tech_front:green
-    build: .
+    image: expotech2025/expo_tech_front:green
     container_name: frontend-green
     expose:
       - "3000"
