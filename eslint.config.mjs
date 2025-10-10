@@ -22,4 +22,11 @@ const eslintConfig = [
   },
 ];
 
+module.exports = {
+  rules: {
+    '@typescript-eslint/no-unused-expressions': 'off',
+
+  },
+};
+
 export default eslintConfig;
