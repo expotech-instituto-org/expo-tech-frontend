@@ -22,4 +22,10 @@ const eslintConfig = [
   },
 ];
 
+module.exports = {
+  rules: {
+    "padded-blocks": "off",
+  },
+};
+
 export default eslintConfig;
