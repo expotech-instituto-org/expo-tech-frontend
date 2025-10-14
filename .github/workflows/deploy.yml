@@ -24,11 +24,11 @@ jobs:
 
       - name: Build and Push Docker Images
         run: |
-          echo "🚀 Buildando imagem Blue..."
+          echo "Buildando imagem Blue"
           docker build -t $IMAGE_BLUE .
           docker push $IMAGE_BLUE
 
-          echo "🚀 Buildando imagem Green..."
+          echo "Buildando imagem Green"
           docker build -t $IMAGE_GREEN .
           docker push $IMAGE_GREEN
 
