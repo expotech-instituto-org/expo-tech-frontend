@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEPLOY_PATH: /home/expo_tech/frontend
+      IMAGE_BLUE: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
+      IMAGE_GREEN: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
 
     steps:
       - uses: actions/checkout@v3
@@ -22,18 +24,14 @@ jobs:
 
       - name: Build and Push Docker Images
         run: |
-          IMAGE_BLUE=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
-          IMAGE_GREEN=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
-
-          # Build e push Blue
+          echo "Buildando imagem Blue"
           docker build -t $IMAGE_BLUE .
           docker push $IMAGE_BLUE
 
-          # Build e push Green
+          echo "Buildando imagem Green"
           docker build -t $IMAGE_GREEN .
           docker push $IMAGE_GREEN
 
-      # 4️⃣ Copia docker-compose.yml para a VM
       - name: Copy docker-compose.yml to VM
         uses: appleboy/scp-action@v0.1.3
         with:
@@ -42,9 +40,8 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           source: "docker-compose.yml"
-          target: "${{ env.DEPLOY_PATH }}/"
+          target: "${{ env.DEPLOY_PATH }}"
 
-      # 5️⃣ SSH e Deploy
       - name: SSH and Deploy
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -54,25 +51,37 @@ jobs:
           port: 22
           script: |
             set -e
-            cd $DEPLOY_PATH
+            cd /home/expo_tech/frontend
 
-            # Login Docker Hub na VM
+            echo "Logando no Docker Hub"
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # Pull das imagens
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
+            echo "Verificando instalação do docker compose"
+            if ! command -v docker compose &> /dev/null
+            then
+              echo "Instalando docker-compose-plugin"
+              sudo apt-get update -y
+              sudo apt-get install -y docker-compose-plugin
+            fi
 
-            # Levanta container green
-            docker-compose up -d frontend-green
+            echo "Listando diretório atual:"
+            pwd
+            ls -la
 
-            # Recarrega Nginx
-            docker exec frontend-proxy nginx -s reload
+            echo "Fazendo pull das imagens mais recentes"
+            docker pull ${{ env.IMAGE_BLUE }}
+            docker pull ${{ env.IMAGE_GREEN }}
 
-            # Remove antigo blue (primeiro deploy pode não existir)
-            docker-compose rm -sf frontend-blue || true
+            echo "Subindo container Green"
+            docker compose -f /home/expo_tech/frontend/docker-compose.yml up -d frontend-green
 
-            # Renomeia green para blue
-            docker rename frontend-green frontend-blue
+            echo "Recarregando Nginx"
+            docker exec frontend-proxy nginx -s reload || echo "Proxy ainda não existe, pulando reload"
 
-            echo "Deploy concluído: ${GITHUB_SHA}"
+            echo "Removendo container Blue antigo"
+            docker compose -f /home/expo_tech/frontend/docker-compose.yml rm -sf frontend-blue || true
+
+            echo "Renomeando Green -> Blue"
+            docker rename frontend-green frontend-blue || true
+
+            echo "Deploy concluído com sucesso! Commit: ${GITHUB_SHA}"
