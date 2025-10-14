@@ -32,14 +32,16 @@ jobs:
           docker build -t $IMAGE_GREEN .
           docker push $IMAGE_GREEN
 
-      - name: Copy docker-compose.yml to VM
+      - name: Copy deploy files to VM
         uses: appleboy/scp-action@v0.1.3
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
-          source: "docker-compose.yml"
+          source: |
+            docker-compose.yml
+            nginx/nginx.conf
           target: "${{ env.DEPLOY_PATH }}"
 
       - name: SSH and Deploy
