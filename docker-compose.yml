@@ -13,7 +13,7 @@ services:
     expose:
       - "3000"
 
-  proxy:
+  frontend-proxy:
     image: nginx:latest
     container_name: frontend-proxy
     ports:
