@@ -23,17 +23,17 @@ export default function Page(props: IProps) {
           src="/images/expolvo.svg"
           className="!text-[var(--error)] text-center !text-[80px]"
         />
-        <h1 className="!text-[var(--error)] font-bold text-[23px] text-center w-[60%]">
+        <h1 className="!text-[var(--azulPrimario)] font-bold text-[23px] text-center w-[60%]">
           Não foi possível encontrar avaliações
         </h1>
-        <p className="text-center text-[var(--text)] w-[60%]">
+        <p className="text-center text-[var(--azulPrimario)] w-[60%]">
           Cre uma valiação agora!
         </p>
       </div>
       <Button
         variant="contained"
         onClick={props.actionButton}
-        className="!bg-[var(--error)]"
+        className="!bg-[var(--azulPrimario)]"
       >
         Avaliar
       </Button>
