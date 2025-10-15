@@ -1,5 +1,5 @@
+import { IQuestion } from "@/components/SwipeableDrawer";
 import z4, { z } from "zod/v4";
-import { IQuestion } from "./SwipeableDrawer";
 
 type DynamicSchemaType = z.ZodObject<Record<string, z.ZodTypeAny>>;
 

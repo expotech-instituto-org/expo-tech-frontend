@@ -1,3 +1,4 @@
+import { createSchemaFromQuestions } from "@/schemas/createSchemaFromQuestions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
@@ -9,7 +10,6 @@ import {
 } from "@mui/material";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { createSchemaFromQuestions } from "./schema";
 
 type TResponseType = "Rating" | "Comment";
 
