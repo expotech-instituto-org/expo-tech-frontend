@@ -9,8 +9,14 @@
   --azul-primario: #001489;
   --azul-opaco: #415884;
   --rounded: 1.875rem;
+<<<<<<< HEAD
   --error: #FF6262;
   --text: #000629;
+=======
+  --azul70: #4D5BAD;
+  --text: #000629;
+  --error: #FF6262;
+>>>>>>> c7650eadc8efcbcb1e2255037fff6cc9ca308bd8
 }
 
 @theme inline {

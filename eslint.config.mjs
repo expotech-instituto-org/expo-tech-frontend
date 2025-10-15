@@ -24,7 +24,8 @@ const eslintConfig = [
 
 module.exports = {
   rules: {
-    "padded-blocks": "off",
+    '@typescript-eslint/no-unused-expressions': 'off',
+
   },
 };
 
