@@ -1,12 +1,31 @@
+
 FROM node:20-alpine AS build
+
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm install
+
+RUN npm ci
+
 COPY . .
+
 RUN npm run build
 
+
 FROM node:20-alpine AS runtime
+
 WORKDIR /app
-COPY --from=build /app ./
+
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/public ./public
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/next.config.ts ./
+COPY --from=build /app/tsconfig.json ./
+
+RUN npm ci --omit=dev
+
 EXPOSE 3000
+
 CMD ["npm", "start"]
