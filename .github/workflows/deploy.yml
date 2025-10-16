@@ -40,8 +40,8 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           source: |
-            docker-compose.yml
-            nginx/nginx.conf
+            frontend/docker-compose.yml
+            frontend/nginx/nginx.conf
           target: "${{ env.DEPLOY_PATH }}"
 
       - name: SSH and Deploy
