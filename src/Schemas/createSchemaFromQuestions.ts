@@ -1,15 +1,15 @@
-import z4, { z } from "zod/v4";
-import { IQuestion } from "./SwipeableDrawer";
+import { IQuestion } from "@/types/question";
+import { z } from "zod";
 
 type DynamicSchemaType = z.ZodObject<Record<string, z.ZodTypeAny>>;
 
 const createSchemaFromQuestions = (
   questions: IQuestion[]
 ): DynamicSchemaType => {
-  const schemaFields: Record<string, z4.ZodTypeAny> = {};
+  const schemaFields: Record<string, z.ZodTypeAny> = {};
 
   questions.forEach((q, idx) => {
-    let fieldSchema: z4.ZodTypeAny;
+    let fieldSchema: z.ZodTypeAny;
 
     if (q.responseType === "Rating") {
       fieldSchema = z.number().int().max(5);

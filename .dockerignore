@@ -1,0 +1,25 @@
+# Ignorar dependências locais
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Ignorar builds anteriores
+.next
+out
+dist
+
+# Ignorar controle de versão
+.git
+.gitignore
+
+# Ignorar configs locais
+.env
+.env.local
+.env.development
+.DS_Store
+
+# Ignorar caches
+*.log
+.cache
+tmp
+coverage

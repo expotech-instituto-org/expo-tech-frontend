@@ -1,7 +1,7 @@
 "use client";
 
 import { Modal } from "@/components/Modal";
-import { loginSchema, TLoginSchema } from "@/schemas/loginSchema";
+import { loginSchema, TLoginSchema } from "@/schemas";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
@@ -319,9 +319,8 @@ export default function Page() {
             step === 2 && handleSubmit(onSubmit);
           }}
           disabled={!isValid}
-          className={`${
-            isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"
-          } w-[25rem]`}
+          className={`${isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"
+            } w-[25rem]`}
         >
           Próximo
         </Button>
