@@ -1,15 +1,10 @@
 "use client";
 
 import { Button } from "@mui/material";
+import { useRouter } from "next/navigation";
 
-interface IProps {
-  title: string;
-  subtitle?: string;
-  textButton: string;
-  actionButton: () => void;
-}
-
-export default function Page(props: IProps) {
+export default function Page() {
+  const router = useRouter();
   return (
     <div
       className="flex 
@@ -27,12 +22,12 @@ export default function Page(props: IProps) {
           Não foi possível encontrar avaliações
         </h1>
         <p className="text-center text-[var(--azulPrimario)] w-[60%]">
-          Cre uma valiação agora!
+          Crie uma avaliação agora!
         </p>
       </div>
       <Button
         variant="contained"
-        onClick={props.actionButton}
+        onClick={() => router.push('/')}
         className="!bg-[var(--azulPrimario)]"
       >
         Avaliar
