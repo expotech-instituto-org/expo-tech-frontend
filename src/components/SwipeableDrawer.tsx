@@ -1,4 +1,4 @@
-import { createSchemaFromQuestions } from "@/schemasDebusg";
+import { createSchemaFromQuestions } from "@/schemas";
 import { IQuestion, TResponseType } from "@/types/question";
 import { zodResolver } from "@hookform/resolvers/zod";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";

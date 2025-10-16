@@ -1,7 +1,7 @@
 "use client";
 
 import { Modal } from "@/components/Modal";
-import { loginSchema, TLoginSchema } from "@/schemasDebusg";
+import { loginSchema, TLoginSchema } from "@/schemas";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
