@@ -2,37 +2,26 @@
 
 import { Button } from "@mui/material";
 
-interface IProps {
-  title: string;
-  subtitle?: string;
-  textButton: string;
-  actionButton: () => void;
-}
-
-export default function Page(props: IProps) {
+export default function Page() {
   return (
-    <div
-      className="flex 
-    flex-col justify-center items-center h-[100vh] gap-12 w-full"
-    >
-      <div
-        className="flex 
-    flex-col justify-center items-center gap-4"
-      >
+    <div className="flex flex-col justify-center items-center h-[100vh] gap-12 w-full">
+      <div className="flex flex-col justify-center items-center gap-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/expolvo.svg"
+          alt="Expolvo - Erro não encontrado"
           className="!text-[var(--error)] text-center !text-[80px]"
         />
         <h1 className="!text-[var(--azulPrimario)] font-bold text-[23px] text-center w-[60%]">
           Não foi possível encontrar avaliações
         </h1>
         <p className="text-center text-[var(--azulPrimario)] w-[60%]">
-          Cre uma valiação agora!
+          Crie uma avaliação agora!
         </p>
       </div>
       <Button
         variant="contained"
-        onClick={props.actionButton}
+        onClick={() => (window.location.href = "/projeto")}
         className="!bg-[var(--azulPrimario)]"
       >
         Avaliar
