@@ -1,11 +1,11 @@
 
 FROM node:20-alpine AS build
 
-RUN apk add --no-cache libc6-compat
+#RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json tsconfig.json ./
 
 RUN npm ci
 
