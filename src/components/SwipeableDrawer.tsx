@@ -1,4 +1,5 @@
 import { createSchemaFromQuestions } from "@/schemas/createSchemaFromQuestions";
+import { IQuestion, TResponseType } from "@/types/question";
 import { zodResolver } from "@hookform/resolvers/zod";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
@@ -11,13 +12,7 @@ import {
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-type TResponseType = "Rating" | "Comment";
 
-export interface IQuestion {
-  description: string;
-  responseType: TResponseType;
-  isRequired: boolean;
-}
 
 interface IDrawerProps {
   open: boolean;
