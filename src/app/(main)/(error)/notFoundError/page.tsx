@@ -1,14 +1,15 @@
 "use client";
 
 import { Button } from "@mui/material";
-import { useRouter } from "next/navigation";
 
-export default function Page() {
-  const router = useRouter();
-  
-  const handleButtonClick = () => {
-    router.push('/'); 
-  };
+interface IProps {
+  title: string;
+  subtitle?: string;
+  textButton: string;
+  actionButton: () => void;
+}
+
+export default function Page(props: IProps) {
   return (
     <div
       className="flex 
@@ -31,7 +32,7 @@ export default function Page() {
       </div>
       <Button
         variant="contained"
-        onClick={handleButtonClick}
+        onClick={props.actionButton}
         className="!bg-[var(--azulPrimario)]"
       >
         Avaliar
