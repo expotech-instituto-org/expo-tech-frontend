@@ -19,15 +19,11 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
     ],
+    rules: {
+      "@typescript-eslint/no-unused-expressions": "off",
+      "padded-blocks": "off",
+    },
   },
 ];
-
-module.exports = {
-  rules: {
-    '@typescript-eslint/no-unused-expressions': 'off',
-
-    "padded-blocks": "off",
-  },
-};
 
 export default eslintConfig;
