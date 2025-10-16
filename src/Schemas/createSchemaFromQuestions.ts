@@ -1,4 +1,4 @@
-import { IQuestion } from "@/types/question";
+import { IQuestion } from "../types/question";
 import { z } from "zod";
 
 type DynamicSchemaType = z.ZodObject<Record<string, z.ZodTypeAny>>;
