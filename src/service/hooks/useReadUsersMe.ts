@@ -1,7 +1,7 @@
 import { IGetReadUsersMe } from "@/types/backendTypes";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
-import { ExpoApiService } from "../ExpoApiService";
+import { ExpoApiService } from "../expoApiService";
 
 export const useGetReadUsersMe = () => {
   const { refetch, data, error, isPending, isLoading, isRefetching } =

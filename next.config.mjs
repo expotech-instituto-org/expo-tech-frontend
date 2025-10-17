@@ -1,16 +1,16 @@
-import type { NextConfig } from "next";
 import path from "path";
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
+      "@": path.resolve("./src"),
     };
-    
+
     // Ensure proper module resolution
-    config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx', '.json'];
-    
+    config.resolve.extensions = [".ts", ".tsx", ".js", ".jsx", ".json"];
+
     return config;
   },
   typedRoutes: false,

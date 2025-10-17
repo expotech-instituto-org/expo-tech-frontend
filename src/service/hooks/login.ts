@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
-import { ExpoApiService } from "../ExpoApiService";
+import { ExpoApiService } from "../expoApiService";
 import { ILoginBody } from "@/types/backendTypes";
 
 export const useLogin = () => {
