@@ -24,9 +24,9 @@ jobs:
 
       - name: Build and Push Docker Images
         run: |
-          docker build -t $IMAGE_BLUE .
+          docker build --pull --no-cache -t $IMAGE_BLUE .
           docker push $IMAGE_BLUE
-          docker build -t $IMAGE_GREEN .
+          docker build --pull --no-cache -t $IMAGE_GREEN .
           docker push $IMAGE_GREEN
 
       - name: Copy deploy files to VM
@@ -36,7 +36,7 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
-          source: "docker-compose.yml,nginx/"
+          source: "docker-compose.yml,nginx/nginx.conf"
           target: "${{ env.DEPLOY_PATH }}"
 
       - name: SSH and Deploy
@@ -46,23 +46,21 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
+          envs: |
+            IMAGE_BLUE=${{ env.IMAGE_BLUE }}
+            IMAGE_GREEN=${{ env.IMAGE_GREEN }}
+            DEPLOY_PATH=${{ env.DEPLOY_PATH }}
           script: |
             set -e
             cd $DEPLOY_PATH
-
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
             if ! command -v docker compose &> /dev/null; then
               sudo apt-get update -y
               sudo apt-get install -y docker-compose-plugin
             fi
-
             docker pull $IMAGE_BLUE
             docker pull $IMAGE_GREEN
-
-            docker compose up -d frontend-green frontend-proxy
-
-            docker compose rm -sf frontend-blue || true
+            docker compose -f docker-compose.yml up -d frontend-green frontend-proxy
+            docker compose -f docker-compose.yml rm -sf frontend-blue || true
             docker rename frontend-green frontend-blue || true
-
             docker exec frontend-proxy nginx -s reload || echo "Nginx reload falhou"
