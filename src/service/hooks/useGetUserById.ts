@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
-import { ExpoApiService } from "../ExpoApiService";
+import { ExpoApiService } from "../expoApiService";
 
 export const useGetUserById = ({ user_id }: { user_id: string }) => {
   const { refetch, data, error, isPending, isLoading, isRefetching } =
