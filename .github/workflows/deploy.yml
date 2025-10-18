@@ -24,18 +24,10 @@ jobs:
 
       - name: Build and Push Docker Images
         run: |
-          echo "Buildando imagem Blue"
-          docker build -t $IMAGE_BLUE .
+          docker build --pull --no-cache -t $IMAGE_BLUE .
           docker push $IMAGE_BLUE
-
-          echo "Buildando imagem Green"
-          docker build -t $IMAGE_GREEN .
+          docker build --pull --no-cache -t $IMAGE_GREEN .
           docker push $IMAGE_GREEN
-
-      - name: List workspace files
-        run: |
-          pwd
-          ls -R
 
       - name: Copy deploy files to VM
         uses: appleboy/scp-action@v0.1.3
@@ -44,9 +36,7 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
-          source: |
-            docker-compose.yml
-            nginx/nginx.conf
+          source: "docker-compose.yml,nginx/nginx.conf"
           target: "${{ env.DEPLOY_PATH }}"
 
       - name: SSH and Deploy
@@ -59,36 +49,14 @@ jobs:
           script: |
             set -e
             cd /home/expo_tech/frontend
-
-            echo "Logando no Docker Hub"
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-            echo "Verificando instalação do docker compose"
-            if ! command -v docker compose &> /dev/null
-            then
-              echo "Instalando docker-compose-plugin"
+            if ! command -v docker compose &> /dev/null; then
               sudo apt-get update -y
               sudo apt-get install -y docker-compose-plugin
             fi
-
-            echo "Listando diretório atual:"
-            pwd
-            ls -la
-
-            echo "Fazendo pull das imagens mais recentes"
             docker pull ${{ env.IMAGE_BLUE }}
             docker pull ${{ env.IMAGE_GREEN }}
-
-            echo "Subindo container Green"
-            docker compose -f /home/expo_tech/frontend/docker-compose.yml up -d frontend-green
-
-            echo "Recarregando Nginx"
-            docker exec frontend-proxy nginx -s reload || echo "Proxy ainda não existe, pulando reload"
-
-            echo "Removendo container Blue antigo"
-            docker compose -f /home/expo_tech/frontend/docker-compose.yml rm -sf frontend-blue || true
-
-            echo "Renomeando Green -> Blue"
+            docker compose -f docker-compose.yml up -d frontend-green
+            docker exec frontend-proxy nginx -s reload || true
+            docker compose -f docker-compose.yml rm -sf frontend-blue || true
             docker rename frontend-green frontend-blue || true
-
-            echo "Deploy concluído com sucesso! Commit: ${GITHUB_SHA}"
