@@ -1,11 +1,9 @@
 
 FROM node:20-alpine AS build
 
-RUN apk add --no-cache libc6-compat
-
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json tsconfig.json ./
 
 RUN npm ci
 
@@ -21,7 +19,7 @@ WORKDIR /app
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY --from=build /app/package*.json ./
-COPY --from=build /app/next.config.ts ./
+COPY --from=build /app/next.config.mjs ./
 COPY --from=build /app/tsconfig.json ./
 
 RUN npm ci --omit=dev
