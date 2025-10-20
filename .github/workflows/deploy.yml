@@ -10,13 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEPLOY_PATH: /home/expo_tech/frontend
-      IMAGE_BLUE: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
-      IMAGE_GREEN: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
+      - name: Login to Docker Hub (runner)
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -24,10 +22,11 @@ jobs:
 
       - name: Build & Push Docker Images
         run: |
-          docker build -t $IMAGE_BLUE .
-          docker push $IMAGE_BLUE
-          docker build -t $IMAGE_GREEN .
-          docker push $IMAGE_GREEN
+          IMAGE_BASE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front"
+          docker build -t "${IMAGE_BASE}:blue" .
+          docker push "${IMAGE_BASE}:blue"
+          docker build -t "${IMAGE_BASE}:green" .
+          docker push "${IMAGE_BASE}:green"
 
       - name: Copy Compose & Nginx to VM
         uses: appleboy/scp-action@v0.1.3
@@ -39,7 +38,7 @@ jobs:
           source: "docker-compose.yml,nginx/nginx.conf"
           target: "${{ env.DEPLOY_PATH }}"
 
-      - name: SSH Deploy Blue-Green
+      - name: SSH Deploy Blue-Green (remote)
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.VM_HOST }}
@@ -48,22 +47,37 @@ jobs:
           port: 22
           script_stop: true
           envs: |
-            DEPLOY_PATH=${{ env.DEPLOY_PATH }}
-            IMAGE_BLUE=${{ env.IMAGE_BLUE }}
-            IMAGE_GREEN=${{ env.IMAGE_GREEN }}
+            DEPLOY_PATH=/home/expo_tech/frontend
+            IMAGE_BLUE=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
+            IMAGE_GREEN=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
+            DOCKER_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKER_PASSWORD=${{ secrets.DOCKERHUB_TOKEN }}
           script: |
             set -e
             cd $DEPLOY_PATH
 
-            # Pull das imagens (login não necessário se já estiver público ou com token do Actions)
-            docker pull $IMAGE_BLUE
-            docker pull $IMAGE_GREEN
+            echo "=> DEBUG: IMAGE_BLUE='$IMAGE_BLUE'"
+            echo "=> DEBUG: IMAGE_GREEN='$IMAGE_GREEN'"
+
+            # Loga no Docker Hub no host remoto (necessário se imagens privadas)
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin || true
+
+            # Pull das imagens
+            docker pull "$IMAGE_BLUE"
+            docker pull "$IMAGE_GREEN"
 
             # Limpa Green temporário se existir
             docker rm -f frontend-green-temp || true
 
-            # Sobe Green temporário
-            docker run -d --name frontend-green-temp -p 3001:3000 $IMAGE_GREEN
+            # Descobre a mesma network do frontend-proxy para que nginx resolva pelos nomes dos containers
+            NETWORK=$(docker inspect --format='{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}' frontend-proxy 2>/dev/null || true)
+            if [ -z "$NETWORK" ]; then
+              echo "⚠️ Não foi possível detectar a network do frontend-proxy — iniciando sem --network"
+              docker run -d --name frontend-green-temp -p 3001:3000 "$IMAGE_GREEN"
+            else
+              echo "=> Usando network '$NETWORK' para rodar frontend-green-temp"
+              docker run -d --name frontend-green-temp --network "$NETWORK" -p 3001:3000 "$IMAGE_GREEN"
+            fi
 
             # Healthcheck
             ATTEMPTS=0
