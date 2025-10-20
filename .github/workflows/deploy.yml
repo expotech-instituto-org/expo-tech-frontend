@@ -55,7 +55,7 @@ jobs:
             DOCKER_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
             DOCKER_PASSWORD="${{ secrets.DOCKERHUB_TOKEN }}"
 
-            echo "=== Iniciando deploy Blue-Green ==="
+            echo "=== 🚀 Iniciando deploy Blue-Green ==="
             cd $DEPLOY_PATH
 
             echo "=> Login no Docker Hub"
@@ -69,27 +69,39 @@ jobs:
             docker rm -f frontend-green-temp || true
 
             echo "=> Detectando network do proxy..."
-            NETWORK=$(docker inspect --format='{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}' frontend-proxy 2>/dev/null || true)
-            if [ -z "$NETWORK" ]; then
-              echo "⚠️ Não foi possível detectar a network do frontend-proxy — iniciando sem --network"
+            set +e
+            NETWORK=$(docker inspect --format='{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}' frontend-proxy 2>/dev/null)
+            NETWORK_STATUS=$?
+            set -e
+
+            if [ $NETWORK_STATUS -ne 0 ] || [ -z "$NETWORK" ]; then
+              echo "⚠️  Não foi possível detectar a network do frontend-proxy."
+              echo "🔎  Verificando se o container proxy existe..."
+              docker ps -a | grep frontend-proxy || echo "❌  frontend-proxy não está em execução!"
               NETWORK_ARG=""
             else
               echo "=> Usando network '$NETWORK'"
               NETWORK_ARG="--network $NETWORK"
             fi
 
+            echo "=> Verificando se a porta 3001 está livre..."
+            if docker ps --format '{{.Ports}}' | grep -q '3001->'; then
+              echo "⚠️ Porta 3001 já em uso — liberando..."
+              docker ps --format '{{.Names}} {{.Ports}}' | grep '3001->' | awk '{print $1}' | xargs -r docker rm -f
+            fi
+
             echo "=> Subindo container temporário (frontend-green-temp)"
-            docker run -d --name frontend-green-temp $NETWORK_ARG -p 3001:3000 "$IMAGE_GREEN" || {
+            if ! docker run -d --name frontend-green-temp $NETWORK_ARG -p 3001:3000 "$IMAGE_GREEN"; then
               echo "❌ Falha ao criar container frontend-green-temp"
               docker logs frontend-green-temp || true
               exit 1
-            }
+            fi
 
             sleep 5
 
-            echo "=> Validando se o container está em execução..."
+            echo "=> Validando se o container está rodando..."
             if [ "$(docker ps -q -f name=frontend-green-temp)" = "" ]; then
-              echo "❌ O container frontend-green-temp não está rodando!"
+              echo "❌ O container frontend-green-temp não está em execução!"
               docker logs frontend-green-temp || true
               exit 1
             fi
