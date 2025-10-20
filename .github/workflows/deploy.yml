@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEPLOY_PATH: /home/expo_tech/frontend
-      IMAGE_BLUE: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
-      IMAGE_GREEN: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
 
     steps:
       - uses: actions/checkout@v3
@@ -24,6 +22,10 @@ jobs:
 
       - name: Build and Push Docker Images
         run: |
+          IMAGE_BLUE=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
+          IMAGE_GREEN=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
+
+          echo "Building and pushing images..."
           docker build --pull --no-cache -t $IMAGE_BLUE .
           docker push $IMAGE_BLUE
           docker build --pull --no-cache -t $IMAGE_GREEN .
@@ -39,7 +41,7 @@ jobs:
           source: "docker-compose.yml,nginx/nginx.conf"
           target: "${{ env.DEPLOY_PATH }}"
 
-      - name: SSH and Deploy
+      - name: SSH and Deploy with Health Check
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.VM_HOST }}
@@ -47,15 +49,9 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           script_stop: true
-
-          envs: |
-            DEPLOY_PATH=/home/expo_tech/frontend
-            IMAGE_BLUE=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
-            IMAGE_GREEN=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
-
           script: |
             set -e
-            cd $DEPLOY_PATH
+            cd /home/expo_tech/frontend
 
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
@@ -65,23 +61,45 @@ jobs:
               sudo apt-get install -y docker-compose-plugin
             fi
 
-            echo "Pulling images..."
-            echo "IMAGE_BLUE=$IMAGE_BLUE"
-            echo "IMAGE_GREEN=$IMAGE_GREEN"
+            IMAGE_BLUE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue"
+            IMAGE_GREEN="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green"
 
+            echo "Pulling images..."
             docker pull $IMAGE_BLUE
             docker pull $IMAGE_GREEN
 
-            echo "Subindo containers..."
+            echo "Subindo containers (frontend-green + proxy)..."
             docker compose -f docker-compose.yml up -d frontend-green frontend-proxy
 
-            echo "Removendo versão antiga..."
-            docker compose -f docker-compose.yml rm -sf frontend-blue || true
+            echo "Aguardando healthcheck de frontend-green..."
+            ATTEMPTS=0
+            MAX_ATTEMPTS=10
+            HEALTHY=false
 
-            echo "Promovendo versão green para blue..."
+            # Aguarda até 30 segundos no total (10 tentativas x 3s)
+            while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+              STATUS=$(docker exec frontend-green curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health || true)
+              if [ "$STATUS" = "200" ]; then
+                echo "✅ frontend-green está saudável!"
+                HEALTHY=true
+                break
+              fi
+              ATTEMPTS=$((ATTEMPTS+1))
+              echo "Tentativa $ATTEMPTS/$MAX_ATTEMPTS - Status atual: $STATUS - aguardando..."
+              sleep 3
+            done
+
+            if [ "$HEALTHY" != true ]; then
+              echo "❌ Healthcheck falhou! Mantendo versão antiga (blue)."
+              docker compose -f docker-compose.yml rm -sf frontend-green || true
+              exit 1
+            fi
+
+            echo "Healthcheck OK — promovendo versão green para blue..."
+            docker compose -f docker-compose.yml rm -sf frontend-blue || true
             docker rename frontend-green frontend-blue || true
 
             echo "Recarregando Nginx..."
             docker exec frontend-proxy nginx -s reload || echo "Nginx reload falhou"
 
-            echo "Deploy concluído com sucesso ✅"
+            echo "✅ Deploy concluído com sucesso!"
