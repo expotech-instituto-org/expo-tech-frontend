@@ -41,16 +41,18 @@ jobs:
 
       - name: SSH and Deploy
         uses: appleboy/ssh-action@v0.1.7
-        env:
-          DEPLOY_PATH: /home/expo_tech/frontend
-          IMAGE_BLUE: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
-          IMAGE_GREEN: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           script_stop: true
+
+          envs: |
+            DEPLOY_PATH=/home/expo_tech/frontend
+            IMAGE_BLUE=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
+            IMAGE_GREEN=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
+
           script: |
             set -e
             cd $DEPLOY_PATH
