@@ -1,4 +1,4 @@
-name: Deploy Frontend (Blue-Green)
+name: Deploy Frontend (Zero Downtime)
 
 on:
   push:
@@ -12,67 +12,48 @@ jobs:
       DEPLOY_PATH: /home/expo_tech/frontend
       IMAGE_BLUE: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
       IMAGE_GREEN: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Build & Push Docker Images
-        run: |
-          docker build -t $IMAGE_BLUE .
-          docker push $IMAGE_BLUE
-          docker build -t $IMAGE_GREEN .
-          docker push $IMAGE_GREEN
-
-      - name: Copy Compose & Nginx to VM
-        uses: appleboy/scp-action@v0.1.3
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          port: 22
-          source: "docker-compose.yml,nginx/nginx.conf"
-          target: "${{ env.DEPLOY_PATH }}"
-
-      - name: SSH Deploy Blue-Green
+      - name: Executar Deploy via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          port: 22
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
           script_stop: true
-          envs: |
-            DEPLOY_PATH=${{ env.DEPLOY_PATH }}
-            IMAGE_BLUE=${{ env.IMAGE_BLUE }}
-            IMAGE_GREEN=${{ env.IMAGE_GREEN }}
-            DOCKERHUB_USERNAME=${{ env.DOCKERHUB_USERNAME }}
-            DOCKERHUB_TOKEN=${{ env.DOCKERHUB_TOKEN }}
+          envs: DEPLOY_PATH,IMAGE_BLUE,IMAGE_GREEN
           script: |
             set -e
             cd $DEPLOY_PATH
 
-            # Docker login
-            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            echo "***" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # Pull das imagens
+            # Instala plugin docker compose se necessário
+            if ! command -v docker compose &> /dev/null; then
+              sudo apt-get update -y
+              sudo apt-get install -y docker-compose-plugin
+            fi
+
+            echo "==> Limpando containers antigos travados..."
+            docker rm -f frontend-green || true
+            docker rm -f frontend-blue || true
+
+            echo "==> Pull das novas imagens..."
             docker pull $IMAGE_BLUE
             docker pull $IMAGE_GREEN
 
-            # Limpa Green temporário se existir
-            docker rm -f frontend-green-temp || true
+            echo "==> Subindo nova versão (green)..."
+            docker compose -f docker-compose.yml up -d frontend-green frontend-proxy
 
-            # Sobe Green temporário
-            docker run -d --name frontend-green-temp -p 3001:3000 $IMAGE_GREEN
-
-            # Healthcheck
+            echo "==> Verificando healthcheck..."
             ATTEMPTS=0
             MAX_ATTEMPTS=10
             HEALTHY=false
+
             while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-              STATUS=$(docker exec frontend-green-temp curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health || true)
+              STATUS=$(docker exec frontend-green curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health || true)
               if [ "$STATUS" = "200" ]; then
+                echo "✅ frontend-green está saudável!"
                 HEALTHY=true
                 break
               fi
@@ -83,16 +64,16 @@ jobs:
 
             if [ "$HEALTHY" != true ]; then
               echo "❌ Healthcheck falhou! Mantendo versão antiga."
-              docker rm -f frontend-green-temp || true
+              docker compose -f docker-compose.yml rm -sf frontend-green || true
               exit 1
             fi
 
-            # Swap Green → Blue
+            echo "==> Healthcheck OK — promovendo green → blue..."
             docker stop frontend-blue || true
             docker rm frontend-blue || true
-            docker rename frontend-green-temp frontend-blue
+            docker rename frontend-green frontend-blue
 
-            # Recarrega Nginx
+            echo "==> Recarregando Nginx..."
             docker exec frontend-proxy nginx -s reload || echo "⚠️ Falha ao recarregar Nginx"
 
             echo "✅ Deploy concluído com sucesso!"
