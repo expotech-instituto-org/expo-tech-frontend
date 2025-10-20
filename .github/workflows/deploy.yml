@@ -12,8 +12,6 @@ jobs:
       DEPLOY_PATH: /home/expo_tech/frontend
       IMAGE_BLUE: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
       IMAGE_GREEN: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3
@@ -53,20 +51,21 @@ jobs:
             DEPLOY_PATH=${{ env.DEPLOY_PATH }}
             IMAGE_BLUE=${{ env.IMAGE_BLUE }}
             IMAGE_GREEN=${{ env.IMAGE_GREEN }}
-            DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERHUB_TOKEN=${{ secrets.DOCKERHUB_TOKEN }}
           script: |
             set -e
             cd $DEPLOY_PATH
 
-            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
+            # Pull das imagens (login não necessário se já estiver público ou com token do Actions)
             docker pull $IMAGE_BLUE
             docker pull $IMAGE_GREEN
 
+            # Limpa Green temporário se existir
             docker rm -f frontend-green-temp || true
+
+            # Sobe Green temporário
             docker run -d --name frontend-green-temp -p 3001:3000 $IMAGE_GREEN
 
+            # Healthcheck
             ATTEMPTS=0
             MAX_ATTEMPTS=10
             HEALTHY=false
@@ -87,10 +86,12 @@ jobs:
               exit 1
             fi
 
+            # Swap Green → Blue
             docker stop frontend-blue || true
             docker rm frontend-blue || true
             docker rename frontend-green-temp frontend-blue
 
+            # Recarrega Nginx
             docker exec frontend-proxy nginx -s reload || echo "⚠️ Falha ao recarregar Nginx"
 
             echo "✅ Deploy concluído com sucesso!"
