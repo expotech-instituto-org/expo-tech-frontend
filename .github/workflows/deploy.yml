@@ -46,14 +46,15 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           script_stop: true
-          envs: |
-            DEPLOY_PATH=/home/expo_tech/frontend
-            IMAGE_BLUE=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
-            IMAGE_GREEN=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
-            DOCKER_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKER_PASSWORD=${{ secrets.DOCKERHUB_TOKEN }}
           script: |
             set -e
+            # --- DEFINIÇÕES DE VARIÁVEIS (expandidas no runner antes do envio) ---
+            DEPLOY_PATH=/home/expo_tech/frontend
+            IMAGE_BLUE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue"
+            IMAGE_GREEN="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green"
+            DOCKER_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+            DOCKER_PASSWORD="${{ secrets.DOCKERHUB_TOKEN }}"
+
             cd $DEPLOY_PATH
 
             echo "=> DEBUG: IMAGE_BLUE='$IMAGE_BLUE'"
