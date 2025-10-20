@@ -1,6 +1,18 @@
-version: '3.9'
+version: '3.8'
 
 services:
+  frontend-blue:
+    image: expotech2025/expo_tech_front:blue
+    container_name: frontend-blue
+    expose:
+      - "3000"
+
+  frontend-green:
+    image: expotech2025/expo_tech_front:green
+    container_name: frontend-green
+    expose:
+      - "3000"
+
   frontend-proxy:
     image: nginx:latest
     container_name: frontend-proxy
@@ -10,6 +22,9 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - nginx-certs:/etc/letsencrypt
+    depends_on:
+      - frontend-blue
+      - frontend-green
 
 volumes:
   nginx-certs:
