@@ -25,7 +25,6 @@ jobs:
           IMAGE_BLUE=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
           IMAGE_GREEN=${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
 
-          echo "Building and pushing images..."
           docker build --pull --no-cache -t $IMAGE_BLUE .
           docker push $IMAGE_BLUE
           docker build --pull --no-cache -t $IMAGE_GREEN .
@@ -41,7 +40,7 @@ jobs:
           source: "docker-compose.yml,nginx/nginx.conf"
           target: "${{ env.DEPLOY_PATH }}"
 
-      - name: SSH and Deploy with Health Check
+      - name: SSH and Deploy (Blue-Green)
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.VM_HOST }}
@@ -55,7 +54,7 @@ jobs:
 
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # Instala plugin do docker compose se não existir
+            # Instala plugin docker compose se necessário
             if ! command -v docker compose &> /dev/null; then
               sudo apt-get update -y
               sudo apt-get install -y docker-compose-plugin
@@ -64,19 +63,21 @@ jobs:
             IMAGE_BLUE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue"
             IMAGE_GREEN="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green"
 
-            echo "Pulling images..."
+            echo "==> Limpando containers antigos travados..."
+            docker rm -f frontend-green || true
+
+            echo "==> Pull das novas imagens..."
             docker pull $IMAGE_BLUE
             docker pull $IMAGE_GREEN
 
-            echo "Subindo containers (frontend-green + proxy)..."
+            echo "==> Subindo nova versão (green)..."
             docker compose -f docker-compose.yml up -d frontend-green frontend-proxy
 
-            echo "Aguardando healthcheck de frontend-green..."
+            echo "==> Verificando healthcheck..."
             ATTEMPTS=0
             MAX_ATTEMPTS=10
             HEALTHY=false
 
-            # Aguarda até 30 segundos no total (10 tentativas x 3s)
             while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
               STATUS=$(docker exec frontend-green curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health || true)
               if [ "$STATUS" = "200" ]; then
@@ -85,21 +86,22 @@ jobs:
                 break
               fi
               ATTEMPTS=$((ATTEMPTS+1))
-              echo "Tentativa $ATTEMPTS/$MAX_ATTEMPTS - Status atual: $STATUS - aguardando..."
+              echo "Tentativa $ATTEMPTS/$MAX_ATTEMPTS - Status $STATUS"
               sleep 3
             done
 
             if [ "$HEALTHY" != true ]; then
-              echo "❌ Healthcheck falhou! Mantendo versão antiga (blue)."
+              echo "❌ Healthcheck falhou! Mantendo versão antiga."
               docker compose -f docker-compose.yml rm -sf frontend-green || true
               exit 1
             fi
 
-            echo "Healthcheck OK — promovendo versão green para blue..."
-            docker compose -f docker-compose.yml rm -sf frontend-blue || true
-            docker rename frontend-green frontend-blue || true
+            echo "==> Healthcheck OK — promovendo green → blue..."
+            docker stop frontend-blue || true
+            docker rm frontend-blue || true
+            docker rename frontend-green frontend-blue
 
-            echo "Recarregando Nginx..."
-            docker exec frontend-proxy nginx -s reload || echo "Nginx reload falhou"
+            echo "==> Recarregando Nginx..."
+            docker exec frontend-proxy nginx -s reload || echo "⚠️ Falha ao recarregar Nginx"
 
             echo "✅ Deploy concluído com sucesso!"
