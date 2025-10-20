@@ -41,26 +41,45 @@ jobs:
 
       - name: SSH and Deploy
         uses: appleboy/ssh-action@v0.1.7
+        env:
+          DEPLOY_PATH: /home/expo_tech/frontend
+          IMAGE_BLUE: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
+          IMAGE_GREEN: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
-          envs: |
-            IMAGE_BLUE=${{ env.IMAGE_BLUE }}
-            IMAGE_GREEN=${{ env.IMAGE_GREEN }}
-            DEPLOY_PATH=${{ env.DEPLOY_PATH }}
+          script_stop: true
           script: |
             set -e
             cd $DEPLOY_PATH
+
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            # Instala plugin do docker compose se não existir
             if ! command -v docker compose &> /dev/null; then
               sudo apt-get update -y
               sudo apt-get install -y docker-compose-plugin
             fi
+
+            echo "Pulling images..."
+            echo "IMAGE_BLUE=$IMAGE_BLUE"
+            echo "IMAGE_GREEN=$IMAGE_GREEN"
+
             docker pull $IMAGE_BLUE
             docker pull $IMAGE_GREEN
+
+            echo "Subindo containers..."
             docker compose -f docker-compose.yml up -d frontend-green frontend-proxy
+
+            echo "Removendo versão antiga..."
             docker compose -f docker-compose.yml rm -sf frontend-blue || true
+
+            echo "Promovendo versão green para blue..."
             docker rename frontend-green frontend-blue || true
+
+            echo "Recarregando Nginx..."
             docker exec frontend-proxy nginx -s reload || echo "Nginx reload falhou"
+
+            echo "Deploy concluído com sucesso ✅"
