@@ -48,65 +48,84 @@ jobs:
           script_stop: true
           script: |
             set -e
-            # --- DEFINIÇÕES DE VARIÁVEIS (expandidas no runner antes do envio) ---
+
             DEPLOY_PATH=/home/expo_tech/frontend
             IMAGE_BLUE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue"
             IMAGE_GREEN="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green"
             DOCKER_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
             DOCKER_PASSWORD="${{ secrets.DOCKERHUB_TOKEN }}"
 
+            echo "=== Iniciando deploy Blue-Green ==="
             cd $DEPLOY_PATH
 
-            echo "=> DEBUG: IMAGE_BLUE='$IMAGE_BLUE'"
-            echo "=> DEBUG: IMAGE_GREEN='$IMAGE_GREEN'"
-
-            # Loga no Docker Hub no host remoto (necessário se imagens privadas)
+            echo "=> Login no Docker Hub"
             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin || true
 
-            # Pull das imagens
+            echo "=> Pull das imagens"
             docker pull "$IMAGE_BLUE"
             docker pull "$IMAGE_GREEN"
 
-            # Limpa Green temporário se existir
+            echo "=> Limpando containers antigos"
             docker rm -f frontend-green-temp || true
 
-            # Descobre a mesma network do frontend-proxy para que nginx resolva pelos nomes dos containers
+            echo "=> Detectando network do proxy..."
             NETWORK=$(docker inspect --format='{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}' frontend-proxy 2>/dev/null || true)
             if [ -z "$NETWORK" ]; then
               echo "⚠️ Não foi possível detectar a network do frontend-proxy — iniciando sem --network"
-              docker run -d --name frontend-green-temp -p 3001:3000 "$IMAGE_GREEN"
+              NETWORK_ARG=""
             else
-              echo "=> Usando network '$NETWORK' para rodar frontend-green-temp"
-              docker run -d --name frontend-green-temp --network "$NETWORK" -p 3001:3000 "$IMAGE_GREEN"
+              echo "=> Usando network '$NETWORK'"
+              NETWORK_ARG="--network $NETWORK"
             fi
 
-            # Healthcheck
+            echo "=> Subindo container temporário (frontend-green-temp)"
+            docker run -d --name frontend-green-temp $NETWORK_ARG -p 3001:3000 "$IMAGE_GREEN" || {
+              echo "❌ Falha ao criar container frontend-green-temp"
+              docker logs frontend-green-temp || true
+              exit 1
+            }
+
+            sleep 5
+
+            echo "=> Validando se o container está em execução..."
+            if [ "$(docker ps -q -f name=frontend-green-temp)" = "" ]; then
+              echo "❌ O container frontend-green-temp não está rodando!"
+              docker logs frontend-green-temp || true
+              exit 1
+            fi
+
+            echo "=> Iniciando healthcheck..."
             ATTEMPTS=0
             MAX_ATTEMPTS=10
             HEALTHY=false
             while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-              STATUS=$(docker exec frontend-green-temp curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health || true)
+              STATUS=$(docker exec frontend-green-temp sh -c "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health" || true)
+              echo "Tentativa $((ATTEMPTS+1))/$MAX_ATTEMPTS - Status: ${STATUS:-N/A}"
               if [ "$STATUS" = "200" ]; then
                 HEALTHY=true
                 break
               fi
               ATTEMPTS=$((ATTEMPTS+1))
-              echo "Tentativa $ATTEMPTS/$MAX_ATTEMPTS - Status $STATUS"
               sleep 3
             done
 
             if [ "$HEALTHY" != true ]; then
               echo "❌ Healthcheck falhou! Mantendo versão antiga."
+              docker logs frontend-green-temp || true
               docker rm -f frontend-green-temp || true
               exit 1
             fi
 
-            # Swap Green → Blue
+            echo "✅ Healthcheck OK — promovendo para produção"
+
+            echo "=> Parando e removendo versão anterior"
             docker stop frontend-blue || true
             docker rm frontend-blue || true
+
+            echo "=> Renomeando container novo para frontend-blue"
             docker rename frontend-green-temp frontend-blue
 
-            # Recarrega Nginx
+            echo "=> Recarregando Nginx"
             docker exec frontend-proxy nginx -s reload || echo "⚠️ Falha ao recarregar Nginx"
 
             echo "✅ Deploy concluído com sucesso!"
