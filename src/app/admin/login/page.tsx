@@ -28,7 +28,7 @@ export default function Login() {
     resolver: standardSchemaResolver(loginSchema),
     defaultValues: {
       isLogin: true,
-      step: true,
+      step: 1,
     },
     mode: "onChange",
     shouldUnregister: false,
