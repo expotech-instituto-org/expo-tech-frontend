@@ -3,6 +3,7 @@
 import { Modal } from "@/components/modal";
 import { loginSchema, TLoginSchema } from "@/schemas";
 import { useLogin } from "@/service/hooks/login";
+import { usePostCreateUser } from "@/service/hooks/usePostCreateUser";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
@@ -22,7 +23,7 @@ import {
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
 interface IFeedback {
   open: boolean;
@@ -34,7 +35,6 @@ export default function Page() {
   const param = useParams();
   const router = useRouter();
   const [openModal, setOpenModal] = useState<boolean>(false);
-  const [step, setStep] = useState<number>(1);
   const isLogin = param.id === "login";
   const [isFromCompany, setIsFromCompany] = useState<boolean>(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -44,22 +44,37 @@ export default function Page() {
     severity: "info",
   });
   const { login, loginData, loginError, loginRest } = useLogin();
-
+  const {
+    postCreateUser,
+    postCreateUserData,
+    postCreateUserError,
+    postCreateUserRest,
+  } = usePostCreateUser();
   const {
     register,
-    getValues,
+    control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isValid },
   } = useForm<TLoginSchema>({
     resolver: standardSchemaResolver(loginSchema),
     defaultValues: {
       isLogin: isLogin,
-      step: step === 1,
+      step: 1,
     },
     mode: "onChange",
     shouldUnregister: false,
   });
+
+  const step = watch("step");
+
+  useEffect(() => {
+    setValue("knowledge", "0");
+    setValue("profile", "0");
+    setValue("company", "0");
+    setValue("class", "0");
+  }, []);
 
   const onSubmit: SubmitHandler<TLoginSchema> = (data) => {
     isLogin &&
@@ -69,6 +84,20 @@ export default function Page() {
           username: data.email,
         },
       });
+
+    if (data.step === 2) {
+      postCreateUser({
+        body: {
+          name: "",
+          email: data.email,
+          password: data.password,
+          age: data.age,
+          class: data.class,
+          company: data.company,
+          knowledge: data.knowledge,
+        },
+      });
+    }
   };
 
   useEffect(() => {
@@ -84,7 +113,19 @@ export default function Page() {
         message: "Login efetuado com sucesso!",
         severity: "success",
       });
-  }, [loginError, loginData]);
+    postCreateUserError &&
+      setOpen({
+        open: true,
+        message: "Erro ao fazer cadastro, " + postCreateUserError,
+        severity: "error",
+      });
+    postCreateUserData &&
+      setOpen({
+        open: true,
+        message: "Cadastro efetuado com sucesso!",
+        severity: "success",
+      });
+  }, [loginError, loginData, postCreateUserError, postCreateUserData]);
 
   return (
     <>
@@ -113,6 +154,7 @@ export default function Page() {
               className="!m-0"
             >
               <InputLabel
+                required
                 htmlFor="outlined-adornment-password"
                 sx={{
                   color: "var(--azul-primario)",
@@ -174,6 +216,7 @@ export default function Page() {
                 className="!m-0"
               >
                 <InputLabel
+                  required
                   htmlFor="outlined-adornment-password"
                   size="small"
                   sx={{
@@ -230,108 +273,135 @@ export default function Page() {
 
         {step === 2 && (
           <div className="flex flex-col gap-4">
-            <TextField
-              {...register("age")}
-              size="small"
-              label="Idade"
-              type="number"
-              variant="outlined"
-              className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[15rem] "
+            <Controller
+              name="age"
+              defaultValue={0}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  required
+                  value={field.value}
+                  onChange={(e) => field.onChange(Number(e.target.value) || "")}
+                  size="small"
+                  label="Idade"
+                  type="number"
+                  variant="outlined"
+                  helperText={
+                    "age" in errors && (errors.age?.message as string)
+                  }
+                  error={"age" in errors}
+                  className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[15rem] "
+                />
+              )}
             />
-            <FormControl
-              sx={{ m: 1, minWidth: 120 }}
-              size="small"
-              className="!m-0"
-            >
-              <InputLabel
-                {...register("knowledge")}
-                size="small"
-                id="demo-select-small-label"
-                sx={{
-                  color: "var(--azul-primario)",
-                }}
-              >
-                Como conheceu a feira?
-              </InputLabel>
-              <Select
-                {...register("knowledge")}
-                size="small"
-                className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem]   "
-                labelId="demo-select-small-label"
-                id="demo-select-small"
-                onChange={(e) => {
-                  setValue("knowledge", e.target.value as number);
-                }}
-                label="Como conheceu a feira?"
-              >
-                <MenuItem value={10}>Ten</MenuItem>
-                <MenuItem value={20}>Twenty</MenuItem>
-                <MenuItem value={30}>Thirty</MenuItem>
-              </Select>
-            </FormControl>
+            <Controller
+              name="knowledge"
+              control={control}
+              defaultValue="0"
+              render={({ field }) => (
+                <FormControl
+                  sx={{ m: 1, minWidth: 120 }}
+                  size="small"
+                  className="!m-0"
+                >
+                  <InputLabel
+                    required
+                    sx={{ color: "var(--azul-primario)" }}
+                    id="demo-select-small-label"
+                  >
+                    Como conheceu a feira?
+                  </InputLabel>
+                  <Select
+                    {...field}
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    size="small"
+                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[15rem]"
+                    label="Como conheceu a feira?"
+                  >
+                    <MenuItem value="0" disabled>
+                      Selecione
+                    </MenuItem>
+                    <MenuItem value="10">Ten</MenuItem>
+                    <MenuItem value="20">Twenty</MenuItem>
+                    <MenuItem value="30">Thirty</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+            />
 
-            <FormControl
-              sx={{ m: 1, minWidth: 120 }}
-              size="small"
-              className="!m-0"
-            >
-              <InputLabel
-                sx={{
-                  color: "var(--azul-primario)",
-                }}
-                size="small"
-                id="demo-select-small-label"
-              >
-                Qual perfil você se encaixa?
-              </InputLabel>
-              <Select
-                className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem] "
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                {...register("profile")}
-                size="small"
-                label="Qual perfil você se encaixa?"
-                onChange={(e) => {
-                  setValue("profile", e.target.value as number);
-                }}
-              >
-                <MenuItem value={10}>Ten</MenuItem>
-                <MenuItem value={20}>Twenty</MenuItem>
-                <MenuItem value={30}>Thirty</MenuItem>
-              </Select>
-            </FormControl>
+            <Controller
+              name="profile"
+              control={control}
+              defaultValue="0"
+              render={({ field }) => (
+                <FormControl
+                  sx={{ m: 1, minWidth: 120 }}
+                  size="small"
+                  className="!m-0"
+                >
+                  <InputLabel
+                    required
+                    sx={{ color: "var(--azul-primario)" }}
+                    id="demo-select-small-label"
+                  >
+                    Qual perfil você se encaixa?
+                  </InputLabel>
+                  <Select
+                    {...field}
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    size="small"
+                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[15rem]"
+                    label="Qual perfil você se encaixa?"
+                  >
+                    <MenuItem value="0" disabled>
+                      Selecione
+                    </MenuItem>
+                    <MenuItem value="10">Ten</MenuItem>
+                    <MenuItem value="20">Twenty</MenuItem>
+                    <MenuItem value="30">Thirty</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+            />
 
             {isFromCompany ? (
-              <FormControl
-                sx={{ m: 1, minWidth: 120 }}
-                size="small"
-                className="!m-0"
-              >
-                <InputLabel
-                  sx={{
-                    color: "var(--azul-primario)",
-                  }}
-                  id="demo-select-small-label"
-                  size="small"
-                >
-                  Empresa
-                </InputLabel>
-                <Select
-                  className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem] "
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  {...register("company")}
-                  label="Empresa"
-                  size="small"
-                  onChange={(e) => {
-                    setValue("company", e.target.value as number);
-                  }}
-                >
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
-                </Select>
-              </FormControl>
+              <Controller
+                name="company"
+                control={control}
+                defaultValue="0"
+                render={({ field }) => (
+                  <FormControl
+                    sx={{ m: 1, minWidth: 120 }}
+                    size="small"
+                    className="!m-0"
+                  >
+                    <InputLabel
+                      required
+                      sx={{ color: "var(--azul-primario)" }}
+                      id="demo-select-small-label"
+                    >
+                      Empresa
+                    </InputLabel>
+                    <Select
+                      {...field}
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      size="small"
+                      className="[&_fieldset]:!border-[var(--azul-primario)] w-[15rem]"
+                      label="Empresa"
+                    >
+                      <MenuItem value="0" disabled>
+                        Selecione
+                      </MenuItem>
+                      <MenuItem value="10">Ten</MenuItem>
+                      <MenuItem value="20">Twenty</MenuItem>
+                      <MenuItem value="30">Thirty</MenuItem>
+                    </Select>
+                  </FormControl>
+                )}
+              />
             ) : (
               <FormControl
                 sx={{ m: 1, minWidth: 120 }}
@@ -339,6 +409,7 @@ export default function Page() {
                 size="small"
               >
                 <InputLabel
+                  required
                   sx={{
                     color: "var(--azul-primario)",
                   }}
@@ -355,9 +426,10 @@ export default function Page() {
                   label="Turma"
                   size="small"
                   onChange={(e) => {
-                    setValue("class", e.target.value as number);
+                    setValue("class", e.target.value as string);
                   }}
                 >
+                  <MenuItem value={"0"}>Selecione</MenuItem>
                   <MenuItem value={10}>Ten</MenuItem>
                   <MenuItem value={20}>Twenty</MenuItem>
                   <MenuItem value={30}>Thirty</MenuItem>
@@ -371,7 +443,7 @@ export default function Page() {
           <Button
             variant="contained"
             type={isLogin ? "submit" : step === 1 ? "button" : "submit"}
-            onClick={() => !isLogin && setStep(2)}
+            onClick={() => !isLogin && setValue("step", 2)}
             disabled={!isValid}
             className={`${
               isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"
@@ -421,7 +493,7 @@ export default function Page() {
       </form>
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={loginRest}
+        open={loginRest || postCreateUserRest}
       >
         <CircularProgress color="inherit" />
       </Backdrop>
