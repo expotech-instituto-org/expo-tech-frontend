@@ -12,7 +12,8 @@ jobs:
       DEPLOY_PATH: /home/expo_tech/frontend
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Login to Docker Hub (runner)
         uses: docker/login-action@v2
@@ -23,8 +24,10 @@ jobs:
       - name: Build & Push Docker Images
         run: |
           IMAGE_BASE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front"
+          # build blue (could be commit-specific if desired)
           docker build -t "${IMAGE_BASE}:blue" .
           docker push "${IMAGE_BASE}:blue"
+          # build green
           docker build -t "${IMAGE_BASE}:green" .
           docker push "${IMAGE_BASE}:green"
 
@@ -38,6 +41,36 @@ jobs:
           source: "docker-compose.yml,nginx/nginx.conf"
           target: "${{ env.DEPLOY_PATH }}"
 
+      - name: Ensure proxy is running on VM
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            set -e
+            DEPLOY_PATH=${{ env.DEPLOY_PATH }}
+            cd $DEPLOY_PATH
+
+            # Create network if missing and bring up compose (docker compose v2 preferred)
+            docker network create frontend_net >/dev/null 2>&1 || true
+
+            if command -v docker >/dev/null 2>&1; then
+              if docker compose version >/dev/null 2>&1; then
+                docker compose -f docker-compose.yml up -d
+              elif command -v docker-compose >/dev/null 2>&1; then
+                docker-compose -f docker-compose.yml up -d
+              else
+                echo "⚠️ docker compose not found on host"
+                exit 1
+              fi
+            else
+              echo "⚠️ docker not available on host"
+              exit 1
+            fi
+
       - name: SSH Deploy Blue-Green (remote)
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -49,14 +82,25 @@ jobs:
           script: |
             set -e
 
-            DEPLOY_PATH=/home/expo_tech/frontend
+            DEPLOY_PATH=${{ env.DEPLOY_PATH }}
             IMAGE_BLUE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue"
             IMAGE_GREEN="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green"
             DOCKER_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
             DOCKER_PASSWORD="${{ secrets.DOCKERHUB_TOKEN }}"
+            NETWORK="frontend_net"
 
             echo "=== Iniciando deploy Blue-Green ==="
             cd $DEPLOY_PATH
+
+            echo "=> Ensure network exists: $NETWORK"
+            docker network create $NETWORK >/dev/null 2>&1 || true
+
+            echo "=> Ensure proxy is running (docker compose up -d)"
+            if docker compose -f docker-compose.yml ps >/dev/null 2>&1; then
+              docker compose -f docker-compose.yml up -d
+            elif command -v docker-compose >/dev/null 2>&1; then
+              docker-compose -f docker-compose.yml up -d
+            fi
 
             echo "=> Login no Docker Hub"
             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin || true
@@ -65,21 +109,12 @@ jobs:
             docker pull "$IMAGE_BLUE"
             docker pull "$IMAGE_GREEN"
 
-            echo "=> Limpando containers antigos"
+            echo "=> Limpando containers antigos (se houver)"
             docker rm -f frontend-green-temp || true
 
-            echo "=> Detectando network do proxy..."
-            NETWORK=$(docker inspect --format='{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}' frontend-proxy 2>/dev/null || true)
-            if [ -z "$NETWORK" ]; then
-              echo "⚠️ Não foi possível detectar a network do frontend-proxy — iniciando sem --network"
-              NETWORK_ARG=""
-            else
-              echo "=> Usando network '$NETWORK'"
-              NETWORK_ARG="--network $NETWORK"
-            fi
-
-            echo "=> Subindo container temporário (frontend-green-temp)"
-            docker run -d --name frontend-green-temp $NETWORK_ARG -p 3001:3000 "$IMAGE_GREEN" || {
+            echo "=> Subindo container temporário (frontend-green-temp) na network $NETWORK"
+            # NOTA: não mapeamos porta host; Nginx se comunica via network
+            docker run -d --name frontend-green-temp --network $NETWORK "$IMAGE_GREEN" || {
               echo "❌ Falha ao criar container frontend-green-temp"
               docker logs frontend-green-temp || true
               exit 1
