@@ -1,6 +1,14 @@
 export interface ICreateUserBody {
+  age: number;
+  class: string;
+  company?: string;
   email: string;
+  knowledge?: string;
+  name?: string;
   password: string;
+  phone?: string;
+  profile_picture?: string;
+  role_id: string;
 }
 
 export interface ILoginBody {
@@ -13,22 +21,23 @@ export interface ILoginBody {
 }
 
 export interface IGetUsersResponse {
-  _id: string;
-  active: boolean;
+  _id?: string;
+  name?: string;
+  active?: boolean;
   age: number;
   class: string;
-  company: string;
+  company?: string;
   email: string;
-  knowledge: string;
+  knowledge?: string;
   password: string;
-  phone: string;
-  profile_picture: string;
-  project: {
+  phone?: string;
+  profile_picture?: string;
+  project?: {
     _id: string;
     company_name: string;
     name: string;
   };
-  reviews: {
+  reviews?: {
     comment: string;
     exhibition_id: string;
     project_id: string;

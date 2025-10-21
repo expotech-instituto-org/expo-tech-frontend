@@ -2,7 +2,8 @@ import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { Avatar, Chip, IconButton } from "@mui/material";
 import { useState } from "react";
-import { EditUserDrawer } from "./EditUserDrawer";
+import { UpsertUserDrawer } from "./UpsertUserDrawer";
+import { DeleteUserDrawer } from "./DeleteUserDrawer";
 
 export type TUserType =
   | "visitante"
@@ -62,8 +63,10 @@ const chipMap = {
 };
 
 export function UserCard(props: IProps) {
-  const [openDrawer, setOpenDrawer] = useState<boolean>(false);
+  const [openEditDrawer, setOpenEditDrawer] = useState<boolean>(false);
+  const [openDeleteDrawer, setOpenDeleteDrawer] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string>("");
+  const [selectedEmail, setSelectedEmail] = useState<string>("");
 
   return (
     <>
@@ -84,12 +87,16 @@ export function UserCard(props: IProps) {
           <IconButton
             className="!bg-white"
             aria-label="edit"
-            onClick={() => (setSelectedId(props.id), setOpenDrawer(true))}
+            onClick={() => (setSelectedId(props.id), setOpenEditDrawer(true))}
           >
             <EditOutlinedIcon />
           </IconButton>
           <IconButton
-            onClick={() => setSelectedId(props.id)}
+            onClick={() => (
+              setSelectedId(props.id),
+              setOpenDeleteDrawer(true),
+              setSelectedEmail(props.email)
+            )}
             className="!bg-white"
             aria-label="delete"
           >
@@ -98,10 +105,17 @@ export function UserCard(props: IProps) {
         </div>
       </div>
 
-      <EditUserDrawer
+      <UpsertUserDrawer
         userId={selectedId}
-        open={openDrawer}
-        onClose={() => setOpenDrawer(false)}
+        open={openEditDrawer}
+        onClose={() => setOpenEditDrawer(false)}
+      />
+
+      <DeleteUserDrawer
+        open={openDeleteDrawer}
+        onClose={() => setOpenDeleteDrawer(false)}
+        email={selectedEmail}
+        userId={selectedId}
       />
     </>
   );
