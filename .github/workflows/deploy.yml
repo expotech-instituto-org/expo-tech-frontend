@@ -1,4 +1,4 @@
-name: Deploy Frontend (Zero Downtime)
+name: Deploy Frontend (Blue-Green)
 
 on:
   push:
@@ -10,26 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEPLOY_PATH: /home/expo_tech/frontend
-      IMAGE_BLUE: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue
-      IMAGE_GREEN: ${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
+      - name: Login to Docker Hub (runner)
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Docker Images
+      - name: Build & Push Docker Images
         run: |
-          docker build --pull --no-cache -t $IMAGE_BLUE .
-          docker push $IMAGE_BLUE
-          docker build --pull --no-cache -t $IMAGE_GREEN .
-          docker push $IMAGE_GREEN
+          IMAGE_BASE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front"
+          # build blue (could be commit-specific if desired)
+          docker build -t "${IMAGE_BASE}:blue" .
+          docker push "${IMAGE_BASE}:blue"
+          # build green
+          docker build -t "${IMAGE_BASE}:green" .
+          docker push "${IMAGE_BASE}:green"
 
-      - name: Copy deploy files to VM
+      - name: Copy Compose & Nginx to VM
         uses: appleboy/scp-action@v0.1.3
         with:
           host: ${{ secrets.VM_HOST }}
@@ -39,28 +41,130 @@ jobs:
           source: "docker-compose.yml,nginx/nginx.conf"
           target: "${{ env.DEPLOY_PATH }}"
 
-      - name: SSH and Deploy
+      - name: Ensure proxy is running on VM
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
-          envs: |
-            IMAGE_BLUE=${{ env.IMAGE_BLUE }}
-            IMAGE_GREEN=${{ env.IMAGE_GREEN }}
-            DEPLOY_PATH=${{ env.DEPLOY_PATH }}
+          script_stop: true
           script: |
             set -e
+            DEPLOY_PATH=${{ env.DEPLOY_PATH }}
             cd $DEPLOY_PATH
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            if ! command -v docker compose &> /dev/null; then
-              sudo apt-get update -y
-              sudo apt-get install -y docker-compose-plugin
+
+            # Create network if missing and bring up compose (docker compose v2 preferred)
+            docker network create frontend_net >/dev/null 2>&1 || true
+
+            if command -v docker >/dev/null 2>&1; then
+              if docker compose version >/dev/null 2>&1; then
+                docker compose -f docker-compose.yml up -d
+              elif command -v docker-compose >/dev/null 2>&1; then
+                docker-compose -f docker-compose.yml up -d
+              else
+                echo "⚠️ docker compose not found on host"
+                exit 1
+              fi
+            else
+              echo "⚠️ docker not available on host"
+              exit 1
             fi
-            docker pull $IMAGE_BLUE
-            docker pull $IMAGE_GREEN
-            docker compose -f docker-compose.yml up -d frontend-green frontend-proxy
-            docker compose -f docker-compose.yml rm -sf frontend-blue || true
-            docker rename frontend-green frontend-blue || true
-            docker exec frontend-proxy nginx -s reload || echo "Nginx reload falhou"
+
+      - name: SSH Deploy Blue-Green (remote)
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            set -e
+
+            DEPLOY_PATH=${{ env.DEPLOY_PATH }}
+            IMAGE_BLUE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:blue"
+            IMAGE_GREEN="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front:green"
+            DOCKER_USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+            DOCKER_PASSWORD="${{ secrets.DOCKERHUB_TOKEN }}"
+            NETWORK="frontend_net"
+
+            echo "=== Iniciando deploy Blue-Green ==="
+            cd $DEPLOY_PATH
+
+            echo "=> Ensure network exists: $NETWORK"
+            docker network create $NETWORK >/dev/null 2>&1 || true
+
+            echo "=> Ensure proxy is running (docker compose up -d)"
+            if docker compose -f docker-compose.yml ps >/dev/null 2>&1; then
+              docker compose -f docker-compose.yml up -d
+            elif command -v docker-compose >/dev/null 2>&1; then
+              docker-compose -f docker-compose.yml up -d
+            fi
+
+            echo "=> Login no Docker Hub"
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin || true
+
+            echo "=> Pull das imagens"
+            docker pull "$IMAGE_BLUE"
+            docker pull "$IMAGE_GREEN"
+
+            echo "=> Limpando containers antigos (se houver)"
+            docker rm -f frontend-green-temp || true
+
+            echo "=> Subindo container temporário (frontend-green-temp) na network $NETWORK"
+            # NOTA: não mapeamos porta host; Nginx se comunica via network
+            docker run -d --name frontend-green-temp --network $NETWORK "$IMAGE_GREEN" || {
+              echo "❌ Falha ao criar container frontend-green-temp"
+              docker logs frontend-green-temp || true
+              exit 1
+            }
+
+            sleep 5
+
+            echo "=> Validando se o container está em execução..."
+            if [ "$(docker ps -q -f name=frontend-green-temp)" = "" ]; then
+              echo "❌ O container frontend-green-temp não está rodando!"
+              docker logs frontend-green-temp || true
+              exit 1
+            fi
+
+            echo "=> Iniciando healthcheck (GET /) ..."
+            ATTEMPTS=0
+            MAX_ATTEMPTS=10
+            HEALTHY=false
+
+            while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+              OUT=$(docker exec frontend-green-temp node -e 'const http=require("http");http.get("http://127.0.0.1:3000/",res=>{console.log(res.statusCode);process.exit(res.statusCode===200?0:1)}).on("error",e=>{console.error(e.message);process.exit(2)})' 2>/dev/null || true)
+              STATUS=$(echo "$OUT" | tr -d '\r\n')
+              echo "Tentativa $((ATTEMPTS+1))/$MAX_ATTEMPTS - Status: ${STATUS:-N/A}"
+              if [ "$STATUS" = "200" ]; then
+                HEALTHY=true
+                break
+              fi
+              ATTEMPTS=$((ATTEMPTS+1))
+              sleep 3
+            done
+
+            if [ "$HEALTHY" != true ]; then
+              echo "❌ Healthcheck falhou! Mantendo versão antiga."
+              docker logs frontend-green-temp || true
+              docker rm -f frontend-green-temp || true
+              exit 1
+            fi
+
+            echo "✅ Healthcheck OK — promovendo para produção"
+            # (segue promoção: stop rm rename nginx reload)
+
+
+            echo "=> Parando e removendo versão anterior"
+            docker stop frontend-blue || true
+            docker rm frontend-blue || true
+
+            echo "=> Renomeando container novo para frontend-blue"
+            docker rename frontend-green-temp frontend-blue
+
+            echo "=> Recarregando Nginx"
+            docker exec frontend-proxy nginx -s reload || echo "⚠️ Falha ao recarregar Nginx"
+
+            echo "✅ Deploy concluído com sucesso!"
