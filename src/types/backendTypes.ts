@@ -1,6 +1,14 @@
 export interface ICreateUserBody {
+  age: number;
+  class?: string;
+  company?: string;
   email: string;
+  knowledge: string;
+  name: string;
   password: string;
+  phone?: string;
+  profile_picture?: string;
+  role_id?: string;
 }
 
 export interface ILoginBody {

@@ -6,11 +6,11 @@ export default function Login() {
   const router = useRouter();
   const path = usePathname();
   return (
-    <>
-      <h1 className="text-[var(--azul-primario)] font-bold text-[2.2rem]">
+    <div className="flex flex-col gap-8 items-center">
+      <h1 className="text-[var(--azul-primario)] text-center font-bold text-[1.9rem]">
         Bem-vindo(a) a Expo 360!
       </h1>
-      <h2 className="text-[var(--azul-primario)] font-bold text-[1.7rem]">
+      <h2 className="text-[var(--azul-primario)] font-bold text-[1.5rem]">
         Vamos iniciar...
       </h2>
       <div className="flex flex-col gap-4">
@@ -19,7 +19,7 @@ export default function Login() {
           onClick={() => {
             router.push(`${path}/login`);
           }}
-          className="!bg-[var(--azul-primario)] w-[25rem]"
+          className="!bg-[var(--azul-primario)] w-[15rem]"
         >
           Login
         </Button>
@@ -33,6 +33,6 @@ export default function Login() {
           Cadastrar
         </Button>
       </div>
-    </>
+    </div>
   );
 }
