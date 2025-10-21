@@ -20,9 +20,7 @@ export default function Login() {
 
   const {
     register,
-    getValues,
     handleSubmit,
-    setValue,
     formState: { errors, isValid },
   } = useForm<TLoginSchema>({
     resolver: standardSchemaResolver(loginSchema),
