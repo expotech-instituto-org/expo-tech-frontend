@@ -13,30 +13,30 @@ export interface ILoginBody {
 }
 
 export interface IGetUsersResponse {
-  _id?: string;
-  active?: boolean;
-  age?: number;
-  class?: string;
-  company?: string;
-  email?: string;
-  knowledge?: string;
-  password?: string;
-  phone?: string;
-  profile_picture?: string;
+  _id: string;
+  active: boolean;
+  age: number;
+  class: string;
+  company: string;
+  email: string;
+  knowledge: string;
+  password: string;
+  phone: string;
+  profile_picture: string;
   project: {
-    _id?: string;
-    company_name?: string;
-    name?: string;
+    _id: string;
+    company_name: string;
+    name: string;
   };
   reviews: {
-    comment?: string;
-    exhibition_id?: string;
-    project_id?: string;
+    comment: string;
+    exhibition_id: string;
+    project_id: string;
   }[];
 
   role: {
-    _id?: string;
-    name?: string;
+    _id: string;
+    name: string;
   };
 }
 

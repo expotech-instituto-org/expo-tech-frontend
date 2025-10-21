@@ -1,9 +1,14 @@
 "use client";
 import { editUserSchema, TEditUserSchema } from "@/schemas/editUserSchema";
+import { useGetUserById } from "@/service/hooks/useGetUserById";
+import { IGetUsersResponse } from "@/types/backendTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
+  Alert,
+  Backdrop,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -15,26 +20,40 @@ import {
   MenuItem,
   OutlinedInput,
   Select,
+  Snackbar,
   TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 
 interface IProps {
-  userId: number;
+  userId: string;
   open: boolean;
   onClose: () => void;
 }
 
+interface IFeedback {
+  open: boolean;
+  message: string;
+  severity: "success" | "info" | "warning" | "error";
+}
+
 export function EditUserDrawer(props: IProps) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [open, setOpen] = useState<IFeedback>({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+
+  const { getUserByIdData, getUserByIdError, getUserByIdPending } =
+    useGetUserById({ user_id: props.userId });
 
   const {
     handleSubmit,
     register,
     control,
     reset,
-    getValues,
     setValue,
     formState: { errors, isValid },
   } = useForm<TEditUserSchema>({
@@ -53,8 +72,36 @@ export function EditUserDrawer(props: IProps) {
     console.log({ data });
   };
 
+  const handleSetFormData = (data: IGetUsersResponse) => {
+    const formData: TEditUserSchema = {
+      age: data.age,
+      class: data.class,
+      email: data.email,
+      password: data.password,
+      role: data.role._id,
+    };
+
+    Object.keys(formData).forEach((field) => {
+      setValue(
+        field as keyof TEditUserSchema,
+        formData[field as keyof TEditUserSchema]
+      );
+    });
+  };
+
   useEffect(() => {
-    console.log(errors);
+    if (!getUserByIdData) return;
+
+    handleSetFormData(getUserByIdData);
+  }, [getUserByIdData]);
+
+  useEffect(() => {
+    getUserByIdError &&
+      setOpen({
+        open: true,
+        message: "erro ao listar usuários",
+        severity: "error",
+      });
   }, []);
 
   return (
@@ -189,6 +236,32 @@ export function EditUserDrawer(props: IProps) {
             <MenuItem value={30}>Thirty</MenuItem>
           </Select>
         </FormControl>
+
+        <Backdrop
+          sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+          open={getUserByIdPending}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+
+        <Snackbar
+          open={open.open}
+          autoHideDuration={6000}
+          onClose={() =>
+            setOpen({ open: false, message: "", severity: "info" })
+          }
+        >
+          <Alert
+            onClose={() =>
+              setOpen({ open: false, message: "", severity: "info" })
+            }
+            severity={open.severity}
+            variant="filled"
+            sx={{ width: "100%" }}
+          >
+            {open.message}
+          </Alert>
+        </Snackbar>
       </DialogContent>
 
       <DialogActions>

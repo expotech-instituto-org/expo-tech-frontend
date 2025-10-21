@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { ExpoApiService } from "../expoApiService";
+import { IGetUsersResponse } from "@/types/backendTypes";
 
 export const useGetUserById = ({ user_id }: { user_id: string }) => {
   const { refetch, data, error, isPending, isLoading, isRefetching } =
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
       // Tipando a resposta e erro
-      AxiosResponse<{ response: any }>,
+      AxiosResponse<IGetUsersResponse>,
       AxiosError<{ message: string }>
     >({
       queryKey: ["/usersById"],

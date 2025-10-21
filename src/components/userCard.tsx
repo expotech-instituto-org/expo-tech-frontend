@@ -15,6 +15,7 @@ export type TUserType =
   | "avaliador";
 
 interface IProps {
+  id: string;
   photo?: string;
   name: string;
   email: string;
@@ -62,6 +63,8 @@ const chipMap = {
 
 export function UserCard(props: IProps) {
   const [openDrawer, setOpenDrawer] = useState<boolean>(false);
+  const [selectedId, setSelectedId] = useState<string>("");
+
   return (
     <>
       <div className="flex items-center justify-between bg-[var(--azul20)] rounded-[var(--rounded-sm)] px-4 py-3">
@@ -81,18 +84,22 @@ export function UserCard(props: IProps) {
           <IconButton
             className="!bg-white"
             aria-label="edit"
-            onClick={() => setOpenDrawer(true)}
+            onClick={() => (setSelectedId(props.id), setOpenDrawer(true))}
           >
             <EditOutlinedIcon />
           </IconButton>
-          <IconButton className="!bg-white" aria-label="delete">
+          <IconButton
+            onClick={() => setSelectedId(props.id)}
+            className="!bg-white"
+            aria-label="delete"
+          >
             <DeleteForeverOutlinedIcon />
           </IconButton>
         </div>
       </div>
 
       <EditUserDrawer
-        userId={0}
+        userId={selectedId}
         open={openDrawer}
         onClose={() => setOpenDrawer(false)}
       />
