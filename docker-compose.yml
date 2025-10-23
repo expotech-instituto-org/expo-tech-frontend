@@ -10,7 +10,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
-      - frontend_net
+      frontend_net:
+        external: true
 
 volumes:
   nginx-certs:
