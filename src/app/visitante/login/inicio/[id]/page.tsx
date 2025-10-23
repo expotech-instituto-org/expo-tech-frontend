@@ -1,13 +1,12 @@
 "use client";
 
-import { Modal } from "@/components/modal";
+import { Modal } from "@/components/Modal";
 import { loginSchema, TLoginSchema } from "@/schemas";
 import { useLogin } from "@/service/hooks/login";
 import { usePostCreateUser } from "@/service/hooks/usePostCreateUser";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
-  Alert,
   Backdrop,
   Button,
   CircularProgress,
@@ -18,18 +17,12 @@ import {
   MenuItem,
   OutlinedInput,
   Select,
-  Snackbar,
   TextField,
 } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-
-interface IFeedback {
-  open: boolean;
-  message: string;
-  severity: "success" | "error" | "info" | "warning";
-}
+import { toast } from "sonner";
 
 export default function Page() {
   const param = useParams();
@@ -38,11 +31,6 @@ export default function Page() {
   const isLogin = param.id === "login";
   const [isFromCompany, setIsFromCompany] = useState<boolean>(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [open, setOpen] = useState<IFeedback>({
-    open: false,
-    message: "",
-    severity: "info",
-  });
   const { login, loginData, loginError, loginRest } = useLogin();
   const {
     postCreateUser,
@@ -101,30 +89,11 @@ export default function Page() {
   };
 
   useEffect(() => {
-    loginError &&
-      setOpen({
-        open: true,
-        message: "Erro ao fazer login, " + loginError,
-        severity: "error",
-      });
-    loginData &&
-      setOpen({
-        open: true,
-        message: "Login efetuado com sucesso!",
-        severity: "success",
-      });
+    loginError && toast.error("Erro ao fazer login, " + loginError);
+    loginData && toast.success("Login efetuado com sucesso!");
     postCreateUserError &&
-      setOpen({
-        open: true,
-        message: "Erro ao fazer cadastro, " + postCreateUserError,
-        severity: "error",
-      });
-    postCreateUserData &&
-      setOpen({
-        open: true,
-        message: "Cadastro efetuado com sucesso!",
-        severity: "success",
-      });
+      toast.error("Erro ao fazer cadastro, " + postCreateUserError);
+    postCreateUserData && toast.success("Cadastro efetuado com sucesso!");
   }, [loginError, loginData, postCreateUserError, postCreateUserData]);
 
   return (
@@ -497,22 +466,6 @@ export default function Page() {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-      <Snackbar
-        open={open.open}
-        autoHideDuration={6000}
-        onClose={() => setOpen({ open: false, message: "", severity: "info" })}
-      >
-        <Alert
-          onClose={() =>
-            setOpen({ open: false, message: "", severity: "info" })
-          }
-          severity={open.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {open.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 }

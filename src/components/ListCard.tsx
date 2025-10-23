@@ -15,13 +15,16 @@ export type TUserType =
   | "colaborador"
   | "avaliador";
 
-interface IProps {
-  id: string;
-  photo?: string;
-  name: string;
-  email: string;
-  userType: TUserType;
-}
+type TNotification =
+  | { isUser: false; id: string; name: string }
+  | {
+      isUser: true;
+      id: string;
+      photo?: string;
+      name: string;
+      email: string;
+      userType: TUserType;
+    };
 
 const chipMap = {
   visitante: (
@@ -62,7 +65,7 @@ const chipMap = {
   ),
 };
 
-export function UserCard(props: IProps) {
+export function ListCard(props: TNotification) {
   const [openEditDrawer, setOpenEditDrawer] = useState<boolean>(false);
   const [openDeleteDrawer, setOpenDeleteDrawer] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string>("");
@@ -70,22 +73,37 @@ export function UserCard(props: IProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between bg-[var(--azul20)] rounded-[var(--rounded-sm)] px-4 py-3">
-        <div className="flex items-center gap-4 ">
-          <Avatar src={props.photo || "/images/defaultProfileUser.png"} />
-          <div>
-            <div className="flex items-center gap-2">
-              <h4 className="font-bold !text-[var(--azul-primario)] ">
-                {props.name}
-              </h4>
-              {chipMap[props.userType]}
+      <div
+        className={`flex items-center justify-between ${
+          props.isUser ? " bg-[var(--azul20)]" : "!bg-white"
+        } rounded-[var(--rounded-sm)] px-4 py-3`}
+      >
+        {props.isUser ? (
+          <div className="flex items-center gap-4 ">
+            <Avatar src={props.photo || "/images/defaultProfileUser.png"} />
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold !text-[var(--azul-primario)] ">
+                  {props.name}
+                </h4>
+                {chipMap[props.userType]}
+              </div>
+              <h5 className="!text-[var(--azul-primario)]">{props.email}</h5>
             </div>
-            <h5 className="!text-[var(--azul-primario)]">{props.email}</h5>
           </div>
-        </div>
+        ) : (
+          <h4 className="font-bold !text-[var(--azul-primario)] ">
+            {props.name}
+          </h4>
+        )}
+
         <div className="flex items-center gap-2">
           <IconButton
-            className="!bg-white"
+            className={
+              props.isUser
+                ? "!bg-[var(--azul-primario)] !text-[var(--azul20)]"
+                : "!bg-[var(--azul20)]"
+            }
             aria-label="edit"
             onClick={() => (setSelectedId(props.id), setOpenEditDrawer(true))}
           >
@@ -94,10 +112,10 @@ export function UserCard(props: IProps) {
           <IconButton
             onClick={() => (
               setSelectedId(props.id),
-              setOpenDeleteDrawer(true),
-              setSelectedEmail(props.email)
+              props.isUser && setOpenDeleteDrawer(true),
+              props.isUser && setSelectedEmail(props.email)
             )}
-            className="!bg-white"
+            className="!bg-[#FF626238] !text-[var(--error)]"
             aria-label="delete"
           >
             <DeleteForeverOutlinedIcon />
@@ -105,18 +123,22 @@ export function UserCard(props: IProps) {
         </div>
       </div>
 
-      <UpsertUserDrawer
-        userId={selectedId}
-        open={openEditDrawer}
-        onClose={() => setOpenEditDrawer(false)}
-      />
+      {props.isUser && (
+        <>
+          <UpsertUserDrawer
+            userId={selectedId}
+            open={openEditDrawer}
+            onClose={() => setOpenEditDrawer(false)}
+          />
 
-      <DeleteUserDrawer
-        open={openDeleteDrawer}
-        onClose={() => setOpenDeleteDrawer(false)}
-        email={selectedEmail}
-        userId={selectedId}
-      />
+          <DeleteUserDrawer
+            open={openDeleteDrawer}
+            onClose={() => setOpenDeleteDrawer(false)}
+            email={selectedEmail}
+            userId={selectedId}
+          />
+        </>
+      )}
     </>
   );
 }

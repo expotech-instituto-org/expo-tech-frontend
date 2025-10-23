@@ -3,16 +3,17 @@ import { AdminTitles } from "@/components/AdminTitles";
 import CabinIcon from "@mui/icons-material/Cabin";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import { Button, Card } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Page() {
   const router = useRouter();
+  const pathname = usePathname();
   return (
     <AdminTitles title="Bem-vindo administrador!" goback={false}>
       <div className="flex gap-8 flex-col md:flex-row">
         <Card className="!w-fit h-[15vh]">
           <Button
-            onClick={() => router.push(`/admin/usuarios`)}
+            onClick={() => router.push(pathname + `/usuarios`)}
             variant="outlined"
             className="!w-full flex flex-col !items-start h-full"
           >
@@ -29,7 +30,7 @@ export default function Page() {
         </Card>
         <Card className="!w-fit h-[15vh]">
           <Button
-            onClick={() => router.push(`/admin/feiras`)}
+            onClick={() => router.push(pathname + `/feiras`)}
             variant="outlined"
             className="!w-full flex flex-col !items-start h-full"
           >

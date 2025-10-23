@@ -2,7 +2,6 @@
 
 import { useDeleteUser } from "@/service/hooks/useDeleteUser";
 import {
-  Alert,
   Backdrop,
   Button,
   CircularProgress,
@@ -10,10 +9,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Snackbar,
   TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface IProps {
   userId: string;
@@ -22,19 +21,8 @@ interface IProps {
   onClose: () => void;
 }
 
-interface IFeedback {
-  open: boolean;
-  message: string;
-  severity: "success" | "info" | "warning" | "error";
-}
-
 export function DeleteUserDrawer(props: IProps) {
   const [emailToDelete, setEmailToDelete] = useState<string>("");
-  const [open, setOpen] = useState<IFeedback>({
-    open: false,
-    message: "",
-    severity: "info",
-  });
 
   const { deleteUser, deleteUserData, deleteUserError, deleteUserRest } =
     useDeleteUser();
@@ -43,27 +31,13 @@ export function DeleteUserDrawer(props: IProps) {
     if (emailToDelete === props.email) {
       return deleteUser({ user_id: props.userId });
     }
-    return setOpen({
-      open: true,
-      message: "e-mail incorreto",
-      severity: "error",
-    });
+    return toast.error("e-mail incorreto");
   }
 
   useEffect(() => {
-    deleteUserError &&
-      setOpen({
-        open: true,
-        message: "erro ao excluir usuário",
-        severity: "error",
-      });
-    deleteUserData &&
-      setOpen({
-        open: true,
-        message: "usuário excluido com sucesso",
-        severity: "success",
-      }),
-      props.onClose();
+    deleteUserError && toast.error("erro ao excluir usuário");
+    deleteUserData && toast.success("usuário excluido com sucesso");
+    props.onClose();
   }, [deleteUserError, deleteUserData]);
 
   return (
@@ -94,25 +68,6 @@ export function DeleteUserDrawer(props: IProps) {
         >
           <CircularProgress color="inherit" />
         </Backdrop>
-
-        <Snackbar
-          open={open.open}
-          autoHideDuration={6000}
-          onClose={() =>
-            setOpen({ open: false, message: "", severity: "info" })
-          }
-        >
-          <Alert
-            onClose={() =>
-              setOpen({ open: false, message: "", severity: "info" })
-            }
-            severity={open.severity}
-            variant="filled"
-            sx={{ width: "100%" }}
-          >
-            {open.message}
-          </Alert>
-        </Snackbar>
       </DialogContent>
       <DialogActions>
         <Button
