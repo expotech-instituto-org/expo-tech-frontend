@@ -3,6 +3,7 @@
 import { Modal } from "@/components/Modal";
 import { loginSchema, TLoginSchema } from "@/schemas";
 import { useLogin } from "@/service/hooks/login";
+import { useGetClasses } from "@/service/hooks/useGetClasses";
 import { usePostCreateUser } from "@/service/hooks/usePostCreateUser";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -38,6 +39,11 @@ export default function Page() {
     postCreateUserError,
     postCreateUserRest,
   } = usePostCreateUser();
+
+  const { getClassesData, getClassesError, getClassesPending } = useGetClasses({
+    enabled: true,
+  });
+
   const {
     register,
     control,
@@ -79,7 +85,7 @@ export default function Page() {
           name: "",
           email: data.email,
           password: data.password,
-          age: data.age,
+          age: Number(data.age),
           class: data.class,
           company: data.company,
           knowledge: data.knowledge,
@@ -94,7 +100,14 @@ export default function Page() {
     postCreateUserError &&
       toast.error("Erro ao fazer cadastro, " + postCreateUserError);
     postCreateUserData && toast.success("Cadastro efetuado com sucesso!");
-  }, [loginError, loginData, postCreateUserError, postCreateUserData]);
+    getClassesError && toast.error("Erro ao buscar turmas");
+  }, [
+    loginError,
+    loginData,
+    postCreateUserError,
+    postCreateUserData,
+    getClassesError,
+  ]);
 
   return (
     <>
@@ -109,10 +122,11 @@ export default function Page() {
           <div className="flex flex-col gap-4">
             <TextField
               {...register("email")}
+              required
               label="E-mail"
               size="small"
               variant="outlined"
-              className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[15rem] "
+              className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[20rem] "
             />
             {errors.email && (
               <span className="text-red-500">{errors.email.message}</span>
@@ -133,7 +147,7 @@ export default function Page() {
                 Senha
               </InputLabel>
               <OutlinedInput
-                className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem] "
+                className=" [&_fieldset]:!border-[var(--azul-primario)] w-[20rem] "
                 id="outlined-adornment-password"
                 type={showPassword ? "text" : "password"}
                 {...register("password")}
@@ -195,7 +209,7 @@ export default function Page() {
                   Confirmação
                 </InputLabel>
                 <OutlinedInput
-                  className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem] "
+                  className=" [&_fieldset]:!border-[var(--azul-primario)] w-[20rem] "
                   id="outlined-adornment-password"
                   type={showPassword ? "text" : "password"}
                   {...register("passwordConfirmation")}
@@ -244,13 +258,13 @@ export default function Page() {
           <div className="flex flex-col gap-4">
             <Controller
               name="age"
-              defaultValue={0}
+              defaultValue={""}
               control={control}
               render={({ field }) => (
                 <TextField
                   required
                   value={field.value}
-                  onChange={(e) => field.onChange(Number(e.target.value) || "")}
+                  onChange={field.onChange}
                   size="small"
                   label="Idade"
                   type="number"
@@ -259,7 +273,7 @@ export default function Page() {
                     "age" in errors && (errors.age?.message as string)
                   }
                   error={"age" in errors}
-                  className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[15rem] "
+                  className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[20rem] "
                 />
               )}
             />
@@ -285,7 +299,7 @@ export default function Page() {
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
                     size="small"
-                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[15rem]"
+                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
                     label="Como conheceu a feira?"
                   >
                     <MenuItem value="0" disabled>
@@ -321,7 +335,7 @@ export default function Page() {
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
                     size="small"
-                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[15rem]"
+                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
                     label="Qual perfil você se encaixa?"
                   >
                     <MenuItem value="0" disabled>
@@ -358,7 +372,7 @@ export default function Page() {
                       labelId="demo-simple-select-label"
                       id="demo-simple-select"
                       size="small"
-                      className="[&_fieldset]:!border-[var(--azul-primario)] w-[15rem]"
+                      className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
                       label="Empresa"
                     >
                       <MenuItem value="0" disabled>
@@ -374,35 +388,45 @@ export default function Page() {
             ) : (
               <FormControl
                 sx={{ m: 1, minWidth: 120 }}
-                className="!m-0"
                 size="small"
+                className="!m-0"
               >
                 <InputLabel
-                  required
+                  {...register("class")}
+                  id="demo-select-small-label"
                   sx={{
                     color: "var(--azul-primario)",
                   }}
-                  id="demo-select-small-label"
-                  size="small"
+                  required
                 >
                   Turma
                 </InputLabel>
-                <Select
-                  className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem] "
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  {...register("class")}
-                  label="Turma"
-                  size="small"
-                  onChange={(e) => {
-                    setValue("class", e.target.value as string);
-                  }}
-                >
-                  <MenuItem value={"0"}>Selecione</MenuItem>
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
-                </Select>
+                <Controller
+                  name="class"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...register("class")}
+                      className=" [&_fieldset]:!border-[var(--azul-primario)]    "
+                      id="demo-select-small-label"
+                      value={field.value}
+                      onChange={field.onChange}
+                      label="Turma"
+                    >
+                      {getClassesData?.length === 0 ? (
+                        <MenuItem disabled key={"0"} value={"0"}>
+                          Turmas não encontradas
+                        </MenuItem>
+                      ) : (
+                        getClassesData?.map((classe) => (
+                          <MenuItem key={classe._id} value={classe._id}>
+                            {classe.name}
+                          </MenuItem>
+                        ))
+                      )}
+                    </Select>
+                  )}
+                />
               </FormControl>
             )}
           </div>
@@ -416,16 +440,16 @@ export default function Page() {
             disabled={!isValid}
             className={`${
               isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"
-            } w-[15rem]`}
+            } w-[20rem]`}
           >
             {isLogin ? "Entrar" : "Próximo"}
           </Button>
           <Button
             variant="outlined"
             onClick={() => {
-              router.push(`/login/inicio`);
+              router.push(`/visitante/login/inicio`);
             }}
-            className="!border-[var(--azul-primario)] !text-[var(--azul-primario)] w-[15rem]"
+            className="!border-[var(--azul-primario)] !text-[var(--azul-primario)] w-[20rem]"
           >
             Voltar
           </Button>
@@ -442,7 +466,7 @@ export default function Page() {
               <div className="flex flex-col gap-4">
                 <Button
                   variant="contained"
-                  className="!bg-[var(--azul-primario)] w-[15rem]"
+                  className="!bg-[var(--azul-primario)] w-[20rem]"
                 >
                   Cadastrar
                 </Button>
@@ -451,7 +475,7 @@ export default function Page() {
                   onClick={() => {
                     setOpenModal(false);
                   }}
-                  className="!border-[var(--azul-primario)] w-[15rem] !text-[var(--azul-primario)]"
+                  className="!border-[var(--azul-primario)] w-[20rem] !text-[var(--azul-primario)]"
                 >
                   Voltar
                 </Button>

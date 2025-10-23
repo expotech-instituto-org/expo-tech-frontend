@@ -41,7 +41,7 @@ export default function Page() {
               </h3>
             </div>
             <p className="normal-case text-[var(--text)] ">
-              Liste, crie, edite, delete e veja projetosde feiras
+              Liste, crie, edite, delete e veja projetos de feiras
             </p>
           </Button>
         </Card>
