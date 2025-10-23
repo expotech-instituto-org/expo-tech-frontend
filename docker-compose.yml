@@ -4,6 +4,7 @@ services:
   frontend-proxy:
     image: nginx:latest
     container_name: frontend-proxy
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
