@@ -125,9 +125,9 @@ export interface IUpsertClassBody {
 }
 
 export interface ICreateExhibitionBody {
-  description: string;
+  description?: string;
   end_date: string;
-  image: string;
+  image?: string;
   name: string;
   start_date: string;
 }

@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { AdapterLuxon } from "@mui/x-date-pickers/AdapterLuxon";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+import { Settings } from "luxon";
+
+Settings.defaultLocale = "pt-BR";
 
 export default function QueryProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -19,6 +23,8 @@ export default function QueryProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <LocalizationProvider dateAdapter={AdapterLuxon} adapterLocale="pt-BR">
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </LocalizationProvider>
   );
 }

@@ -461,27 +461,28 @@ export default function Page() {
             closeModal={() => setOpenModal(false)}
             title="Você ainda não está cadastrado"
             subtitle="Deseja se cadastrar agora?"
-          >
-            <div className="!flex !flex-col !items-center">
-              <div className="flex flex-col gap-4">
-                <Button
-                  variant="contained"
-                  className="!bg-[var(--azul-primario)] w-[20rem]"
-                >
-                  Cadastrar
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    setOpenModal(false);
-                  }}
-                  className="!border-[var(--azul-primario)] w-[20rem] !text-[var(--azul-primario)]"
-                >
-                  Voltar
-                </Button>
+            actions={
+              <div className="!flex !flex-col !items-center">
+                <div className="flex flex-col gap-4">
+                  <Button
+                    variant="contained"
+                    className="!bg-[var(--azul-primario)] w-[20rem]"
+                  >
+                    Cadastrar
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setOpenModal(false);
+                    }}
+                    className="!border-[var(--azul-primario)] w-[20rem] !text-[var(--azul-primario)]"
+                  >
+                    Voltar
+                  </Button>
+                </div>
               </div>
-            </div>
-          </Modal>
+            }
+          />
         )}
       </form>
       <Backdrop
