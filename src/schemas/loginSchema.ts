@@ -29,9 +29,7 @@ export const loginSchema = z
       z.object({ step: z.literal(1) }),
       z.object({
         step: z.literal(2),
-        age: z.coerce.number().refine((val) => val >= 2, {
-          message: "Insira no mínimo 2 caracteres",
-        }),
+        age: z.string().trim().min(1, "Insira no mínimo 1 número"),
         knowledge: z.string().trim().min(2, "Insira no mínimo 2 caracteres"),
         profile: z.string().trim().min(2, "Insira no mínimo 2 caracteres"),
         company: z.string().optional(),

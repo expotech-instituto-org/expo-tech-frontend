@@ -1,6 +1,6 @@
 "use client";
-import { MembersComponent } from "@/components/members";
-import { SwipeableDrawerComponent } from "@/components/swipeableDrawer";
+import { MembersComponent } from "@/components/Members";
+import { SwipeableDrawerComponent } from "@/components/SwipeableDrawer";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";

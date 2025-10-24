@@ -1,5 +1,6 @@
 import {
   Dialog,
+  DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
@@ -9,8 +10,9 @@ interface IProps {
   openModal: boolean;
   closeModal: () => void;
   title: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   subtitle?: string;
+  actions: React.ReactNode;
 }
 
 export function Modal({
@@ -19,6 +21,7 @@ export function Modal({
   closeModal,
   title,
   subtitle,
+  actions,
 }: IProps) {
   return (
     <Dialog open={openModal} onClose={closeModal}>
@@ -33,6 +36,7 @@ export function Modal({
         </DialogContent>
       )}
       <DialogContent>{children}</DialogContent>
+      <DialogActions>{actions}</DialogActions>
     </Dialog>
   );
 }
