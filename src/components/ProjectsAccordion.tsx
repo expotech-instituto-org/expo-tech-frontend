@@ -17,21 +17,21 @@ import {
 } from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { ListCard } from "./ListCard";
 import { Modal } from "./Modal";
-import { toast } from "sonner";
-import { set } from "zod/v4";
+import { useGetProjects } from "@/service/hooks/useGetProjects";
 
 interface IProject {
   id: string;
   name: string;
+  image: string;
 }
 
 interface IProps {
   id: string;
   title: string;
   photo: string;
-  searchProjectByName: (name: string) => void;
   project: IProject[];
 }
 
@@ -50,8 +50,15 @@ export function ProjectsAccordion(props: IProps) {
     deleteExhibitionRest,
   } = useDeleteExhibition();
 
+  const { getProjects, getProjectsData, getProjectsError, getProjectsPending } =
+    useGetProjects({
+      enabled: searchInput.trim().length > 0,
+      exhibition_id: props.id,
+      project_name: searchInput,
+    });
+
   useEffect(() => {
-    props.searchProjectByName(searchInput);
+    getProjects();
   }, [searchInput]);
 
   useEffect(() => {
@@ -63,12 +70,15 @@ export function ProjectsAccordion(props: IProps) {
       }, 3500);
     }
     deleteExhibitionError && toast.error("erro ao excluir exposição");
-  }, [deleteExhibitionError, deleteExhibitionData]);
+    getProjectsError && toast.error("erro ao listar exposição");
+  }, [deleteExhibitionError, deleteExhibitionData, getProjectsError]);
 
   return (
-    <Accordion className="!bg-[var(--azul20)]">
+    <Accordion className="!bg-[var(--azul20)] !rounded-[var(--rounded-sm)] !shadow-none !static">
       <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
+        expandIcon={
+          <ExpandMoreIcon className="!text-[var(--azul-primario)] mx-4" />
+        }
         aria-controls="panel1-content"
         id="panel1-header"
         onClick={(e) => {
@@ -88,13 +98,13 @@ export function ProjectsAccordion(props: IProps) {
               {props.title}
             </Typography>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <IconButton
               className="!bg-[var(--azul-primario)] !text-[var(--azul20)]"
               aria-label="edit"
               onClick={(e) => {
                 e.stopPropagation();
-                setOpenModal(true);
+                router.push(path + `/upsert-exhibition/editar_${props.id}`);
               }}
             >
               <EditOutlinedIcon />
@@ -113,7 +123,7 @@ export function ProjectsAccordion(props: IProps) {
         </div>
       </AccordionSummary>
       <AccordionDetails className="flex flex-col gap-4">
-        {props.project.length !== 0 ? (
+        {props.project.length === 0 ? (
           <h1 className="text-[var(--azul-primario)] font-bold md:text-[1rem] text-[.8rem]">
             Nenhum projeto encontrado
           </h1>
@@ -143,9 +153,18 @@ export function ProjectsAccordion(props: IProps) {
                 Criar projeto
               </Button>
             </div>
-            {props.project.map((project) => (
-              <ListCard isUser={false} key={project.id} {...project} />
-            ))}
+            {getProjectsData && getProjectsData.length > 0
+              ? getProjectsData.map((project) => (
+                  <ListCard
+                    isUser={false}
+                    key={project._id}
+                    id={project._id}
+                    name={project.name}
+                  />
+                ))
+              : props.project.map((project) => (
+                  <ListCard isUser={false} key={project.id} {...project} />
+                ))}
           </>
         )}
       </AccordionDetails>
@@ -193,7 +212,7 @@ export function ProjectsAccordion(props: IProps) {
 
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={deleteExhibitionRest}
+        open={deleteExhibitionRest || getProjectsPending}
       >
         <CircularProgress color="inherit" />
       </Backdrop>

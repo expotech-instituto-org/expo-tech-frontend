@@ -1,6 +1,8 @@
 "use client";
 import { editUserSchema, TEditUserSchema } from "@/schemas/editUserSchema";
 import { useGetClasses } from "@/service/hooks/useGetClasses";
+import { useGetCompanies } from "@/service/hooks/useGetCompanies";
+import { useGetProjects } from "@/service/hooks/useGetProjects";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { usePostCreateUser } from "@/service/hooks/usePostCreateUser";
 import { usePutUpdateUser } from "@/service/hooks/usePutUpdateUser";
@@ -24,7 +26,6 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-import { watch } from "fs";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -36,28 +37,6 @@ interface IProps {
 }
 
 export function UpsertUserDrawer(props: IProps) {
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const { getUserByIdData, getUserByIdError, getUserByIdPending } =
-    useGetUserById({ user_id: props.userId!, enabled: !!props.userId });
-
-  const {
-    postCreateUser,
-    postCreateUserData,
-    postCreateUserError,
-    postCreateUserRest,
-  } = usePostCreateUser();
-
-  const {
-    putUpdateUser,
-    putUpdateUserData,
-    putUpdateUserError,
-    putUpdateUserRest,
-  } = usePutUpdateUser();
-
-  const { getClassesData, getClassesError, getClassesPending } = useGetClasses({
-    enabled: true,
-  });
-
   const {
     handleSubmit,
     register,
@@ -75,6 +54,36 @@ export function UpsertUserDrawer(props: IProps) {
       password: "",
       email: "",
     },
+  });
+
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const { getUserByIdData, getUserByIdError, getUserByIdPending } =
+    useGetUserById({ user_id: props.userId!, enabled: !!props.userId });
+
+  const {
+    postCreateUser,
+    postCreateUserData,
+    postCreateUserError,
+    postCreateUserRest,
+  } = usePostCreateUser();
+
+  const { getCompaniesData, getCompaniesError, getCompaniesPending } =
+    useGetCompanies({
+      enabled: watch("role") === "Cliente" || watch("role") === "Colaborador",
+    });
+
+  const { getProjectsData, getProjectsError, getProjectsPending } =
+    useGetProjects({ enabled: watch("role") === "Cliente" });
+
+  const {
+    putUpdateUser,
+    putUpdateUserData,
+    putUpdateUserError,
+    putUpdateUserRest,
+  } = usePutUpdateUser();
+
+  const { getClassesData, getClassesError, getClassesPending } = useGetClasses({
+    enabled: true,
   });
 
   const handleClose = () => {
@@ -144,6 +153,8 @@ export function UpsertUserDrawer(props: IProps) {
     postCreateUserError && toast.error("Erro ao criar usuário");
     postCreateUserData && toast.success("Usuário criado com sucesso!");
     getClassesError && toast.error("Erro ao buscar turmas");
+    getCompaniesError && toast.error("Erro ao buscar empresas");
+    getProjectsError && toast.error("Erro ao buscar projetos");
   }, [
     getUserByIdError,
     putUpdateUserError,
@@ -151,7 +162,13 @@ export function UpsertUserDrawer(props: IProps) {
     postCreateUserError,
     postCreateUserData,
     getClassesError,
+    getProjectsError,
+    getCompaniesError,
   ]);
+
+  useEffect(() => {
+    console.log(errors);
+  }, [errors]);
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
@@ -161,7 +178,7 @@ export function UpsertUserDrawer(props: IProps) {
       >
         {props.userId ? "Editar" : "Criar"} Usuário
       </DialogTitle>
-      <DialogContent className="flex flex-col gap-6">
+      <DialogContent className="flex flex-col gap-6 !pt-3">
         <Controller
           name="name"
           control={control}
@@ -280,28 +297,35 @@ export function UpsertUserDrawer(props: IProps) {
         </FormControl>
 
         {/* Mostrar campo de empresa */}
-        {watch("role") === "Cliente" ||
-          (watch("role") === "Colaborador" && (
-            <Controller
-              name="company"
-              control={control}
-              defaultValue={""}
-              render={({ field }) => (
-                <Select
-                  {...register("company")}
-                  className=" [&_fieldset]:!border-[var(--azul-primario)]    "
-                  id="demo-select-small-label"
-                  value={field.value}
-                  onChange={field.onChange}
-                  label="Empresa"
-                >
-                  <MenuItem value={"1"}>Ten</MenuItem>
-                  <MenuItem value={"20"}>Twenty</MenuItem>
-                  <MenuItem value={"30"}>Thirty</MenuItem>
-                </Select>
-              )}
-            />
-          ))}
+        {(watch("role") === "Cliente" || watch("role") === "Colaborador") && (
+          <Controller
+            name="company"
+            control={control}
+            defaultValue={""}
+            render={({ field }) => (
+              <Select
+                {...register("company")}
+                className=" [&_fieldset]:!border-[var(--azul-primario)]    "
+                id="demo-select-small-label"
+                value={field.value}
+                onChange={field.onChange}
+                label="Empresa"
+              >
+                {getCompaniesData?.length === 0 ? (
+                  <MenuItem disabled key={"0"} value={"0"}>
+                    Empresas não encontradas
+                  </MenuItem>
+                ) : (
+                  getCompaniesData?.map((classe) => (
+                    <MenuItem key={classe._id} value={classe._id}>
+                      {classe.name}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            )}
+          />
+        )}
 
         {/* Mostrar campo de idade */}
         {watch("role") !== "Administrador" && (
@@ -385,11 +409,19 @@ export function UpsertUserDrawer(props: IProps) {
                 id="demo-select-small-label"
                 value={field.value}
                 onChange={field.onChange}
-                label="Empresa"
+                label="Projeto"
               >
-                <MenuItem value={"1"}>Ten</MenuItem>
-                <MenuItem value={"20"}>Twenty</MenuItem>
-                <MenuItem value={"30"}>Thirty</MenuItem>
+                {getProjectsData?.length === 0 ? (
+                  <MenuItem disabled key={"0"} value={"0"}>
+                    Empresas não encontradas
+                  </MenuItem>
+                ) : (
+                  getProjectsData?.map((classe) => (
+                    <MenuItem key={classe._id} value={classe._id}>
+                      {classe.name}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             )}
           />
@@ -398,7 +430,11 @@ export function UpsertUserDrawer(props: IProps) {
         <Backdrop
           sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
           open={
-            getUserByIdPending || getClassesPending || props.userId
+            getUserByIdPending ||
+            getCompaniesPending ||
+            getClassesPending ||
+            getProjectsPending ||
+            props.userId
               ? putUpdateUserRest
               : postCreateUserRest
           }

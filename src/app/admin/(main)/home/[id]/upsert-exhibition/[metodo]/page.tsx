@@ -6,6 +6,7 @@ import {
   upsertExhibitionSchema,
 } from "@/schemas/upsertExhibition";
 import { usePostCreateExhibition } from "@/service/hooks/usePutCreateExhibition";
+import { IUpdateExhibitionBody } from "@/types/backendTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CloseIcon from "@mui/icons-material/Close";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -94,6 +95,34 @@ export default function Page() {
       });
     }
   };
+
+  const handleSetFormData = (data: IUpdateExhibitionBody) => {
+    // const formData: TUpsertProjectSchema = {
+    //   name: data.name,
+    //   company_name: data.company_name,
+    //   coordinates: data.coordinates,
+    //   description: data.description,
+    //   images: data.images.map((imageName: string) => {
+    //     const file = new File([], imageName, { type: "image/jpeg" });
+    //     return file;
+    //   }),
+    //   participants: data.expositors,
+    // };
+
+    // Object.keys(formData).forEach((field) => {
+    //   setValue(
+    //     field as keyof TUpsertProjectSchema,
+    //     formData[field as keyof TUpsertProjectSchema]
+    //   );
+    // });
+    console.log(data);
+  };
+
+  // useEffect(() => {
+  //   if (!getProjectByIdData) return;
+
+  //   handleSetFormData(getProjectByIdData);
+  // }, [getProjectByIdData]);
 
   function handleExcludeCriteria(name: string, weight: string) {
     setValue(

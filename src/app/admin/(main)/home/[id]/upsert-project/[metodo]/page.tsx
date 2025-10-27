@@ -38,7 +38,7 @@ export default function Page() {
   );
   const isUpdate = params.metodo.split("_")[0] === "editar";
   const exhibitionId = params.metodo.split("_")[1];
-  const projectId = isUpdate ? params.metodo.split("_")[2] : null;
+  const projectId = isUpdate ? params.metodo.split("_")[1] : null;
 
   const { getProjectByIdData, getProjectByIdError, getProjectByIdPending } =
     useGetProjectById({
@@ -106,16 +106,25 @@ export default function Page() {
   };
 
   const handleSetFormData = (data: IGetProjectsResponse) => {
-    const formData: TUpsertProjectSchema = {
-      name: data.name,
-    };
+    // const formData: TUpsertProjectSchema = {
+    //   name: data.name,
+    //   company_name: data.company_name,
+    //   coordinates: data.coordinates,
+    //   description: data.description,
+    //   images: data.images.map((imageName: string) => {
+    //     const file = new File([], imageName, { type: "image/jpeg" });
+    //     return file;
+    //   }),
+    //   participants: data.expositors,
+    // };
 
-    Object.keys(formData).forEach((field) => {
-      setValue(
-        field as keyof TUpsertProjectSchema,
-        formData[field as keyof TUpsertProjectSchema]
-      );
-    });
+    // Object.keys(formData).forEach((field) => {
+    //   setValue(
+    //     field as keyof TUpsertProjectSchema,
+    //     formData[field as keyof TUpsertProjectSchema]
+    //   );
+    // });
+    console.log(data);
   };
 
   useEffect(() => {

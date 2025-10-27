@@ -26,9 +26,6 @@ export default function Page() {
   const { getExhibitionsData, getExhibitionsError, getExhibitionsPending } =
     useGetExhibitions({ enabled: !isUsersPage });
 
-  //TODO - Integrar
-  function handleSearchProjectByName(name: string) {}
-
   useEffect(() => {
     getUsersError && toast.error("erro ao listar usuários");
     getExhibitionsError && toast.error("erro ao listar feiras");
@@ -82,11 +79,11 @@ export default function Page() {
               id={exhibition._id}
               title={exhibition.name}
               photo={exhibition.image || ""}
-              searchProjectByName={handleSearchProjectByName}
               project={
                 exhibition.projects?.map((project) => ({
                   id: project._id,
                   name: project.name,
+                  image: project.logo,
                 })) || []
               }
             />
@@ -96,7 +93,7 @@ export default function Page() {
 
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={getExhibitionsPending || (isUsersPage && getUsersPending)}
+        open={getExhibitionsPending && getUsersPending}
       >
         <CircularProgress color="inherit" />
       </Backdrop>

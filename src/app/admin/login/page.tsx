@@ -1,10 +1,16 @@
 "use client";
 
-import { loginSchema, TLoginSchema } from "@/schemas";
+import {
+  loginAdminSchema,
+  TLoginAdminSchema,
+} from "@/schemas/loginAdminSchema";
+import { useLogin } from "@/service/hooks/login";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
+  Backdrop,
   Button,
+  CircularProgress,
   FormControl,
   IconButton,
   InputAdornment,
@@ -12,8 +18,9 @@ import {
   OutlinedInput,
   TextField,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,19 +29,26 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors, isValid },
-  } = useForm<TLoginSchema>({
-    resolver: standardSchemaResolver(loginSchema),
-    defaultValues: {
-      isLogin: true,
-      step: 1,
-    },
+  } = useForm<TLoginAdminSchema>({
+    resolver: standardSchemaResolver(loginAdminSchema),
     mode: "onChange",
     shouldUnregister: false,
   });
 
-  const onSubmit: SubmitHandler<TLoginSchema> = (data) => {
-    console.log({ data });
+  const { login, loginData, loginError, loginRest } = useLogin();
+
+  const onSubmit: SubmitHandler<TLoginAdminSchema> = (data) => {
+    login({
+      body: {
+        password: data.password,
+        username: data.email,
+      },
+    });
   };
+
+  useEffect(() => {
+    loginError && toast.error("Erro ao logar, " + loginError);
+  }, [loginError]);
 
   return (
     <div className="flex justify-center items-center h-full">
@@ -123,6 +137,13 @@ export default function Login() {
           Login
         </Button>
       </div>
+
+      <Backdrop
+        sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+        open={loginRest}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </div>
   );
 }

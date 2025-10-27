@@ -32,7 +32,7 @@ export function Modal({
         )}
       </DialogTitle>
       <DialogContent className="!pt-4">{children}</DialogContent>
-      <DialogActions>{actions}</DialogActions>
+      <DialogActions className="!justify-around">{actions}</DialogActions>
     </Dialog>
   );
 }

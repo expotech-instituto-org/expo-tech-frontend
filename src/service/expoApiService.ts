@@ -114,6 +114,47 @@ class Service {
 
   getProjectById = ({ project_id }: { project_id: string }) =>
     api.get(`/projects/${project_id}`);
+
+  getKnowledge = () => api.get("/knowledge");
+
+  postCreateknowledge = ({ body }: { body: { name: string } }) =>
+    api.post("/knowledge", body);
+
+  getKnowledgeById = ({ knowledge_id }: { knowledge_id: string }) =>
+    api.get(`/knowledge/${knowledge_id}`);
+
+  putKnowledgeProject = ({
+    knowledge_id,
+    body,
+  }: {
+    knowledge_id: string;
+    body: {
+      _id: string;
+      name: string;
+    };
+  }) => api.put(`/knowledge/${knowledge_id}`, body);
+
+  deleteKnowledge = ({ knowledge_id }: { knowledge_id: string }) =>
+    api.delete(`/knowledge/${knowledge_id}`);
+
+  getCompanies = () => api.get("/companies");
+
+  postCreateCompanies = ({ body }: { body: { name: string } }) =>
+    api.post("/companies", body);
+
+  putCompaniesProject = ({
+    company_id,
+    body,
+  }: {
+    company_id: string;
+    body: {
+      _id: string;
+      name: string;
+    };
+  }) => api.put(`/companies/${company_id}`, body);
+
+  deleteCompanies = ({ company_id }: { company_id: string }) =>
+    api.delete(`/companies/${company_id}`);
 }
 
 export const ExpoApiService = new Service();

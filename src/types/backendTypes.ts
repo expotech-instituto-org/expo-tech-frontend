@@ -196,3 +196,8 @@ export interface ICreateProjectBody {
   logo: string;
   exhibition_id: string;
 }
+
+export interface IIdAndName {
+  _id: string;
+  name: string;
+}

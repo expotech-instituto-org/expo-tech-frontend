@@ -52,7 +52,7 @@ export function DeleteUserDrawer(props: IProps) {
         </p>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent className="!pt-3">
         <TextField
           value={emailToDelete}
           onChange={(e) => setEmailToDelete(e.target.value)}
