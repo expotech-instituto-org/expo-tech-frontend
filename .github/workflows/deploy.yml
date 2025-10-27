@@ -129,16 +129,15 @@ jobs:
               exit 1
             fi
 
-            echo "=> Iniciando healthcheck (GET /) ..."
+            echo "=> Iniciando healthcheck (GET /) via container curl images ..."
             ATTEMPTS=0
             MAX_ATTEMPTS=10
             HEALTHY=false
 
             while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-              OUT=$(docker exec frontend-green-temp node -e 'const http=require("http");http.get("http://127.0.0.1:3000/",res=>{console.log(res.statusCode);process.exit(res.statusCode===200?0:1)}).on("error",e=>{console.error(e.message);process.exit(2)})' 2>/dev/null || true)
-              STATUS=$(echo "$OUT" | tr -d '\r\n')
-              echo "Tentativa $((ATTEMPTS+1))/$MAX_ATTEMPTS - Status: ${STATUS:-N/A}"
-              if [ "$STATUS" = "200" ]; then
+              HTTP_CODE=$(docker run --rm --network "$NETWORK" curlimages/curl:latest -s -o /dev/null -w "%{http_code}" "http://frontend-green-temp:3000/" || echo "000")
+              echo "Tentativa $((ATTEMPTS+1))/$MAX_ATTEMPTS - HTTP $HTTP_CODE"
+              if [ "$HTTP_CODE" = "200" ]; then
                 HEALTHY=true
                 break
               fi
@@ -148,14 +147,12 @@ jobs:
 
             if [ "$HEALTHY" != true ]; then
               echo "❌ Healthcheck falhou! Mantendo versão antiga."
-              docker logs frontend-green-temp || true
+              docker logs frontend-green-temp --tail 200 || true
               docker rm -f frontend-green-temp || true
               exit 1
             fi
 
             echo "✅ Healthcheck OK — promovendo para produção"
-            # (segue promoção: stop rm rename nginx reload)
-
 
             echo "=> Parando e removendo versão anterior"
             docker stop frontend-blue || true
