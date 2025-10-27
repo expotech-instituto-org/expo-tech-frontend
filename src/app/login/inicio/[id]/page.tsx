@@ -185,6 +185,7 @@ export default function Page() {
         <div className="flex flex-col gap-4">
           <TextField
             {...register("age")}
+            size="small"
             label="Idade"
             type="number"
             variant="outlined"
@@ -319,8 +320,9 @@ export default function Page() {
             step === 2 && handleSubmit(onSubmit);
           }}
           disabled={!isValid}
-          className={`${isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"
-            } w-[25rem]`}
+          className={`${
+            isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"
+          } w-[25rem]`}
         >
           Próximo
         </Button>
