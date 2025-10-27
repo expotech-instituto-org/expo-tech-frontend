@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   frontend-proxy:
     image: nginx:latest
@@ -10,12 +12,11 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
-      frontend_net:
-        external: true
-
-volumes:
-  nginx-certs:
+      - frontend_net
 
 networks:
   frontend_net:
     driver: bridge
+
+volumes:
+  nginx-certs:
