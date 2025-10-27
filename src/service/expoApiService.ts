@@ -1,7 +1,10 @@
 import {
   ICreateExhibitionBody,
+  ICreateProjectBody,
   ICreateReviewBody,
   ICreateUserBody,
+  IGetProjectsParams,
+  IGetProjectsResponse,
   IGetUsersResponse,
   ILoginBody,
   IUpdateExhibitionBody,
@@ -81,6 +84,36 @@ class Service {
 
   deleteExhibition = ({ exhibition_id }: { exhibition_id: string }) =>
     api.delete(`/exhibitions/${exhibition_id}`);
+
+  getProjects = ({
+    company_name,
+    exhibition_id,
+    project_name,
+  }: IGetProjectsParams) =>
+    api.get("/projects", {
+      params: {
+        company_name,
+        exhibition_id,
+        project_name,
+      },
+    });
+
+  postCreateProject = ({ body }: { body: ICreateProjectBody }) =>
+    api.post("/projects", body);
+
+  putUpdateProject = ({
+    project_id,
+    body,
+  }: {
+    project_id: string;
+    body: IGetProjectsResponse;
+  }) => api.put(`/projects/${project_id}`, body);
+
+  deleteProject = ({ project_id }: { project_id: string }) =>
+    api.delete(`/projects/${project_id}`);
+
+  getProjectById = ({ project_id }: { project_id: string }) =>
+    api.get(`/projects/${project_id}`);
 }
 
 export const ExpoApiService = new Service();

@@ -130,6 +130,10 @@ export interface ICreateExhibitionBody {
   image?: string;
   name: string;
   start_date: string;
+  criteria: {
+    name: string;
+    weight: number;
+  }[];
 }
 
 export interface IUpdateExhibitionBody {
@@ -138,11 +142,13 @@ export interface IUpdateExhibitionBody {
     name: string;
     weight: number;
   }[];
-  date: string;
-  description: string;
-  image: string;
+  date?: string;
+  end_date: string;
+  start_date: string;
+  description?: string;
+  image?: string;
   name: string;
-  projects: {
+  projects?: {
     _id: string;
     company_name: string;
     logo: string;
@@ -154,4 +160,39 @@ export interface IUpdateExhibitionBody {
     name: string;
     weight: number;
   }[];
+}
+
+export interface IGetProjectsParams {
+  exhibition_id?: string;
+  project_name?: string;
+  company_name?: string;
+}
+
+export interface IGetProjectsResponse {
+  _id: string;
+  company_name: string;
+  coordinates: number;
+  description: string;
+  exhibition_id: string;
+  expositors?: {
+    _id: string;
+    name: string;
+  }[];
+  images: string[];
+  logo: string;
+  name: string;
+}
+
+export interface ICreateProjectBody {
+  name: string;
+  company_name: string;
+  description: string;
+  images: string[];
+  expositors: {
+    id: string;
+    name?: string;
+  }[];
+  coordinates: number;
+  logo: string;
+  exhibition_id: string;
 }

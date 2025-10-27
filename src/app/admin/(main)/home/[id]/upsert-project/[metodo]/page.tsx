@@ -2,15 +2,21 @@
 
 import { AdminTitles } from "@/components/AdminTitles";
 import {
-  TUpsertExhibitionsSchema,
-  upsertExhibitionsSchema,
-} from "@/schemas/upsertExhibitions";
+  TUpsertProjectSchema,
+  upsertProjectSchema,
+} from "@/schemas/upsertProject";
+import { useGetProjectById } from "@/service/hooks/useGetProjectById";
+import { usePostCreateProject } from "@/service/hooks/usePostCreateProject";
+import { usePutUpdateProject } from "@/service/hooks/useUpdateProject";
+import { IGetProjectsResponse } from "@/types/backendTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CloseIcon from "@mui/icons-material/Close";
 import CloudDownloadOutlinedIcon from "@mui/icons-material/CloudDownloadOutlined";
 import {
+  Backdrop,
   Button,
   Checkbox,
+  CircularProgress,
   FormControl,
   IconButton,
   InputLabel,
@@ -25,12 +31,34 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function Page() {
-  const params = useParams();
+  const params = useParams<{ id: string; metodo: string }>();
   const router = useRouter();
   const [selectedLogoIndex, setSelectedLogoIndex] = useState<number | null>(
     null
   );
-  const isUpdate = !!params.name;
+  const isUpdate = params.metodo.split("_")[0] === "editar";
+  const exhibitionId = params.metodo.split("_")[1];
+  const projectId = isUpdate ? params.metodo.split("_")[2] : null;
+
+  const { getProjectByIdData, getProjectByIdError, getProjectByIdPending } =
+    useGetProjectById({
+      project_id: projectId!,
+      enabled: isUpdate,
+    });
+
+  const {
+    putUpdateProject,
+    putUpdateProjectData,
+    putUpdateProjectError,
+    putUpdateProjectRest,
+  } = usePutUpdateProject();
+
+  const {
+    postCreateProject,
+    postCreateProjectData,
+    postCreateProjectError,
+    postCreateProjectRest,
+  } = usePostCreateProject();
 
   const {
     handleSubmit,
@@ -40,8 +68,8 @@ export default function Page() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<TUpsertExhibitionsSchema>({
-    resolver: zodResolver(upsertExhibitionsSchema),
+  } = useForm<TUpsertProjectSchema>({
+    resolver: zodResolver(upsertProjectSchema),
     defaultValues: {
       name: "",
       images: [],
@@ -49,16 +77,52 @@ export default function Page() {
     },
   });
 
-  const onSubmit: SubmitHandler<TUpsertExhibitionsSchema> = (data) => {
-    if (!selectedLogoIndex)
+  const onSubmit: SubmitHandler<TUpsertProjectSchema> = (data) => {
+    if (selectedLogoIndex === null)
       return toast.error("Selecione uma imagem como logo do projeto");
     else {
       if (isUpdate) {
         return toast.success("Projeto atualizado com sucesso");
       }
-      return toast.success("Projeto criado com sucesso");
+
+      postCreateProject({
+        body: {
+          name: data.name,
+          company_name: data.name,
+          description: data.description,
+          images: data.images.map((file) => file.name),
+          expositors: data.participants.map((participant) => {
+            return {
+              id: participant,
+            };
+          }),
+          coordinates: Number(data.coordinates),
+
+          logo: data.images[selectedLogoIndex].name,
+          exhibition_id: exhibitionId,
+        },
+      });
     }
   };
+
+  const handleSetFormData = (data: IGetProjectsResponse) => {
+    const formData: TUpsertProjectSchema = {
+      name: data.name,
+    };
+
+    Object.keys(formData).forEach((field) => {
+      setValue(
+        field as keyof TUpsertProjectSchema,
+        formData[field as keyof TUpsertProjectSchema]
+      );
+    });
+  };
+
+  useEffect(() => {
+    if (!getProjectByIdData) return;
+
+    handleSetFormData(getProjectByIdData);
+  }, [getProjectByIdData]);
 
   useEffect(() => {
     reset();
@@ -67,7 +131,20 @@ export default function Page() {
   useEffect(() => {
     errors.participants && toast.error(errors.participants.message || "");
     errors.images && toast.error(errors.images.message || "");
-  }, [errors]);
+    errors.description && toast.error(errors.description.message);
+    postCreateProjectError && toast.error("erro ao criar projeto");
+    putUpdateProjectError && toast.error("erro ao atualizar projeto");
+    postCreateProjectData && toast.success("Projeto criado com sucesso");
+    putUpdateProjectData && toast.success("Projeto atualizado com sucesso");
+    getProjectByIdError && toast.error("erro ao buscar projeto");
+  }, [
+    errors,
+    postCreateProjectError,
+    putUpdateProjectError,
+    postCreateProjectData,
+    putUpdateProjectData,
+    getProjectByIdError,
+  ]);
 
   return (
     <AdminTitles
@@ -101,16 +178,36 @@ export default function Page() {
         />
 
         <Controller
+          name="company_name"
+          control={control}
+          defaultValue=""
+          render={({ field }) => (
+            <TextField
+              required
+              {...field}
+              helperText={errors.name?.message}
+              size="small"
+              placeholder="Digite o nome da empresa"
+              label="Nome da empresa"
+              type="string"
+              variant="outlined"
+              className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)]  "
+            />
+          )}
+        />
+
+        <Controller
           name="description"
           control={control}
           defaultValue=""
           render={({ field }) => (
             <TextareaAutosize
+              required
               id="description"
               className="!w-full border-1 border-[var(--azul-primario)] border-solid p-2 !rounded-[.5rem] !text-[var(--azul-primario)]"
-              placeholder="Descrição"
+              placeholder="Descrição *"
               {...field}
-              aria-label="Descrição"
+              aria-label="Descrição *"
               minRows={5}
               style={{ width: 200 }}
             />
@@ -136,7 +233,35 @@ export default function Page() {
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
                 {...field}
-                label="Participantes"
+                label="Participantes *"
+              >
+                <MenuItem value={"10"}>Ten</MenuItem>
+                <MenuItem value={"20"}>Twenty</MenuItem>
+                <MenuItem value={"30"}>Thirty</MenuItem>
+              </Select>
+            )}
+          ></Controller>
+        </FormControl>
+
+        <FormControl fullWidth>
+          <InputLabel
+            id="demo-simple-select-label"
+            className="!text-[var(--azul-primario)]  "
+          >
+            Coordenadores
+          </InputLabel>
+          <Controller
+            defaultValue={""}
+            name="coordinates"
+            control={control}
+            render={({ field }) => (
+              <Select
+                required
+                className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)]  "
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                {...field}
+                label="Coordenadores *"
               >
                 <MenuItem value={"10"}>Ten</MenuItem>
                 <MenuItem value={"20"}>Twenty</MenuItem>
@@ -146,7 +271,7 @@ export default function Page() {
           ></Controller>
         </FormControl>
         <h2 className="mt-4 text-[var(--azul-primario)] font-bold md:text-[1rem] text-[.9rem]">
-          Imagens
+          Imagens <span className="text-[var(--error)]">*</span>
         </h2>
 
         <div className="flex flex-col gap-2">
@@ -283,6 +408,16 @@ export default function Page() {
           </Button>
         </div>
       </div>
+      <Backdrop
+        sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+        open={
+          postCreateProjectRest ||
+          putUpdateProjectRest ||
+          (isUpdate ? getProjectByIdPending : false)
+        }
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </AdminTitles>
   );
 }
