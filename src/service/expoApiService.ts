@@ -34,7 +34,12 @@ class Service {
 
   getReadUsersMe = () => api.get(`/users/me`);
 
-  login = ({ body }: { body: ILoginBody }) => api.post("/users/login", body);
+  login = ({ body }: { body: ILoginBody }) =>
+    api.post("/users/login", body, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
 
   getReviews = () => api.get("/reviews");
 
@@ -81,6 +86,9 @@ class Service {
     exhibition_id: string;
     body: IUpdateExhibitionBody;
   }) => api.put(`/exhibitions/${exhibition_id}`, body);
+
+  getExhibitionById = ({ exhibition_id }: { exhibition_id: string }) =>
+    api.get(`/exhibitions/${exhibition_id}`);
 
   deleteExhibition = ({ exhibition_id }: { exhibition_id: string }) =>
     api.delete(`/exhibitions/${exhibition_id}`);

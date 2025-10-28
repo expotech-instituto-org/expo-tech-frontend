@@ -21,8 +21,10 @@ import {
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
-
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 export default function Login() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -48,7 +50,13 @@ export default function Login() {
 
   useEffect(() => {
     loginError && toast.error("Erro ao logar, " + loginError);
-  }, [loginError]);
+    if (loginData) {
+      Cookies.set("admin-token", loginData.access_token, {
+        path: "/",
+      });
+      router.push("/admin/home");
+    }
+  }, [loginError, loginData]);
 
   return (
     <div className="flex justify-center items-center h-full">

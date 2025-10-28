@@ -137,7 +137,7 @@ export interface ICreateExhibitionBody {
 }
 
 export interface IUpdateExhibitionBody {
-  _id: string;
+  id: string;
   criteria: {
     name: string;
     weight: number;
@@ -200,4 +200,9 @@ export interface ICreateProjectBody {
 export interface IIdAndName {
   _id: string;
   name: string;
+}
+
+export interface ILoginResponse {
+  access_token: string;
+  token_type: string;
 }

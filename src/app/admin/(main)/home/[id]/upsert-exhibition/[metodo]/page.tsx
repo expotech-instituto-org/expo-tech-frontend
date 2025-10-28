@@ -5,6 +5,7 @@ import {
   TUpsertExhibitionSchema,
   upsertExhibitionSchema,
 } from "@/schemas/upsertExhibition";
+import { useGetExhibitionById } from "@/service/hooks/useGetExhibitionById";
 import { usePostCreateExhibition } from "@/service/hooks/usePutCreateExhibition";
 import { IUpdateExhibitionBody } from "@/types/backendTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -64,6 +65,15 @@ export default function Page() {
   } = usePostCreateExhibition();
 
   const {
+    getExhibitionByIdData,
+    getExhibitionByIdError,
+    getExhibitionByIdPending,
+  } = useGetExhibitionById({
+    exhibition_id: exhibitionId!,
+    enabled: isUpdate,
+  });
+
+  const {
     handleSubmit,
     control,
     reset,
@@ -97,32 +107,32 @@ export default function Page() {
   };
 
   const handleSetFormData = (data: IUpdateExhibitionBody) => {
-    // const formData: TUpsertProjectSchema = {
-    //   name: data.name,
-    //   company_name: data.company_name,
-    //   coordinates: data.coordinates,
-    //   description: data.description,
-    //   images: data.images.map((imageName: string) => {
-    //     const file = new File([], imageName, { type: "image/jpeg" });
-    //     return file;
-    //   }),
-    //   participants: data.expositors,
-    // };
+    const formData: TUpsertExhibitionSchema = {
+      name: data.name,
+      end_date: DateTime.fromISO(data.end_date),
+      start_date: DateTime.fromISO(data.start_date),
+      description: data.description,
+      criteria: data.criteria.map((c) => ({
+        name: c.name,
+        weight: String(c.weight),
+      })),
+      image: data.image as unknown as File,
+    };
 
-    // Object.keys(formData).forEach((field) => {
-    //   setValue(
-    //     field as keyof TUpsertProjectSchema,
-    //     formData[field as keyof TUpsertProjectSchema]
-    //   );
-    // });
+    Object.keys(formData).forEach((field) => {
+      setValue(
+        field as keyof TUpsertExhibitionSchema,
+        formData[field as keyof TUpsertExhibitionSchema]
+      );
+    });
     console.log(data);
   };
 
-  // useEffect(() => {
-  //   if (!getProjectByIdData) return;
+  useEffect(() => {
+    if (!getExhibitionByIdData) return;
 
-  //   handleSetFormData(getProjectByIdData);
-  // }, [getProjectByIdData]);
+    handleSetFormData(getExhibitionByIdData);
+  }, [getExhibitionByIdData]);
 
   function handleExcludeCriteria(name: string, weight: string) {
     setValue(
@@ -354,8 +364,9 @@ export default function Page() {
                 {field.value && (
                   <div className="flex items-center justify-between bg-[var(--azul20)] text-[var(--azul-primario)] font-[600] rounded px-2 py-1 mt-2">
                     <span>
-                      {field.value.name} (
-                      {(field.value.size / (1024 * 1024)).toFixed(2)} MB)
+                      {isUpdate
+                        ? getExhibitionByIdData?.image
+                        : field.value.name}
                     </span>
                     <IconButton
                       size="small"

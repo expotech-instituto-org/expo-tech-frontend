@@ -73,10 +73,10 @@ export default function Page() {
         })
       ) : (
         <>
-          {getExhibitionsData?.map((exhibition) => (
+          {getExhibitionsData?.map((exhibition, idx) => (
             <ProjectsAccordion
-              key={exhibition._id}
-              id={exhibition._id}
+              key={idx}
+              id={exhibition.id}
               title={exhibition.name}
               photo={exhibition.image || ""}
               project={

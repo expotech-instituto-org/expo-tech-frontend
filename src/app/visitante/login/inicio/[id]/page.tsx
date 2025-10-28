@@ -22,6 +22,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
+import Cookies from "js-cookie";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
@@ -36,12 +37,8 @@ export default function Page() {
   const [showPassword, setShowPassword] = useState(false);
   const [alreadySignedUp, setAlreadySignedUp] = useState(false);
   const { login, loginData, loginError, loginRest } = useLogin();
-  const {
-    postCreateUser,
-    postCreateUserData,
-    postCreateUserError,
-    postCreateUserRest,
-  } = usePostCreateUser();
+  const { postCreateUser, postCreateUserError, postCreateUserRest } =
+    usePostCreateUser();
 
   const { getClassesData, getClassesError, getClassesPending } = useGetClasses({
     enabled: true,
@@ -112,6 +109,14 @@ export default function Page() {
             }
             toast.error(error.response?.data?.message);
           },
+          onSuccess: () => {
+            login({
+              body: {
+                password: data.password,
+                username: data.email,
+              },
+            });
+          },
         }
       );
     }
@@ -119,14 +124,14 @@ export default function Page() {
 
   useEffect(() => {
     loginError && toast.error("Erro ao fazer login, " + loginError);
-    loginData && toast.success("Login efetuado com sucesso!");
     postCreateUserError &&
       toast.error("Erro ao fazer cadastro, " + postCreateUserError);
-    if (postCreateUserData) {
-      toast.success("Cadastro efetuado com sucesso!");
-      setTimeout(() => {
-        router.push("/visitante/login/inicio");
-      }, 3000);
+
+    if (loginData) {
+      Cookies.set("visitante-token", loginData.access_token, {
+        path: "/",
+      });
+      router.push("/visitante/home");
     }
     getClassesError && toast.error("Erro ao buscar turmas");
     getCompaniesError && toast.error("Erro ao buscar empresas");
@@ -135,7 +140,6 @@ export default function Page() {
     loginError,
     loginData,
     postCreateUserError,
-    postCreateUserData,
     getClassesError,
     getCompaniesError,
   ]);
@@ -565,10 +569,10 @@ export default function Page() {
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
         open={
-          loginRest ||
-          postCreateUserRest ||
-          getClassesPending ||
-          getCompaniesPending ||
+          loginRest &&
+          postCreateUserRest &&
+          getClassesPending &&
+          getCompaniesPending &&
           getKnowledgePending
         }
       >
