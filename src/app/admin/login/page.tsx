@@ -40,23 +40,29 @@ export default function Login() {
   const { login, loginData, loginError, loginRest } = useLogin();
 
   const onSubmit: SubmitHandler<TLoginAdminSchema> = (data) => {
-    login({
-      body: {
-        password: data.password,
-        username: data.email,
+    login(
+      {
+        body: {
+          password: data.password,
+          username: data.email,
+        },
       },
-    });
+      {
+        onError: (error) => {
+          toast.error("Erro ao logar, " + loginError);
+        },
+      }
+    );
   };
 
   useEffect(() => {
-    loginError && toast.error("Erro ao logar, " + loginError);
     if (loginData) {
       Cookies.set("admin-token", loginData.access_token, {
         path: "/",
       });
       router.push("/admin/home");
     }
-  }, [loginError, loginData]);
+  }, [loginData]);
 
   return (
     <div className="flex justify-center items-center h-full">

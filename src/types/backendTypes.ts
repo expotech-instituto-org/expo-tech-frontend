@@ -206,3 +206,28 @@ export interface ILoginResponse {
   access_token: string;
   token_type: string;
 }
+
+export interface IToken {
+  sub: string;
+  user_id: string;
+  project_id: string;
+  scope: string;
+  permissions: string[];
+  role: {
+    id: string;
+    name: string;
+  };
+  exp: number;
+}
+
+export interface ICreateRoleBody {
+  _id?: string;
+  name: string;
+  permissions: string[];
+}
+
+export interface IGetRolesResponse {
+  _id: string;
+  name: string;
+  permissions: string[];
+}

@@ -3,6 +3,7 @@ import { editUserSchema, TEditUserSchema } from "@/schemas/editUserSchema";
 import { useGetClasses } from "@/service/hooks/useGetClasses";
 import { useGetCompanies } from "@/service/hooks/useGetCompanies";
 import { useGetProjects } from "@/service/hooks/useGetProjects";
+import { useGetRoles } from "@/service/hooks/useGetRoles";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { usePostCreateUser } from "@/service/hooks/usePostCreateUser";
 import { usePutUpdateUser } from "@/service/hooks/usePutUpdateUser";
@@ -67,9 +68,13 @@ export function UpsertUserDrawer(props: IProps) {
     postCreateUserRest,
   } = usePostCreateUser();
 
+  const { getRolesData, getRolesPending } = useGetRoles({
+    enabled: true,
+  });
+
   const { getCompaniesData, getCompaniesError, getCompaniesPending } =
     useGetCompanies({
-      enabled: watch("role") === "Cliente" || watch("role") === "Colaborador",
+      enabled: true,
     });
 
   const { getProjectsData, getProjectsError, getProjectsPending } =
@@ -281,54 +286,73 @@ export function UpsertUserDrawer(props: IProps) {
             defaultValue={""}
             render={({ field }) => (
               <Select
-                {...register("role")}
                 className=" [&_fieldset]:!border-[var(--azul-primario)]    "
                 id="demo-select-small-label"
-                value={field.value}
-                onChange={field.onChange}
+                {...field}
                 label="Cargo"
               >
-                <MenuItem value={"1"}>Ten</MenuItem>
-                <MenuItem value={"20"}>Twenty</MenuItem>
-                <MenuItem value={"30"}>Thirty</MenuItem>
-              </Select>
-            )}
-          />
-        </FormControl>
-
-        {/* Mostrar campo de empresa */}
-        {(watch("role") === "Cliente" || watch("role") === "Colaborador") && (
-          <Controller
-            name="company"
-            control={control}
-            defaultValue={""}
-            render={({ field }) => (
-              <Select
-                {...register("company")}
-                className=" [&_fieldset]:!border-[var(--azul-primario)]    "
-                id="demo-select-small-label"
-                value={field.value}
-                onChange={field.onChange}
-                label="Empresa"
-              >
-                {getCompaniesData?.length === 0 ? (
+                {getRolesData?.length === 0 ? (
                   <MenuItem disabled key={"0"} value={"0"}>
-                    Empresas não encontradas
+                    Cargos não encontrados
                   </MenuItem>
                 ) : (
-                  getCompaniesData?.map((classe) => (
-                    <MenuItem key={classe._id} value={classe._id}>
-                      {classe.name}
+                  getRolesData?.map((role) => (
+                    <MenuItem key={role._id} value={role.name}>
+                      {role.name}
                     </MenuItem>
                   ))
                 )}
               </Select>
             )}
           />
+        </FormControl>
+
+        {/* Mostrar campo de empresa */}
+        {(watch("role") === "cliente" || watch("role") === "colaborador") && (
+          <FormControl
+            sx={{ m: 1, minWidth: 120 }}
+            size="small"
+            className="!m-0"
+          >
+            <InputLabel
+              {...register("company")}
+              id="demo-select-small-label"
+              sx={{
+                color: "var(--azul-primario)",
+              }}
+            >
+              Empresa
+            </InputLabel>
+            <Controller
+              name="company"
+              control={control}
+              defaultValue={""}
+              render={({ field }) => (
+                <Select
+                  className=" [&_fieldset]:!border-[var(--azul-primario)]    "
+                  id="demo-select-small-label"
+                  {...field}
+                  label="Empresa"
+                >
+                  {getCompaniesData?.length === 0 ? (
+                    <MenuItem disabled key={"0"} value={"0"}>
+                      Empresas não encontradas
+                    </MenuItem>
+                  ) : (
+                    getCompaniesData?.map((company) => (
+                      <MenuItem key={company._id} value={company.name}>
+                        {company.name}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              )}
+            />
+          </FormControl>
         )}
 
         {/* Mostrar campo de idade */}
-        {watch("role") !== "Administrador" && (
+        {watch("role") !== "admin" && (
           <Controller
             name="age"
             defaultValue={""}
@@ -349,8 +373,8 @@ export function UpsertUserDrawer(props: IProps) {
         )}
 
         {/* Mostrar campo de turma */}
-        {watch("role") === "Expositor" ||
-          (watch("role") === "Aluno" && (
+        {watch("role") === "expositor" ||
+          (watch("role") === "aluno" && (
             <FormControl
               sx={{ m: 1, minWidth: 120 }}
               size="small"
@@ -396,7 +420,7 @@ export function UpsertUserDrawer(props: IProps) {
           ))}
 
         {/* Mostrar campo de projeto */}
-        {watch("role") === "Cliente" && (
+        {watch("role") === "cliente" && (
           <Controller
             name="project"
             control={control}
@@ -434,6 +458,7 @@ export function UpsertUserDrawer(props: IProps) {
             getCompaniesPending ||
             getClassesPending ||
             getProjectsPending ||
+            getRolesPending ||
             props.userId
               ? putUpdateUserRest
               : postCreateUserRest

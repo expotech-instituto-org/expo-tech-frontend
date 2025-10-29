@@ -2,6 +2,7 @@ import {
   ICreateExhibitionBody,
   ICreateProjectBody,
   ICreateReviewBody,
+  ICreateRoleBody,
   ICreateUserBody,
   IGetProjectsParams,
   IGetProjectsResponse,
@@ -163,6 +164,19 @@ class Service {
 
   deleteCompanies = ({ company_id }: { company_id: string }) =>
     api.delete(`/companies/${company_id}`);
+
+  getRoles = () => api.get("/roles");
+
+  postCreateRole = ({ body }: { body: ICreateRoleBody }) =>
+    api.post("/roles", body);
+
+  getRoleById = ({ role_id }: { role_id: string }) =>
+    api.get(`/roles/${role_id}`);
+
+  getRoleDefault = () => api.get("/roles/default");
+
+  putRole = ({ role_id, body }: { role_id: string; body: ICreateRoleBody }) =>
+    api.put(`/roles/${role_id}`, body);
 }
 
 export const ExpoApiService = new Service();

@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(req: NextRequest) {
   const { pathname, origin } = req.nextUrl;
-  const adminIsAuth = !!req.cookies.get("admin-token")?.value;
-  const visitanteIsAuth = !!req.cookies.get("visitante-token")?.value;
+  let adminIsAuth = !!req.cookies.get("admin-token")?.value;
+  let visitanteIsAuth = !!req.cookies.get("visitante-token")?.value;
 
   if (req.url.includes("/login")) {
     if (req.url.includes("/admin") && adminIsAuth) {
