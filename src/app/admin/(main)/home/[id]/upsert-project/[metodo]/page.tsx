@@ -106,25 +106,26 @@ export default function Page() {
   };
 
   const handleSetFormData = (data: IGetProjectsResponse) => {
-    // const formData: TUpsertProjectSchema = {
-    //   name: data.name,
-    //   company_name: data.company_name,
-    //   coordinates: data.coordinates,
-    //   description: data.description,
-    //   images: data.images.map((imageName: string) => {
-    //     const file = new File([], imageName, { type: "image/jpeg" });
-    //     return file;
-    //   }),
-    //   participants: data.expositors,
-    // };
+    const formData: TUpsertProjectSchema = {
+      name: data.name,
+      company_name: data.company_name,
+      coordinates: String(data.coordinates),
+      description: data.description,
+      images: data.images.map((imageName: string) => {
+        const file = new File([], imageName, { type: "image/jpeg" });
+        return file;
+      }),
+      participants: data.expositors!.map((expositor) => {
+        return expositor._id;
+      }),
+    };
 
-    // Object.keys(formData).forEach((field) => {
-    //   setValue(
-    //     field as keyof TUpsertProjectSchema,
-    //     formData[field as keyof TUpsertProjectSchema]
-    //   );
-    // });
-    console.log(data);
+    Object.keys(formData).forEach((field) => {
+      setValue(
+        field as keyof TUpsertProjectSchema,
+        formData[field as keyof TUpsertProjectSchema]
+      );
+    });
   };
 
   useEffect(() => {

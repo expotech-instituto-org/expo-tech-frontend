@@ -125,7 +125,6 @@ export default function Page() {
         formData[field as keyof TUpsertExhibitionSchema]
       );
     });
-    console.log(data);
   };
 
   useEffect(() => {

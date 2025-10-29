@@ -1,4 +1,6 @@
 import { useDeleteExhibition } from "@/service/hooks/useDeleteExhibition";
+import { useGetExhibitionById } from "@/service/hooks/useGetExhibitionById";
+import { useGetProjects } from "@/service/hooks/useGetProjects";
 import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -20,19 +22,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ListCard } from "./ListCard";
 import { Modal } from "./Modal";
-import { useGetProjects } from "@/service/hooks/useGetProjects";
-
-interface IProject {
-  id: string;
-  name: string;
-  image: string;
-}
 
 interface IProps {
   id: string;
   title: string;
   photo: string;
-  project: IProject[];
 }
 
 export function ProjectsAccordion(props: IProps) {
@@ -42,6 +36,11 @@ export function ProjectsAccordion(props: IProps) {
     useState("");
   const router = useRouter();
   const path = usePathname();
+
+  const { getExhibitionByIdData } = useGetExhibitionById({
+    enabled: openModal,
+    exhibition_id: props.id,
+  });
 
   const {
     deleteExhibition,
@@ -123,7 +122,7 @@ export function ProjectsAccordion(props: IProps) {
         </div>
       </AccordionSummary>
       <AccordionDetails className="flex flex-col gap-4">
-        {props.project.length === 0 ? (
+        {getExhibitionByIdData?.projects!.length === 0 ? (
           <h1 className="text-[var(--azul-primario)] font-bold md:text-[1rem] text-[.8rem]">
             Nenhum projeto encontrado
           </h1>
@@ -162,8 +161,13 @@ export function ProjectsAccordion(props: IProps) {
                     name={project.name}
                   />
                 ))
-              : props.project.map((project) => (
-                  <ListCard isUser={false} key={project.id} {...project} />
+              : getExhibitionByIdData?.projects!.map((project, idx) => (
+                  <ListCard
+                    isUser={false}
+                    key={idx}
+                    id={project._id}
+                    name={project.name}
+                  />
                 ))}
           </>
         )}

@@ -136,6 +136,14 @@ export interface ICreateExhibitionBody {
   }[];
 }
 
+export interface IGetAllExhibitionsResponse {
+  id: string;
+  name: string;
+  image: string;
+  start_date: string;
+  end_date: string;
+}
+
 export interface IUpdateExhibitionBody {
   id: string;
   criteria: {

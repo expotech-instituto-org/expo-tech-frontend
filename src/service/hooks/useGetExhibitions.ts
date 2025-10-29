@@ -1,4 +1,4 @@
-import { IUpdateExhibitionBody } from "@/types/backendTypes";
+import { IGetAllExhibitionsResponse } from "@/types/backendTypes";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { ExpoApiService } from "../expoApiService";
@@ -8,7 +8,7 @@ export const useGetExhibitions = ({ enabled }: { enabled: boolean }) => {
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
       // Tipando a resposta e erro
-      AxiosResponse<IUpdateExhibitionBody[]>,
+      AxiosResponse<IGetAllExhibitionsResponse[]>,
       AxiosError<{ message: string }>
     >({
       queryKey: ["/exhibitions"],

@@ -79,13 +79,6 @@ export default function Page() {
               id={exhibition.id}
               title={exhibition.name}
               photo={exhibition.image || ""}
-              project={
-                exhibition.projects?.map((project) => ({
-                  id: project._id,
-                  name: project.name,
-                  image: project.logo,
-                })) || []
-              }
             />
           ))}
         </>
