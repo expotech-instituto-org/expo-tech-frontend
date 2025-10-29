@@ -24,10 +24,9 @@ jobs:
       - name: Build & Push Docker Images
         run: |
           IMAGE_BASE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front"
-          # build blue (could be commit-specific if desired)
+          echo "Build & Push das imagens blue e green"
           docker build -t "${IMAGE_BASE}:blue" .
           docker push "${IMAGE_BASE}:blue"
-          # build green
           docker build -t "${IMAGE_BASE}:green" .
           docker push "${IMAGE_BASE}:green"
 
@@ -54,20 +53,19 @@ jobs:
             DEPLOY_PATH=${{ env.DEPLOY_PATH }}
             cd $DEPLOY_PATH
 
-            # Create network if missing and bring up compose (docker compose v2 preferred)
+            echo "Criando rede (se não existir)"
             docker network create frontend_net >/dev/null 2>&1 || true
 
-            if command -v docker >/dev/null 2>&1; then
-              if docker compose version >/dev/null 2>&1; then
-                docker compose -f docker-compose.yml up -d
-              elif command -v docker-compose >/dev/null 2>&1; then
-                docker-compose -f docker-compose.yml up -d
-              else
-                echo "⚠️ docker compose not found on host"
-                exit 1
-              fi
+            echo "Removendo container antigo de proxy (se existir)"
+            docker rm -f frontend-proxy >/dev/null 2>&1 || true
+
+            echo "Subindo containers via docker compose"
+            if docker compose version >/dev/null 2>&1; then
+              docker compose -f docker-compose.yml up -d
+            elif command -v docker-compose >/dev/null 2>&1; then
+              docker-compose -f docker-compose.yml up -d
             else
-              echo "⚠️ docker not available on host"
+              echo "docker compose não encontrado no host"
               exit 1
             fi
 
@@ -92,44 +90,32 @@ jobs:
             echo "=== Iniciando deploy Blue-Green ==="
             cd $DEPLOY_PATH
 
-            echo "=> Ensure network exists: $NETWORK"
+            echo "Garantindo rede existente"
             docker network create $NETWORK >/dev/null 2>&1 || true
 
-            echo "=> Ensure proxy is running (docker compose up -d)"
-            if docker compose -f docker-compose.yml ps >/dev/null 2>&1; then
-              docker compose -f docker-compose.yml up -d
-            elif command -v docker-compose >/dev/null 2>&1; then
-              docker-compose -f docker-compose.yml up -d
-            fi
-
-            echo "=> Login no Docker Hub"
+            echo "Login no Docker Hub"
             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin || true
 
-            echo "=> Pull das imagens"
+            echo "Pull das imagens"
             docker pull "$IMAGE_BLUE"
             docker pull "$IMAGE_GREEN"
 
-            echo "=> Limpando containers antigos (se houver)"
-            docker rm -f frontend-green-temp || true
+            echo "Limpando containers antigos temporários"
+            docker rm -f frontend-green-temp >/dev/null 2>&1 || true
 
-            echo "=> Subindo container temporário (frontend-green-temp) na network $NETWORK"
-            # NOTA: não mapeamos porta host; Nginx se comunica via network
-            docker run -d --name frontend-green-temp --network $NETWORK "$IMAGE_GREEN" || {
-              echo "❌ Falha ao criar container frontend-green-temp"
-              docker logs frontend-green-temp || true
-              exit 1
-            }
+            echo "Subindo novo container (frontend-green-temp)"
+            docker run -d --name frontend-green-temp --network $NETWORK "$IMAGE_GREEN"
 
             sleep 5
 
-            echo "=> Validando se o container está em execução..."
+            echo "Verificando se está rodando..."
             if [ "$(docker ps -q -f name=frontend-green-temp)" = "" ]; then
-              echo "❌ O container frontend-green-temp não está rodando!"
+              echo "O container frontend-green-temp não iniciou corretamente!"
               docker logs frontend-green-temp || true
               exit 1
             fi
 
-            echo "=> Iniciando healthcheck (GET /) via container curl images ..."
+            echo "Healthcheck via curl..."
             ATTEMPTS=0
             MAX_ATTEMPTS=10
             HEALTHY=false
@@ -146,22 +132,18 @@ jobs:
             done
 
             if [ "$HEALTHY" != true ]; then
-              echo "❌ Healthcheck falhou! Mantendo versão antiga."
+              echo "Healthcheck falhou — revertendo para versão anterior."
               docker logs frontend-green-temp --tail 200 || true
               docker rm -f frontend-green-temp || true
               exit 1
             fi
 
-            echo "✅ Healthcheck OK — promovendo para produção"
-
-            echo "=> Parando e removendo versão anterior"
-            docker stop frontend-blue || true
-            docker rm frontend-blue || true
-
-            echo "=> Renomeando container novo para frontend-blue"
+            echo "Healthcheck OK — promovendo versão nova"
+            docker stop frontend-blue >/dev/null 2>&1 || true
+            docker rm frontend-blue >/dev/null 2>&1 || true
             docker rename frontend-green-temp frontend-blue
 
-            echo "=> Recarregando Nginx"
-            docker exec frontend-proxy nginx -s reload || echo "⚠️ Falha ao recarregar Nginx"
+            echo "Recarregando Nginx"
+            docker exec frontend-proxy nginx -s reload || echo "Falha ao recarregar Nginx"
 
-            echo "✅ Deploy concluído com sucesso!"
+            echo "Deploy concluído com sucesso!"
