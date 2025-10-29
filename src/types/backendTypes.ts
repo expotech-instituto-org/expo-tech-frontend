@@ -1,5 +1,5 @@
 export interface ICreateUserBody {
-  age: number;
+  age?: number;
   class?: string;
   company?: string;
   email: string;
@@ -24,8 +24,8 @@ export interface IGetUsersResponse {
   _id?: string;
   name: string;
   active?: boolean;
-  age: number;
-  class: string;
+  age?: number;
+  class?: string;
   company?: string;
   email: string;
   knowledge?: string;
@@ -228,6 +228,16 @@ export interface ICreateRoleBody {
 
 export interface IGetRolesResponse {
   _id: string;
-  name: string;
+  name: TRole;
   permissions: string[];
 }
+
+export type TRole =
+  | "cliente"
+  | "colaborador"
+  | "guest"
+  | "admin"
+  | "professor_tech"
+  | "professor_base"
+  | "expositor"
+  | "";

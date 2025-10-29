@@ -7,7 +7,7 @@ import { useGetRoles } from "@/service/hooks/useGetRoles";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { usePostCreateUser } from "@/service/hooks/usePostCreateUser";
 import { usePutUpdateUser } from "@/service/hooks/usePutUpdateUser";
-import { IGetUsersResponse } from "@/types/backendTypes";
+import { IGetUsersResponse, TRole } from "@/types/backendTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
@@ -48,16 +48,10 @@ export function UpsertUserDrawer(props: IProps) {
     formState: { isValid, errors },
   } = useForm<TEditUserSchema>({
     resolver: zodResolver(editUserSchema),
-    defaultValues: {
-      role: "",
-      age: "",
-      class: "",
-      password: "",
-      email: "",
-    },
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [idRoleSelected, setIdRoleSelected] = useState<string>("");
   const { getUserByIdData, getUserByIdError, getUserByIdPending } =
     useGetUserById({ user_id: props.userId!, enabled: !!props.userId });
 
@@ -78,7 +72,7 @@ export function UpsertUserDrawer(props: IProps) {
     });
 
   const { getProjectsData, getProjectsError, getProjectsPending } =
-    useGetProjects({ enabled: watch("role") === "Cliente" });
+    useGetProjects({ enabled: true });
 
   const {
     putUpdateUser,
@@ -98,45 +92,65 @@ export function UpsertUserDrawer(props: IProps) {
 
   const onSubmit: SubmitHandler<TEditUserSchema> = (data) => {
     if (props.userId) {
-      return putUpdateUser({
-        body: {
-          email: data.email,
-          password: data.password,
-          role: {
-            _id: String(data.role),
-            name: String(data.role),
+      return putUpdateUser(
+        {
+          body: {
+            _id: props.userId,
+            email: data.email,
+            password: data.password,
+            role: {
+              _id: idRoleSelected,
+              name: String(data.role),
+            },
+            name: data.name,
+            ...(data.role === "aluno" ||
+            data.role === "expositor" ||
+            data.role === "guest"
+              ? { age: Number(data.age), class: data.class }
+              : { age: 1, class: "" }),
+            ...((data.role === "cliente" || data.role === "colaborador") && {
+              company: data.company,
+            }),
           },
-          age: Number(data.age),
-          class: String(data.class),
-          name: data.name,
+          user_id: props.userId,
         },
-        user_id: props.userId,
-      });
+        {
+          onSuccess: () => setTimeout(() => window.location.reload(), 2000),
+        }
+      );
     }
     return postCreateUser({
       body: {
-        age: Number(data.age),
-        class: data.class,
         email: data.email,
         password: data.password,
-        role_id: data.role,
+        role_id: idRoleSelected,
         name: data.name,
+        ...(data.role === "aluno" ||
+        data.role === "expositor" ||
+        data.role === "guest"
+          ? { age: Number(data.age), class: data.class }
+          : { age: 1, class: "" }),
+        ...((data.role === "cliente" || data.role === "colaborador") && {
+          company: data.company,
+        }),
       },
     });
   };
 
   const handleSetFormData = (data: IGetUsersResponse) => {
     const formData: TEditUserSchema = {
-      age: String(data.age),
-      class: "1",
       email: data.email,
       password: data.password,
-      role: "1",
+      role: data.role.name as TRole,
       name: data.name,
       company: data.company || "",
-      project: data.project?.name || "",
+      ...(data.role.name === "aluno" ||
+      data.role.name === "expositor" ||
+      data.role.name === "guest"
+        ? { age: String(data.age), class: data.class || "1" }
+        : { age: String(data.age || 1), class: "" }),
     };
-
+    setIdRoleSelected(data.role._id);
     Object.keys(formData).forEach((field) => {
       setValue(
         field as keyof TEditUserSchema,
@@ -191,7 +205,7 @@ export function UpsertUserDrawer(props: IProps) {
           render={({ field }) => (
             <TextField
               {...field}
-              helperText={errors.name?.message}
+              helperText={errors?.name?.message}
               size="small"
               label="Nome"
               type="string"
@@ -221,6 +235,7 @@ export function UpsertUserDrawer(props: IProps) {
         <FormControl variant="outlined">
           <InputLabel
             size="small"
+            {...register("password")}
             htmlFor="outlined-adornment-password"
             sx={{
               color: "var(--azul-primario)",
@@ -292,12 +307,16 @@ export function UpsertUserDrawer(props: IProps) {
                 label="Cargo"
               >
                 {getRolesData?.length === 0 ? (
-                  <MenuItem disabled key={"0"} value={"0"}>
+                  <MenuItem disabled key={""} value={""}>
                     Cargos não encontrados
                   </MenuItem>
                 ) : (
                   getRolesData?.map((role) => (
-                    <MenuItem key={role._id} value={role.name}>
+                    <MenuItem
+                      key={role._id}
+                      onClick={() => setIdRoleSelected(role._id)}
+                      value={role.name}
+                    >
                       {role.name}
                     </MenuItem>
                   ))
@@ -373,82 +392,49 @@ export function UpsertUserDrawer(props: IProps) {
         )}
 
         {/* Mostrar campo de turma */}
-        {watch("role") === "expositor" ||
-          (watch("role") === "aluno" && (
-            <FormControl
-              sx={{ m: 1, minWidth: 120 }}
-              size="small"
-              className="!m-0"
+        {(watch("role") === "expositor" || watch("role") === "aluno") && (
+          <FormControl
+            sx={{ m: 1, minWidth: 120 }}
+            size="small"
+            className="!m-0"
+          >
+            <InputLabel
+              {...register("class")}
+              id="demo-select-small-label"
+              sx={{
+                color: "var(--azul-primario)",
+              }}
+              required
             >
-              <InputLabel
-                {...register("class")}
-                id="demo-select-small-label"
-                sx={{
-                  color: "var(--azul-primario)",
-                }}
-                required
-              >
-                Turma
-              </InputLabel>
-              <Controller
-                name="class"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    {...register("class")}
-                    className=" [&_fieldset]:!border-[var(--azul-primario)]    "
-                    id="demo-select-small-label"
-                    value={field.value}
-                    onChange={field.onChange}
-                    label="Turma"
-                  >
-                    {getClassesData?.length === 0 ? (
-                      <MenuItem disabled key={"0"} value={"0"}>
-                        Turmas não encontradas
-                      </MenuItem>
-                    ) : (
-                      getClassesData?.map((classe) => (
-                        <MenuItem key={classe._id} value={classe._id}>
-                          {classe.name}
-                        </MenuItem>
-                      ))
-                    )}
-                  </Select>
-                )}
-              />
-            </FormControl>
-          ))}
-
-        {/* Mostrar campo de projeto */}
-        {watch("role") === "cliente" && (
-          <Controller
-            name="project"
-            control={control}
-            defaultValue={""}
-            render={({ field }) => (
-              <Select
-                multiple
-                {...register("project")}
-                className=" [&_fieldset]:!border-[var(--azul-primario)]    "
-                id="demo-select-small-label"
-                value={field.value}
-                onChange={field.onChange}
-                label="Projeto"
-              >
-                {getProjectsData?.length === 0 ? (
-                  <MenuItem disabled key={"0"} value={"0"}>
-                    Empresas não encontradas
-                  </MenuItem>
-                ) : (
-                  getProjectsData?.map((classe) => (
-                    <MenuItem key={classe._id} value={classe._id}>
-                      {classe.name}
+              Turma
+            </InputLabel>
+            <Controller
+              name="class"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...register("class")}
+                  className=" [&_fieldset]:!border-[var(--azul-primario)]    "
+                  id="demo-select-small-label"
+                  value={field.value}
+                  onChange={field.onChange}
+                  label="Turma"
+                >
+                  {getClassesData?.length === 0 ? (
+                    <MenuItem disabled key={"0"} value={"0"}>
+                      Turmas não encontradas
                     </MenuItem>
-                  ))
-                )}
-              </Select>
-            )}
-          />
+                  ) : (
+                    getClassesData?.map((classe) => (
+                      <MenuItem key={classe._id} value={classe._id}>
+                        {classe.name}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              )}
+            />
+          </FormControl>
         )}
 
         <Backdrop
@@ -481,7 +467,7 @@ export function UpsertUserDrawer(props: IProps) {
           onClick={handleSubmit(onSubmit)}
           autoFocus
           type="submit"
-          className={`${isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"}`}
+          className="!bg-[var(--azul-primario)]"
         >
           Salvar
         </Button>
