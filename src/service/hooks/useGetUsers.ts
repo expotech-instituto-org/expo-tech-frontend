@@ -8,7 +8,7 @@ export const useGetUsers = () => {
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
       // Tipando a resposta e erro
-      AxiosResponse<{ response: IGetUsersResponse[] }>,
+      AxiosResponse<IGetUsersResponse[]>,
       AxiosError<{ message: string }>
     >({
       queryKey: ["/users"],

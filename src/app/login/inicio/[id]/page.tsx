@@ -209,67 +209,45 @@ export default function Page() {
               )}
             </FormControl>
 
-            {!isLogin && (
-              <FormControl
-                sx={{ m: 1, width: "25ch" }}
-                variant="outlined"
-                className="!m-0"
-              >
-                <InputLabel
-                  required
-                  htmlFor="outlined-adornment-password"
-                  size="small"
-                  sx={{
-                    color: "var(--azul-primario)",
-                  }}
-                >
-                  Confirmação
-                </InputLabel>
-                <OutlinedInput
-                  className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem] "
-                  id="outlined-adornment-password"
-                  type={showPassword ? "text" : "password"}
-                  {...register("passwordConfirmation")}
-                  size="small"
-                  endAdornment={
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label={
-                          showPassword
-                            ? "hide the password"
-                            : "display the password"
-                        }
-                        onClick={() => setShowPassword((show) => !show)}
-                        onMouseDown={(
-                          event: React.MouseEvent<HTMLButtonElement>
-                        ) => event.preventDefault()}
-                        onMouseUp={(
-                          event: React.MouseEvent<HTMLButtonElement>
-                        ) => event.preventDefault()}
-                        edge="end"
-                      >
-                        {showPassword ? (
-                          <VisibilityOff
-                            sx={{
-                              color: "var(--azul-primario)",
-                            }}
-                          />
-                        ) : (
-                          <Visibility
-                            sx={{
-                              color: "var(--azul-primario)",
-                            }}
-                          />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  }
-                  label="Password"
-                />
-              </FormControl>
-            )}
-          </div>
-        )}
+      {step === 2 && (
+        <div className="flex flex-col gap-4">
+          <TextField
+            {...register("age")}
+            size="small"
+            label="Idade"
+            type="number"
+            variant="outlined"
+            className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[25rem] "
+          />
+          <FormControl
+            sx={{ m: 1, minWidth: 120 }}
+            size="small"
+            className="!m-0"
+          >
+            <InputLabel
+              {...register("knowledge")}
+              id="demo-select-small-label"
+              sx={{
+                color: "var(--azul-primario)",
+              }}
+            >
+              Como conheceu a feira?
+            </InputLabel>
+            <Select
+              {...register("knowledge")}
+              className=" [&_fieldset]:!border-[var(--azul-primario)] w-[25rem]   "
+              labelId="demo-select-small-label"
+              id="demo-select-small"
+              onChange={(e) => {
+                setValue("knowledge", e.target.value as number);
+              }}
+              label="Como conheceu a feira?"
+            >
+              <MenuItem value={10}>Ten</MenuItem>
+              <MenuItem value={20}>Twenty</MenuItem>
+              <MenuItem value={30}>Thirty</MenuItem>
+            </Select>
+          </FormControl>
 
         {step === 2 && (
           <div className="flex flex-col gap-4">
@@ -439,28 +417,30 @@ export default function Page() {
           </div>
         )}
 
-        <div className="flex flex-col gap-4">
-          <Button
-            variant="contained"
-            type={isLogin ? "submit" : step === 1 ? "button" : "submit"}
-            onClick={() => !isLogin && setValue("step", 2)}
-            disabled={!isValid}
-            className={`${
-              isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"
-            } w-[15rem]`}
-          >
-            {isLogin ? "Entrar" : "Próximo"}
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              router.push(`/login/inicio`);
-            }}
-            className="!border-[var(--azul-primario)] !text-[var(--azul-primario)] w-[15rem]"
-          >
-            Voltar
-          </Button>
-        </div>
+      <div className="flex flex-col gap-4">
+        <Button
+          variant="contained"
+          onClick={() => {
+            isLogin ? setOpenModal(true) : setStep(2);
+            step === 2 && handleSubmit(onSubmit);
+          }}
+          disabled={!isValid}
+          className={`${
+            isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"
+          } w-[25rem]`}
+        >
+          Próximo
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            router.push(`/login/inicio`);
+          }}
+          className="!border-[var(--azul-primario)] !text-[var(--azul-primario)] w-[25rem]"
+        >
+          Voltar
+        </Button>
+      </div>
 
         {openModal && (
           <Modal
