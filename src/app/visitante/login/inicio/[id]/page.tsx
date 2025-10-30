@@ -1,13 +1,15 @@
 "use client";
 
-import { Modal } from "@/components/modal";
+import { Modal } from "@/components/Modal";
 import { loginSchema, TLoginSchema } from "@/schemas";
 import { useLogin } from "@/service/hooks/login";
+import { useGetClasses } from "@/service/hooks/useGetClasses";
+import { useGetCompanies } from "@/service/hooks/useGetCompanies";
+import { useGetKnowledge } from "@/service/hooks/useGetKnowledge";
 import { usePostCreateUser } from "@/service/hooks/usePostCreateUser";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import {
-  Alert,
   Backdrop,
   Button,
   CircularProgress,
@@ -18,18 +20,13 @@ import {
   MenuItem,
   OutlinedInput,
   Select,
-  Snackbar,
   TextField,
 } from "@mui/material";
+import Cookies from "js-cookie";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-
-interface IFeedback {
-  open: boolean;
-  message: string;
-  severity: "success" | "error" | "info" | "warning";
-}
+import { toast } from "sonner";
 
 export default function Page() {
   const param = useParams();
@@ -38,24 +35,31 @@ export default function Page() {
   const isLogin = param.id === "login";
   const [isFromCompany, setIsFromCompany] = useState<boolean>(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [open, setOpen] = useState<IFeedback>({
-    open: false,
-    message: "",
-    severity: "info",
-  });
+  const [alreadySignedUp, setAlreadySignedUp] = useState(false);
   const { login, loginData, loginError, loginRest } = useLogin();
-  const {
-    postCreateUser,
-    postCreateUserData,
-    postCreateUserError,
-    postCreateUserRest,
-  } = usePostCreateUser();
+  const { postCreateUser, postCreateUserError, postCreateUserRest } =
+    usePostCreateUser();
+
+  const { getClassesData, getClassesError, getClassesPending } = useGetClasses({
+    enabled: true,
+  });
+
+  const { getCompaniesData, getCompaniesError, getCompaniesPending } =
+    useGetCompanies({
+      enabled: !isLogin,
+    });
+
+  const { getKnowledgeData, getKnowledgeError, getKnowledgePending } =
+    useGetKnowledge({
+      enabled: !isLogin,
+    });
   const {
     register,
     control,
     handleSubmit,
     setValue,
     watch,
+    getValues,
     formState: { errors, isValid },
   } = useForm<TLoginSchema>({
     resolver: standardSchemaResolver(loginSchema),
@@ -71,7 +75,7 @@ export default function Page() {
 
   useEffect(() => {
     setValue("knowledge", "0");
-    setValue("profile", "0");
+    setValue("profile", "1");
     setValue("company", "0");
     setValue("class", "0");
   }, []);
@@ -86,46 +90,59 @@ export default function Page() {
       });
 
     if (data.step === 2) {
-      postCreateUser({
-        body: {
-          name: "",
-          email: data.email,
-          password: data.password,
-          age: data.age,
-          class: data.class,
-          company: data.company,
-          knowledge: data.knowledge,
+      postCreateUser(
+        {
+          body: {
+            name: "",
+            email: data.email,
+            password: data.password,
+            age: Number(data.age),
+            class: data.class,
+            company: data.company,
+            knowledge: data.knowledge,
+          },
         },
-      });
+        {
+          onError: (error) => {
+            if (error.response?.status === 409) {
+              setAlreadySignedUp(true);
+            }
+            toast.error(error.response?.data?.message);
+          },
+          onSuccess: () => {
+            login({
+              body: {
+                password: data.password,
+                username: data.email,
+              },
+            });
+          },
+        }
+      );
     }
   };
 
   useEffect(() => {
-    loginError &&
-      setOpen({
-        open: true,
-        message: "Erro ao fazer login, " + loginError,
-        severity: "error",
-      });
-    loginData &&
-      setOpen({
-        open: true,
-        message: "Login efetuado com sucesso!",
-        severity: "success",
-      });
+    loginError && toast.error("Erro ao fazer login, " + loginError);
     postCreateUserError &&
-      setOpen({
-        open: true,
-        message: "Erro ao fazer cadastro, " + postCreateUserError,
-        severity: "error",
+      toast.error("Erro ao fazer cadastro, " + postCreateUserError);
+
+    if (loginData) {
+      Cookies.set("visitante-token", loginData.access_token, {
+        path: "/",
       });
-    postCreateUserData &&
-      setOpen({
-        open: true,
-        message: "Cadastro efetuado com sucesso!",
-        severity: "success",
-      });
-  }, [loginError, loginData, postCreateUserError, postCreateUserData]);
+      router.push("/visitante/home");
+    }
+    getClassesError && toast.error("Erro ao buscar turmas");
+    getCompaniesError && toast.error("Erro ao buscar empresas");
+    getKnowledgeError && toast.error("Erro ao buscar conhecimentos");
+  }, [
+    loginError,
+    loginData,
+    postCreateUserError,
+    getClassesError,
+    getCompaniesError,
+  ]);
 
   return (
     <>
@@ -140,10 +157,11 @@ export default function Page() {
           <div className="flex flex-col gap-4">
             <TextField
               {...register("email")}
+              required
               label="E-mail"
               size="small"
               variant="outlined"
-              className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[15rem] "
+              className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[20rem] "
             />
             {errors.email && (
               <span className="text-red-500">{errors.email.message}</span>
@@ -164,7 +182,7 @@ export default function Page() {
                 Senha
               </InputLabel>
               <OutlinedInput
-                className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem] "
+                className=" [&_fieldset]:!border-[var(--azul-primario)] w-[20rem] "
                 id="outlined-adornment-password"
                 type={showPassword ? "text" : "password"}
                 {...register("password")}
@@ -226,7 +244,7 @@ export default function Page() {
                   Confirmação
                 </InputLabel>
                 <OutlinedInput
-                  className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem] "
+                  className=" [&_fieldset]:!border-[var(--azul-primario)] w-[20rem] "
                   id="outlined-adornment-password"
                   type={showPassword ? "text" : "password"}
                   {...register("passwordConfirmation")}
@@ -275,13 +293,13 @@ export default function Page() {
           <div className="flex flex-col gap-4">
             <Controller
               name="age"
-              defaultValue={0}
+              defaultValue={""}
               control={control}
               render={({ field }) => (
                 <TextField
                   required
                   value={field.value}
-                  onChange={(e) => field.onChange(Number(e.target.value) || "")}
+                  onChange={field.onChange}
                   size="small"
                   label="Idade"
                   type="number"
@@ -290,7 +308,7 @@ export default function Page() {
                     "age" in errors && (errors.age?.message as string)
                   }
                   error={"age" in errors}
-                  className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[15rem] "
+                  className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[20rem] "
                 />
               )}
             />
@@ -316,15 +334,17 @@ export default function Page() {
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
                     size="small"
-                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[15rem]"
+                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
                     label="Como conheceu a feira?"
                   >
                     <MenuItem value="0" disabled>
                       Selecione
                     </MenuItem>
-                    <MenuItem value="10">Ten</MenuItem>
-                    <MenuItem value="20">Twenty</MenuItem>
-                    <MenuItem value="30">Thirty</MenuItem>
+                    {getKnowledgeData?.map((knowledge) => (
+                      <MenuItem key={knowledge._id} value={knowledge._id}>
+                        {knowledge.name}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               )}
@@ -333,7 +353,6 @@ export default function Page() {
             <Controller
               name="profile"
               control={control}
-              defaultValue="0"
               render={({ field }) => (
                 <FormControl
                   sx={{ m: 1, minWidth: 120 }}
@@ -352,15 +371,18 @@ export default function Page() {
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
                     size="small"
-                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[15rem]"
+                    className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
                     label="Qual perfil você se encaixa?"
                   >
                     <MenuItem value="0" disabled>
                       Selecione
                     </MenuItem>
-                    <MenuItem value="10">Ten</MenuItem>
-                    <MenuItem value="20">Twenty</MenuItem>
-                    <MenuItem value="30">Thirty</MenuItem>
+                    <MenuItem value="1" onClick={() => setIsFromCompany(true)}>
+                      Empresa/colaborador
+                    </MenuItem>
+                    <MenuItem value="2" onClick={() => setIsFromCompany(false)}>
+                      Aluno
+                    </MenuItem>
                   </Select>
                 </FormControl>
               )}
@@ -389,15 +411,17 @@ export default function Page() {
                       labelId="demo-simple-select-label"
                       id="demo-simple-select"
                       size="small"
-                      className="[&_fieldset]:!border-[var(--azul-primario)] w-[15rem]"
+                      className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
                       label="Empresa"
                     >
                       <MenuItem value="0" disabled>
                         Selecione
                       </MenuItem>
-                      <MenuItem value="10">Ten</MenuItem>
-                      <MenuItem value="20">Twenty</MenuItem>
-                      <MenuItem value="30">Thirty</MenuItem>
+                      {getCompaniesData?.map((company) => (
+                        <MenuItem key={company._id} value={company._id}>
+                          {company.name}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 )}
@@ -405,35 +429,46 @@ export default function Page() {
             ) : (
               <FormControl
                 sx={{ m: 1, minWidth: 120 }}
-                className="!m-0"
                 size="small"
+                className="!m-0"
               >
                 <InputLabel
-                  required
+                  {...register("class")}
+                  id="demo-select-small-label"
                   sx={{
                     color: "var(--azul-primario)",
                   }}
-                  id="demo-select-small-label"
-                  size="small"
+                  required
                 >
                   Turma
                 </InputLabel>
-                <Select
-                  className=" [&_fieldset]:!border-[var(--azul-primario)] w-[15rem] "
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  {...register("class")}
-                  label="Turma"
-                  size="small"
-                  onChange={(e) => {
-                    setValue("class", e.target.value as string);
-                  }}
-                >
-                  <MenuItem value={"0"}>Selecione</MenuItem>
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
-                </Select>
+                <Controller
+                  name="class"
+                  defaultValue="0"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...register("class")}
+                      className=" [&_fieldset]:!border-[var(--azul-primario)]    "
+                      id="demo-select-small-label"
+                      value={field.value}
+                      onChange={field.onChange}
+                      label="Turma"
+                    >
+                      {getClassesData?.length === 0 ? (
+                        <MenuItem disabled key={"0"} value={"0"}>
+                          Turmas não encontradas
+                        </MenuItem>
+                      ) : (
+                        getClassesData?.map((classe) => (
+                          <MenuItem key={classe._id} value={classe._id}>
+                            {classe.name}
+                          </MenuItem>
+                        ))
+                      )}
+                    </Select>
+                  )}
+                />
               </FormControl>
             )}
           </div>
@@ -447,16 +482,16 @@ export default function Page() {
             disabled={!isValid}
             className={`${
               isValid ? "!bg-[var(--azul-primario)]" : "!bg-gray"
-            } w-[15rem]`}
+            } w-[20rem]`}
           >
             {isLogin ? "Entrar" : "Próximo"}
           </Button>
           <Button
             variant="outlined"
             onClick={() => {
-              router.push(`/login/inicio`);
+              router.push(`/visitante/login/inicio`);
             }}
-            className="!border-[var(--azul-primario)] !text-[var(--azul-primario)] w-[15rem]"
+            className="!border-[var(--azul-primario)] !text-[var(--azul-primario)] w-[20rem]"
           >
             Voltar
           </Button>
@@ -468,51 +503,81 @@ export default function Page() {
             closeModal={() => setOpenModal(false)}
             title="Você ainda não está cadastrado"
             subtitle="Deseja se cadastrar agora?"
-          >
-            <div className="!flex !flex-col !items-center">
-              <div className="flex flex-col gap-4">
-                <Button
-                  variant="contained"
-                  className="!bg-[var(--azul-primario)] w-[15rem]"
-                >
-                  Cadastrar
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    setOpenModal(false);
-                  }}
-                  className="!border-[var(--azul-primario)] w-[15rem] !text-[var(--azul-primario)]"
-                >
-                  Voltar
-                </Button>
+            actions={
+              <div className="!flex !flex-col !items-center">
+                <div className="flex flex-col gap-4">
+                  <Button
+                    variant="contained"
+                    className="!bg-[var(--azul-primario)] w-[20rem]"
+                  >
+                    Cadastrar
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setOpenModal(false);
+                    }}
+                    className="!border-[var(--azul-primario)] w-[20rem] !text-[var(--azul-primario)]"
+                  >
+                    Voltar
+                  </Button>
+                </div>
               </div>
-            </div>
-          </Modal>
+            }
+          />
+        )}
+
+        {alreadySignedUp && (
+          <Modal
+            openModal={alreadySignedUp}
+            closeModal={() => setAlreadySignedUp(false)}
+            title="Ops, essa conta ja foi cadastrada"
+            subtitle="Deseja entrar nessa conta?"
+            actions={
+              <div className="!flex !flex-col !items-center">
+                <div className="flex flex-col gap-4">
+                  <Button
+                    variant="contained"
+                    className="!bg-[var(--azul-primario)] w-[20rem]"
+                    onClick={() => (
+                      login({
+                        body: {
+                          username: getValues("email"),
+                          password: getValues("password"),
+                        },
+                      }),
+                      setAlreadySignedUp(false)
+                    )}
+                  >
+                    Entrar
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setAlreadySignedUp(false);
+                    }}
+                    className="!border-[var(--azul-primario)] w-[20rem] !text-[var(--azul-primario)]"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            }
+          />
         )}
       </form>
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={loginRest || postCreateUserRest}
+        open={
+          loginRest &&
+          postCreateUserRest &&
+          getClassesPending &&
+          getCompaniesPending &&
+          getKnowledgePending
+        }
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-      <Snackbar
-        open={open.open}
-        autoHideDuration={6000}
-        onClose={() => setOpen({ open: false, message: "", severity: "info" })}
-      >
-        <Alert
-          onClose={() =>
-            setOpen({ open: false, message: "", severity: "info" })
-          }
-          severity={open.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {open.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 }

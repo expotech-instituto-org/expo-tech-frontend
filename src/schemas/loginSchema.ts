@@ -29,12 +29,22 @@ export const loginSchema = z
       z.object({ step: z.literal(1) }),
       z.object({
         step: z.literal(2),
-        age: z.coerce.number().refine((val) => val >= 2, {
-          message: "Insira no mínimo 2 caracteres",
-        }),
+        age: z.string().trim().min(1, "Insira no mínimo 1 número"),
         knowledge: z.string().trim().min(2, "Insira no mínimo 2 caracteres"),
-        profile: z.string().trim().min(2, "Insira no mínimo 2 caracteres"),
+        profile: z.string().optional(),
         company: z.string().optional(),
+        class: z.string().optional(),
+      }),
+    ])
+  )
+  .and(
+    z.discriminatedUnion("profile", [
+      z.object({
+        profile: z.literal("1"),
+        class: z.string().optional(),
+      }),
+      z.object({
+        profile: z.literal("2"),
         class: z.string().optional(),
       }),
     ])

@@ -1,27 +1,35 @@
+import { IGetProjectsParams, IGetProjectsResponse } from "@/types/backendTypes";
 import { useQuery } from "@tanstack/react-query";
-import { AxiosError } from "axios";
+import { AxiosError, AxiosResponse } from "axios";
 import { ExpoApiService } from "../expoApiService";
-import { IProject } from "@/types/backendTypes";
 
-interface GetProjectsParams {
-  exhibition_id?: string;
-  project_name?: string;
-  company_name?: string;
-}
-
-export const useGetProjects = (params?: GetProjectsParams) => {
-  const query = useQuery<IProject[], AxiosError<{ message: string }>>({
-    queryKey: ["getProjects", params],
-    queryFn: async () => {
-      const response = await ExpoApiService.getProjects(params);
-      return response.data;
-    },
-    enabled: true
-  });
+export const useGetProjects = ({
+  enabled,
+  company_name,
+  exhibition_id,
+  project_name,
+}: { enabled: boolean } & IGetProjectsParams) => {
+  const { refetch, data, error, isPending, isLoading, isRefetching } =
+    //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
+    useQuery<
+      // Tipando a resposta e erro
+      AxiosResponse<IGetProjectsResponse[]>,
+      AxiosError<{ message: string }>
+    >({
+      queryKey: ["/projects"],
+      queryFn: () =>
+        ExpoApiService.getProjects({
+          company_name,
+          exhibition_id,
+          project_name,
+        }),
+      enabled,
+    });
 
   return {
-    projects: query.data,
-    projectsError: query.error?.response?.data?.message,
-    projectsLoading: query.isLoading,
+    getProjects: refetch,
+    getProjectsData: data?.data,
+    getProjectsError: error?.response?.data?.message,
+    getProjectsPending: isPending || isLoading || isRefetching,
   };
 };

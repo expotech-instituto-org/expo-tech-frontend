@@ -8,7 +8,7 @@ export default function LayoutLogin({
       <img
         src="/images/Logo.svg"
         alt="Logo image"
-        className="w-[10rem] align-middle self-center h-[30rem]"
+        className="w-[10rem] align-middle self-center h-1/5 my-5"
       />
       <div className="bg-[var(--background)] h-full w-full rounded-tl-[var(--rounded-md)] rounded-tr-[var(--rounded-md)] px-12 py-12 flex flex-col gap-20  items-center">
         {children}

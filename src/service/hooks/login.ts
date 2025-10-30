@@ -1,11 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { ExpoApiService } from "../expoApiService";
-import { ILoginBody } from "@/types/backendTypes";
+import { ILoginBody, ILoginResponse } from "@/types/backendTypes";
 
 export const useLogin = () => {
   const { mutate, data, error, isPending } = useMutation<
-    AxiosResponse<{ response: any }>,
+    AxiosResponse<ILoginResponse>,
     AxiosError<{ message: string }>,
     { body: ILoginBody }
   >({
