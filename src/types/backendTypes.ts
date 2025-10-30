@@ -9,6 +9,16 @@ export interface ICreateUserBody {
   phone?: string;
   profile_picture?: string;
   role_id?: string;
+  age: number;
+  class: string;
+  company?: string;
+  email: string;
+  knowledge?: string;
+  name?: string;
+  password: string;
+  phone?: string;
+  profile_picture?: string;
+  role_id: string;
 }
 
 export interface ILoginBody {
@@ -249,3 +259,16 @@ export type TRole =
   | "professor_base"
   | "expositor"
   | "";
+
+
+export interface IProject {
+  _id: string;
+  company_name: string;
+  coordinates: number;
+  description: string;
+  exhibition_id: string;
+  expositors: { _id: string; name: string }[];
+  images: string[];
+  logo: string;
+  name: string;
+}

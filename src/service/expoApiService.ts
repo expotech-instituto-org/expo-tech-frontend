@@ -8,6 +8,7 @@ import {
   IGetProjectsResponse,
   IGetUsersResponse,
   ILoginBody,
+  IProject,
   IUpdateExhibitionBody,
   IUpsertClassBody,
 } from "@/types/backendTypes";
@@ -34,6 +35,14 @@ class Service {
     api.delete(`/users/${user_id}`);
 
   getReadUsersMe = () => api.get(`/users/me`);
+
+  login = ({ body }: { body: ILoginBody }) => api.post("/users/login", body);
+
+    getProjects = (params?: {
+    exhibition_id?: string;
+    project_name?: string;
+    company_name?: string;
+  }) => api.get<IProject[]>("/projects", { params });
 
   login = ({ body }: { body: ILoginBody }) =>
     api.post("/users/login", body, {

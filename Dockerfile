@@ -11,7 +11,6 @@ COPY . .
 
 RUN npm run build
 
-
 FROM node:20-alpine AS runtime
 
 WORKDIR /app
@@ -24,6 +23,6 @@ COPY --from=build /app/tsconfig.json ./
 
 RUN npm ci --omit=dev
 
-EXPOSE 3000
+EXPOSE 4444
 
-CMD ["npm", "start"]
+CMD ["npm", "start", "--", "-p", "4444", "-H", "0.0.0.0"]
