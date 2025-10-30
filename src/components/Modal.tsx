@@ -25,18 +25,14 @@ export function Modal({
 }: IProps) {
   return (
     <Dialog open={openModal} onClose={closeModal}>
-      <DialogTitle className="!text-[var(--azul-primario)] !font-bold !text-[1.5rem]">
+      <DialogTitle className="!text-[var(--azul-primario)] flex flex-col !font-bold !text-[1.5rem]">
         {title}
+        {subtitle && (
+          <span className="font-normal !text-[1rem]">{subtitle}</span>
+        )}
       </DialogTitle>
-      {subtitle && (
-        <DialogContent>
-          <DialogContentText className="!text-[var(--azul70)] !text-center ">
-            {subtitle}
-          </DialogContentText>
-        </DialogContent>
-      )}
-      <DialogContent>{children}</DialogContent>
-      <DialogActions>{actions}</DialogActions>
+      <DialogContent className="!pt-4">{children}</DialogContent>
+      <DialogActions className="!justify-around">{actions}</DialogActions>
     </Dialog>
   );
 }

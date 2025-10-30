@@ -1,5 +1,5 @@
 export interface ICreateUserBody {
-  age: number;
+  age?: number;
   class?: string;
   company?: string;
   email: string;
@@ -24,8 +24,8 @@ export interface IGetUsersResponse {
   _id?: string;
   name: string;
   active?: boolean;
-  age: number;
-  class: string;
+  age?: number;
+  class?: string;
   company?: string;
   email: string;
   knowledge?: string;
@@ -130,19 +130,33 @@ export interface ICreateExhibitionBody {
   image?: string;
   name: string;
   start_date: string;
-}
-
-export interface IUpdateExhibitionBody {
-  _id: string;
   criteria: {
     name: string;
     weight: number;
   }[];
-  date: string;
-  description: string;
-  image: string;
+}
+
+export interface IGetAllExhibitionsResponse {
+  id: string;
   name: string;
-  projects: {
+  image: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface IUpdateExhibitionBody {
+  id: string;
+  criteria: {
+    name: string;
+    weight: number;
+  }[];
+  date?: string;
+  end_date: string;
+  start_date: string;
+  description?: string;
+  image?: string;
+  name: string;
+  projects?: {
     _id: string;
     company_name: string;
     logo: string;
@@ -155,3 +169,83 @@ export interface IUpdateExhibitionBody {
     weight: number;
   }[];
 }
+
+export interface IGetProjectsParams {
+  exhibition_id?: string;
+  project_name?: string;
+  company_name?: string;
+}
+
+export interface IGetProjectsResponse {
+  _id: string;
+  company_name: string;
+  coordinates: number;
+  description: string;
+  exhibition_id: string;
+  expositors?: {
+    _id: string;
+    name: string;
+  }[];
+  images: string[];
+  logo: string;
+  name: string;
+}
+
+export interface ICreateProjectBody {
+  name: string;
+  company_name: string;
+  description: string;
+  images: string[];
+  expositors: {
+    id: string;
+    name?: string;
+  }[];
+  coordinates: number;
+  logo: string;
+  exhibition_id: string;
+}
+
+export interface IIdAndName {
+  _id: string;
+  name: string;
+}
+
+export interface ILoginResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export interface IToken {
+  sub: string;
+  user_id: string;
+  project_id: string;
+  scope: string;
+  permissions: string[];
+  role: {
+    id: string;
+    name: string;
+  };
+  exp: number;
+}
+
+export interface ICreateRoleBody {
+  _id?: string;
+  name: string;
+  permissions: string[];
+}
+
+export interface IGetRolesResponse {
+  _id: string;
+  name: TRole;
+  permissions: string[];
+}
+
+export type TRole =
+  | "cliente"
+  | "colaborador"
+  | "guest"
+  | "admin"
+  | "professor_tech"
+  | "professor_base"
+  | "expositor"
+  | "";

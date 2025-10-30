@@ -7,10 +7,10 @@ export default function Login() {
   const path = usePathname();
   return (
     <div className="flex flex-col gap-8 items-center">
-      <h1 className="text-[var(--azul-primario)] text-center font-bold text-[1.9rem]">
+      <h1 className="text-[var(--azul-primario)] text-center font-bold text-[1.7rem]">
         Bem-vindo(a) a Expo 360!
       </h1>
-      <h2 className="text-[var(--azul-primario)] font-bold text-[1.5rem]">
+      <h2 className="text-[var(--azul-primario)] font-bold text-[1.4rem]">
         Vamos iniciar...
       </h2>
       <div className="flex flex-col gap-4">

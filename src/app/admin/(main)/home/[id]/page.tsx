@@ -1,37 +1,21 @@
 "use client";
 import { AdminTitles } from "@/components/AdminTitles";
 import { ListCard, TUserType } from "@/components/ListCard";
-import { Modal } from "@/components/Modal";
 import { ProjectsAccordion } from "@/components/ProjectsAccordion";
 import { UpsertUserDrawer } from "@/components/UpsertUserDrawer";
 import { useGetExhibitions } from "@/service/hooks/useGetExhibitions";
 import { useGetUsers } from "@/service/hooks/useGetUsers";
-import { usePostCreateExhibition } from "@/service/hooks/usePutCreateExhibition";
 import { Backdrop, Button, CircularProgress, TextField } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { DateTime } from "luxon";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-interface ICreateExhibitionProps {
-  name: string;
-  startDate: DateTime<boolean> | null;
-  endDate: DateTime<boolean> | null;
-}
-
 export default function Page() {
   const params = useParams();
+  const router = useRouter();
+  const path = usePathname();
   const isUsersPage = params.id === "usuarios";
   const [searchByName, setSearchByName] = useState<string>("");
-  const [propsToCreateExhibition, setPropsToCreateExhibition] =
-    useState<ICreateExhibitionProps>({
-      name: "",
-      startDate: null,
-      endDate: null,
-    });
-  const [openCreateExhibitionModal, setOpenCreateExhibitionModal] =
-    useState<boolean>(false);
   const [openUpsertUsersDrawer, setOpenUpsertUsersDrawer] =
     useState<boolean>(false);
 
@@ -39,40 +23,13 @@ export default function Page() {
     enabled: isUsersPage,
   });
 
-  const {
-    getExhibitions,
-    getExhibitionsData,
-    getExhibitionsError,
-    getExhibitionsPending,
-  } = useGetExhibitions({ enabled: !isUsersPage });
-
-  const {
-    postCreateExhibition,
-    postCreateExhibitionData,
-    postCreateExhibitionError,
-    postCreateExhibitionRest,
-  } = usePostCreateExhibition();
-
-  //TODO - Integrar
-  function handleSearchProjectByName(name: string) {}
+  const { getExhibitionsData, getExhibitionsError, getExhibitionsPending } =
+    useGetExhibitions({ enabled: !isUsersPage });
 
   useEffect(() => {
     getUsersError && toast.error("erro ao listar usuários");
     getExhibitionsError && toast.error("erro ao listar feiras");
-    postCreateExhibitionError && toast.error("erro ao criar feira");
-    if (postCreateExhibitionData) {
-      toast.success("feira criada com sucesso");
-      setOpenCreateExhibitionModal(false);
-      setTimeout(() => {
-        getExhibitions();
-      }, 3500);
-    }
-  }, [
-    getUsersError,
-    getExhibitionsError,
-    postCreateExhibitionError,
-    postCreateExhibitionData,
-  ]);
+  }, [getUsersError, getExhibitionsError]);
 
   return (
     <AdminTitles
@@ -94,7 +51,7 @@ export default function Page() {
           onClick={() =>
             isUsersPage
               ? setOpenUpsertUsersDrawer(true)
-              : setOpenCreateExhibitionModal(true)
+              : router.push(path + "/upsert-exhibition/criar")
           }
         >
           Criar {isUsersPage ? "usuário" : "feira"}
@@ -113,19 +70,15 @@ export default function Page() {
               userType={user.role.name?.toLocaleLowerCase() as TUserType}
             />
           );
-        }, <ListCard isUser id={"1"} name={"teste"} email={"teste@"} userType={"administrador"} />)
+        })
       ) : (
         <>
-          {getExhibitionsData?.map((exhibition) => (
+          {getExhibitionsData?.map((exhibition, idx) => (
             <ProjectsAccordion
-              key={exhibition._id}
+              key={idx}
+              id={exhibition.id}
               title={exhibition.name}
-              photo={exhibition.image}
-              searchProjectByName={handleSearchProjectByName}
-              project={exhibition.projects.map((project) => ({
-                id: project._id,
-                name: project.name,
-              }))}
+              photo={exhibition.image || ""}
             />
           ))}
         </>
@@ -133,10 +86,7 @@ export default function Page() {
 
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={
-          postCreateExhibitionRest ||
-          (isUsersPage ? getUsersPending : getExhibitionsPending)
-        }
+        open={getExhibitionsPending && getUsersPending}
       >
         <CircularProgress color="inherit" />
       </Backdrop>
@@ -145,110 +95,6 @@ export default function Page() {
         open={openUpsertUsersDrawer}
         onClose={() => setOpenUpsertUsersDrawer(false)}
       />
-
-      <Modal
-        openModal={openCreateExhibitionModal}
-        closeModal={() => setOpenCreateExhibitionModal(false)}
-        title="Criar feira"
-        actions={
-          <>
-            <Button
-              variant="outlined"
-              onClick={() => setOpenCreateExhibitionModal(false)}
-              className="!text-[var(--azul-primario)] !border-[var(--azul-primario)]"
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="contained"
-              onClick={() => {
-                if (!propsToCreateExhibition.endDate)
-                  return toast.error("data de fim da feira nao pode ser vazia");
-                if (!propsToCreateExhibition.startDate)
-                  return toast.error(
-                    "data de início da feira nao pode ser vazia"
-                  );
-                if (propsToCreateExhibition.name.trim().length === 0)
-                  return toast.error("Nome da feira nao pode ser vazio");
-
-                return postCreateExhibition({
-                  body: {
-                    name: propsToCreateExhibition?.name,
-                    start_date:
-                      propsToCreateExhibition?.startDate.toFormat("yyyy-MM-dd"),
-                    end_date:
-                      propsToCreateExhibition?.endDate.toFormat("yyyy-MM-dd"),
-                  },
-                });
-              }}
-              autoFocus
-              type="submit"
-              className="!bg-[var(--azul-primario)] !text-white"
-            >
-              Salvar
-            </Button>
-          </>
-        }
-      >
-        <TextField
-          value={propsToCreateExhibition?.name}
-          onChange={(e) =>
-            setPropsToCreateExhibition({
-              ...propsToCreateExhibition,
-              name: e.target.value,
-            })
-          }
-          label="Nome da feira"
-          variant="outlined"
-          size="small"
-          className="[&_fieldset]:!border-[var(--azul-primario)] !h-fit rounded-[.5rem] !bg-[var(--background)] [&>*]:!text-[var(--azul-primario)] w-full"
-        />
-
-        <div className="flex w-full mt-4 gap-4">
-          <DatePicker
-            className="[&_fieldset]:!border-[var(--azul-primario)] !h-fit rounded-[.5rem] !bg-[var(--background)] [&>*]:!text-[var(--azul-primario)]"
-            label="Data de início"
-            maxDate={
-              propsToCreateExhibition.endDate
-                ? propsToCreateExhibition.endDate
-                : undefined
-            }
-            value={
-              propsToCreateExhibition.startDate
-                ? propsToCreateExhibition.startDate
-                : null
-            }
-            format="dd/MM/yyyy"
-            onChange={(newValue) =>
-              setPropsToCreateExhibition({
-                ...propsToCreateExhibition,
-                startDate: newValue ? newValue : null,
-              })
-            }
-          />
-          <DatePicker
-            label="Data final"
-            className="[&_fieldset]:!border-[var(--azul-primario)] !h-fit rounded-[.5rem] !bg-[var(--background)] [&>*]:!text-[var(--azul-primario)]"
-            minDate={
-              propsToCreateExhibition.startDate
-                ? propsToCreateExhibition.startDate
-                : undefined
-            }
-            value={
-              propsToCreateExhibition.endDate
-                ? propsToCreateExhibition.endDate
-                : null
-            }
-            format="dd/MM/yyyy"
-            onChange={(newValue) =>
-              setPropsToCreateExhibition({
-                ...propsToCreateExhibition,
-                endDate: newValue ? newValue : null,
-              })
-            }
-          />
-        </div>
-      </Modal>
     </AdminTitles>
   );
 }

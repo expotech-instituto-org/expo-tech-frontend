@@ -29,7 +29,10 @@ export function DeleteUserDrawer(props: IProps) {
 
   function handleSubmit() {
     if (emailToDelete === props.email) {
-      return deleteUser({ user_id: props.userId });
+      return deleteUser(
+        { user_id: props.userId },
+        { onSuccess: () => setTimeout(() => window.location.reload(), 3000) }
+      );
     }
     return toast.error("e-mail incorreto");
   }
@@ -52,7 +55,7 @@ export function DeleteUserDrawer(props: IProps) {
         </p>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent className="!pt-3">
         <TextField
           value={emailToDelete}
           onChange={(e) => setEmailToDelete(e.target.value)}

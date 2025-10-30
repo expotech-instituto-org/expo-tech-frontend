@@ -19,7 +19,7 @@ export default function Page() {
           <IconButton onClick={() => history.back()}>
             <ArrowBackIosIcon className="text-[var(--azul-primario)]" />
           </IconButton>
-          <h1 className="text-[var(--azul-primario)] font-bold text-[30px]">
+          <h1 className="text-[var(--azul-primario)] font-bold text-[1.5rem]">
             Nome do projeto
           </h1>
         </div>
@@ -36,16 +36,16 @@ export default function Page() {
             icon={<FavoriteIcon fontSize="inherit" />}
             emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
           />
-          <Avatar />
+          <Avatar sx={{ width: 24, height: 24 }} />
         </div>
       </div>
-      <p className="text-[var(--text)]">
+      <p className="text-[var(--text)] text-[.9rem]">
         Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptas
         assumenda, quod labore, tempora, nisi nostrum laboriosam possimus
         corrupti necessitatibus provident nobis? In aperiam sequi laborum magni
         esse, fugit eius nobis!
       </p>
-      <h2 className="text-[var(--azul-primario)] font-medium text-center text-3xl">
+      <h2 className="text-[var(--azul-primario)] font-medium text-center text-2xl">
         Integrantes
       </h2>
       <MembersComponent
@@ -84,12 +84,12 @@ export default function Page() {
         ]}
       />
       {!openModal && (
-        <div className="bg-[var(--azul-primario)] fixed bottom-0 w-full right-0 h-[5%] flex items-center justify-center z-[9999]">
+        <div className="bg-[var(--azul-primario)] fixed bottom-0 w-full right-0 h-[9%] flex items-center justify-center z-[9999]">
           <IconButton
             className="!text-center !font-bold !text-3xl !text-white"
             onClick={() => setOpenModal(true)}
           >
-            {isReavaliating ? "Reavaliar" : "Avaliar"}{" "}
+            {isReavaliating ? "Reavaliar" : "Avaliar"}
             <KeyboardArrowUpIcon className="!text-3xl" />
           </IconButton>
         </div>

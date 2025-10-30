@@ -7,15 +7,23 @@ const ACCEPTED_IMAGE_TYPES = [
   "image/jpg",
 ];
 
-export const upsertExhibitionsSchema = z.object({
+export const upsertProjectSchema = z.object({
   name: z
     .string({ error: "Campo obrigatório" })
     .trim()
     .min(3, "Insira no mínimo 3 caracteres"),
-  description: z.string().optional(),
+  company_name: z
+    .string({ error: "Campo obrigatório" })
+    .trim()
+    .min(3, "Insira no mínimo 3 caracteres"),
+  description: z
+    .string({ error: "Campo obrigatório" })
+    .trim()
+    .min(1, "Insira no mínimo 1 caracter no campo descrição"),
   participants: z
     .array(z.string({ error: "Campo obrigatório" }))
     .min(3, "Selecione no mínimo 3 participantes."),
+  coordinates: z.string({ error: "Campo obrigatório" }).min(1),
   images: z
     .array(
       z
@@ -29,4 +37,4 @@ export const upsertExhibitionsSchema = z.object({
     .max(5, "Selecione no máximo 5 arquivos."),
 });
 
-export type TUpsertExhibitionsSchema = z.infer<typeof upsertExhibitionsSchema>;
+export type TUpsertProjectSchema = z.infer<typeof upsertProjectSchema>;
