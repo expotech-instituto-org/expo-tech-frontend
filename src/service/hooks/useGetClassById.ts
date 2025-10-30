@@ -1,31 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { ExpoApiService } from "../expoApiService";
-import { IGetUsersResponse } from "@/types/backendTypes";
+import { IGetClassesResponse } from "@/types/backendTypes";
 
-export const useGetUserById = ({
-  user_id,
+export const useGetClassById = ({
+  class_id,
   enabled,
 }: {
-  user_id: string;
+  class_id: string;
   enabled: boolean;
 }) => {
   const { refetch, data, error, isPending, isLoading, isRefetching } =
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
       // Tipando a resposta e erro
-      AxiosResponse<IGetUsersResponse>,
+      AxiosResponse<IGetClassesResponse>,
       AxiosError<{ message: string }>
     >({
-      queryKey: ["/users/", user_id],
-      queryFn: () => ExpoApiService.getUserById({ user_id }),
+      queryKey: ["/classes/", class_id],
+      queryFn: () => ExpoApiService.getClassById({ class_id }),
       enabled,
     });
 
   return {
-    getUserById: refetch,
-    getUserByIdData: data?.data,
-    getUserByIdError: error?.response?.data?.message,
-    getUserByIdPending: isPending || isLoading || isRefetching,
+    getClassById: refetch,
+    getClassByIdData: data?.data,
+    getClassByIdError: error?.response?.data?.message,
+    getClassByIdPending: isPending || isLoading || isRefetching,
   };
 };

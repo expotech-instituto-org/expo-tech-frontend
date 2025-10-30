@@ -10,6 +10,7 @@ export const loginSchema = z
       .string({ error: "Campo obrigatório" })
       .trim()
       .min(5, "Insira no mínimo 5 caracteres"),
+    step: z.number(),
   })
   .and(
     z.discriminatedUnion("isLogin", [
@@ -25,21 +26,31 @@ export const loginSchema = z
   )
   .and(
     z.discriminatedUnion("step", [
-      z.object({ step: z.literal(true) }),
+      z.object({ step: z.literal(1) }),
       z.object({
-        step: z.literal(false),
-        age: z
-          .string({ error: "Campo obrigatório" })
-          .min(3, "Insira no mínimo 3 caracteres"),
-        knowledge: z.number({ error: "Campo obrigatório" }),
-        profile: z.number({ error: "Campo obrigatório" }),
-        company: z.number().optional(),
-        class: z.number().optional(),
+        step: z.literal(2),
+        age: z.string().trim().min(1, "Insira no mínimo 1 número"),
+        knowledge: z.string().trim().min(2, "Insira no mínimo 2 caracteres"),
+        profile: z.string().optional(),
+        company: z.string().optional(),
+        class: z.string().optional(),
+      }),
+    ])
+  )
+  .and(
+    z.discriminatedUnion("profile", [
+      z.object({
+        profile: z.literal("1"),
+        class: z.string().optional(),
+      }),
+      z.object({
+        profile: z.literal("2"),
+        class: z.string().optional(),
       }),
     ])
   )
   .superRefine((data, ctx) => {
-    if (!data.isLogin) {
+    if (!data.isLogin && data.step === 1) {
       if (data.password !== data.passwordConfirmation) {
         ctx.addIssue({
           code: "custom",
