@@ -56,6 +56,9 @@ jobs:
             echo "Criando rede (se não existir)"
             docker network create frontend_net >/dev/null 2>&1 || true
 
+            echo "Matando containers antigos que usam porta 80"
+            docker ps -q --filter "publish=80" | xargs -r docker rm -f
+
             echo "Removendo container antigo de proxy (se existir)"
             docker rm -f frontend-proxy >/dev/null 2>&1 || true
 
