@@ -1,28 +1,32 @@
 "use client";
-import { useState } from "react";
+import ProjectCard from "@/components/projectCard"; // ajuste o caminho
+import { useGetProjects } from "@/service/hooks/useGetProjects"; // ajuste o caminho
+import { IGetProjectsResponse } from "@/types/backendTypes";
 import {
+  Favorite,
+  FormatListBulleted,
   MapOutlined,
   QrCodeScanner,
   Search,
   Star,
-  FormatListBulleted,
-  Favorite,
 } from "@mui/icons-material";
-import { useGetProjects } from "@/service/hooks/useGetProjects"; // ajuste o caminho
-import ProjectCard from "@/components/projectCard"; // ajuste o caminho
-import { IProject } from "@/types/backendTypes";
+import { Backdrop, CircularProgress } from "@mui/material";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function Home() {
   const [selected, setSelected] = useState("todos");
   const [search, setSearch] = useState("");
 
-  const { projects, projectsLoading, projectsError } = useGetProjects({
-    exhibition_id: "exhibition-uuid-1234",
-  });
+  const { getProjectsData, getProjectsPending, getProjectsError } =
+    useGetProjects({
+      exhibition_id: "exhibition-uuid-1234",
+      project_name: search,
+    });
 
-  console.log("Projetos:", projects);
-  console.log("Carregando:", projectsLoading);
-  console.log("Erro:", projectsError);
+  useEffect(() => {
+    getProjectsError && toast.error("erro ao listar projetos");
+  }, [getProjectsError]);
   return (
     <div>
       <div className="bg-[url(/images/Cabeçalho.png)] w-full h-[9.31rem] bg-fixed fixed top-0 left-0">
@@ -49,6 +53,8 @@ export default function Home() {
         <div className="flex items-center justify-between w-[23.38rem] h-[2.5rem] bg-white border border-gray-300 rounded-[0.625rem] mt-[0.63rem] ml-[1.19rem] px-[0.63rem] shadow-sm">
           <input
             type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar grupo"
             className="w-full outline-none text-[0.875rem]"
           />
@@ -105,39 +111,29 @@ export default function Home() {
           </button>
         </div>
         <div className="mt-4 ml-[1.19rem] grid grid-cols-1 gap-4">
-          {projectsLoading && (
-            <p className="text-[var(--azul-primario)]">
-              Carregando projetos...
-            </p>
-          )}
-          {projectsError && (
-            <p className="text-[var(--error)]">{projectsError}</p>
-          )}
-          {!projectsLoading && !projectsError && projects?.length === 0 && (
-            <p>Nenhum projeto encontrado.</p>
-          )}
-
-          {!projectsLoading &&
-            !projectsError &&
-            projects
-              ?.filter((project: IProject) => {
-                if (selected === "todos") return true;
-                // if (selected === "avaliados") return project.rated; // ou campo equivalente
-                // if (selected === "favoritos") return project.favorited; // ou campo equivalente
-                return true;
-              })
-              .map((project: IProject) => (
-                <ProjectCard
-                  key={project._id}
-                  title={project.name}
-                  subtitle={project.company_name}
-                  imageUrl={ "/images/exampleProjectImage.jpg"} // fallback
-                  favorited={true}
-                  rated={false}
-                />
-              ))}
+          {!getProjectsPending &&
+            !getProjectsError &&
+            getProjectsData?.length === 0 && <p>Nenhum projeto encontrado.</p>}
+          {!getProjectsPending &&
+            !getProjectsError &&
+            getProjectsData?.map((project: IGetProjectsResponse) => (
+              <ProjectCard
+                key={project._id}
+                title={project.name}
+                subtitle={project.company_name}
+                imageUrl={"/images/exampleProjectImage.jpg"} // fallback
+                favorited={true}
+                rated={false}
+              />
+            ))}
         </div>
       </div>
+      <Backdrop
+        sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+        open={getProjectsPending}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </div>
   );
 }
