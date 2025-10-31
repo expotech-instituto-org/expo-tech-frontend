@@ -17,7 +17,7 @@ export const useGetUserById = ({
       AxiosResponse<IGetUsersResponse>,
       AxiosError<{ message: string }>
     >({
-      queryKey: ["/usersById"],
+      queryKey: ["/users/", user_id],
       queryFn: () => ExpoApiService.getUserById({ user_id }),
       enabled,
     });
