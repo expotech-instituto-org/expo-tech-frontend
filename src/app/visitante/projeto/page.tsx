@@ -5,7 +5,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { Avatar, IconButton } from "@mui/material";
+import { Avatar, Container, IconButton } from "@mui/material";
 import Rating from "@mui/material/Rating";
 import { useState } from "react";
 export default function Page() {
@@ -13,7 +13,7 @@ export default function Page() {
   const [isReavaliating, setIsReavaliating] = useState(false);
 
   return (
-    <div className="h-[120vh]">
+    <Container maxWidth="sm" className="h-[120vh]">
       <div className="flex items-center justify-between pt-3">
         <div className="flex items-center gap-2">
           <IconButton onClick={() => history.back()}>
@@ -129,6 +129,6 @@ export default function Page() {
           setOpen={setOpenModal}
         />
       )}
-    </div>
+    </Container>
   );
 }
