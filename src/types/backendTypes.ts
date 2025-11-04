@@ -28,6 +28,7 @@ export interface IGetUsersResponse {
   class?: string;
   company?: string;
   email: string;
+  favorited_projects?: string[];
   knowledge?: string;
   password: string;
   phone?: string;

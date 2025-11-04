@@ -9,10 +9,9 @@ import { cloneElement, useEffect, useState } from "react";
 export default function LayoutHome({
   children,
 }: {
-  children: React.ReactElement<{ userId: string | null }>;
+  children: React.ReactElement;
 }) {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const token = Cookies.get("visitante-token");
@@ -24,9 +23,7 @@ export default function LayoutHome({
       Cookies.remove("visitante-token");
       return router.push("/visitante/login");
     }
-
-    setUserId(decodedToken.user_id);
   }, [router]);
 
-  return <Container maxWidth="sm">{cloneElement(children, { userId })}</Container>;
+  return <>{children}</>;
 }

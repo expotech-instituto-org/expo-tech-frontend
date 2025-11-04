@@ -2,7 +2,9 @@
 import ProjectCard from "@/components/projectCard";
 import { useGetExhibitionCurrent } from "@/service/hooks/useGetExhibitionsCurrent";
 import { useGetProjects } from "@/service/hooks/useGetProjects";
+import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { IGetProjectsResponse } from "@/types/backendTypes";
+import { Button } from "@mui/material";
 import {
   Favorite,
   FormatListBulleted,
@@ -18,6 +20,11 @@ import { toast } from "sonner";
 export default function Home({ userId }: { userId: string | null }) {
   const [selected, setSelected] = useState("todos");
   const [search, setSearch] = useState("");
+
+  const { getUserByIdData, getUserByIdError, getUserByIdPending } =
+    useGetUserById({ user_id: userId || "", enabled: !!userId });
+  console.log(getUserByIdData?._id);
+  const favoriteProjects = getUserByIdData?.favorited_projects || [];
 
   const {
     getExhibitionCurrentData,
@@ -58,6 +65,14 @@ export default function Home({ userId }: { userId: string | null }) {
             Expo360
           </h1>
         </div>
+        <Button
+          variant="contained"
+          color="primary"
+          className="absolute top-4 right-[-50]"
+          onClick={() => {}}
+        >
+          Logout
+        </Button>
       </div>
 
       <div className="pt-[9.31rem]">
@@ -151,7 +166,7 @@ export default function Home({ userId }: { userId: string | null }) {
                 title={project.name}
                 subtitle={project.company_name}
                 imageUrl={"/images/exampleProjectImage.jpg"}
-                favorited={true}
+                favorited={favoriteProjects.includes(project._id) ?? false}
                 rated={false}
               />
             ))}
