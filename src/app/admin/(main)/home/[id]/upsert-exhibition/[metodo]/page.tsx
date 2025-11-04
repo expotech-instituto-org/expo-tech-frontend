@@ -50,6 +50,7 @@ export default function Page() {
     name: "",
     weight: "",
   });
+
   const [openExcludeCriteriaModal, setOpenExcludeCriteriaModal] =
     useState<ITableProps>({
       open: false,

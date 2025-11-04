@@ -6,7 +6,7 @@ interface IProjectProps {
   rated?: boolean;
   imageUrl: string;
   title: string;
-  subtitle?: string;
+  subtitle: string;
 }
 export default function ProjectCard({
   favorited,
@@ -17,23 +17,27 @@ export default function ProjectCard({
 }: IProjectProps) {
   return (
     <div className=" h-[107px] bg-[url(/images/BackgroundCardProject.png)] bg-cover bg-center rounded-[10px] flex justify-left">
-      <Image
+      <img
         src={imageUrl}
         alt="Project Image"
         height={90}
         width={90}
         className="rounded-[10px] h-[90px] w-[90px] ml-[8px] mt-[8px]"
       />
-      <div className="flex flex-col ">
+      <div
+        className={`flex flex-col w-full pr-4 ${
+          favorited === undefined && "justify-center"
+        } `}
+      >
         {rated && <Grade className="text-[var(--amarelo)] mt-[8px] " />}
         {favorited ? (
-          <Favorite
-            className={`text-[var(--error)] mt-[8px] ${
-              rated ? "ml-[4px]" : "ml-[238px]"
-            }`}
-          />
+          <Favorite className={`text-[var(--error)] mt-[8px] self-end`} />
         ) : (
-          <FavoriteBorder className={`text-[var(--error)] mt-[8px] `} />
+          favorited === false && (
+            <FavoriteBorder
+              className={`text-[var(--error)] mt-[8px] self-end `}
+            />
+          )
         )}
         <h1 className="text-[var(--azul-primario)] font-bold  ml-[14px] text-[22px]display:inline">
           {title}

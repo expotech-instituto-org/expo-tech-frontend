@@ -574,10 +574,10 @@ export default function Page() {
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
         open={
-          loginRest &&
-          postCreateUserRest &&
-          getClassesPending &&
-          getCompaniesPending &&
+          loginRest ||
+          postCreateUserRest ||
+          getClassesPending ||
+          getCompaniesPending ||
           getKnowledgePending
         }
       >

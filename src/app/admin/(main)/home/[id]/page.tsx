@@ -19,20 +19,25 @@ export default function Page() {
   const [openUpsertUsersDrawer, setOpenUpsertUsersDrawer] =
     useState<boolean>(false);
 
-  const { getUsersData, getUsersError, getUsersPending } = useGetUsers({
+  const { getUsersData, getUsersError, getUsersRest } = useGetUsers({
     enabled: isUsersPage,
   });
 
   const {
     getExhibitionsData,
+    getExhibitions,
     getExhibitionsError,
-    getExhibitionsRest: getExhibitionsPending,
-  } = useGetExhibitions({ enabled: !isUsersPage });
+    getExhibitionsRest,
+  } = useGetExhibitions({ enabled: !isUsersPage, name: searchByName });
 
   useEffect(() => {
     getUsersError && toast.error("erro ao listar usuários");
     getExhibitionsError && toast.error("erro ao listar feiras");
   }, [getUsersError, getExhibitionsError]);
+
+  useEffect(() => {
+    !isUsersPage && getExhibitions();
+  }, [searchByName]);
 
   return (
     <AdminTitles
@@ -89,7 +94,7 @@ export default function Page() {
 
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={getExhibitionsPending && getUsersPending}
+        open={getExhibitionsRest.isLoading || getUsersRest.isLoading}
       >
         <CircularProgress color="inherit" />
       </Backdrop>
