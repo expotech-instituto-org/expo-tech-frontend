@@ -11,6 +11,7 @@ import {
 import { useGetProjects } from "@/service/hooks/useGetProjects"; // ajuste o caminho
 import ProjectCard from "@/components/projectCard"; // ajuste o caminho
 import { IProject } from "@/types/backendTypes";
+import Carousel from "@/components/Carousel";
 
 export default function Home() {
   const [selected, setSelected] = useState("todos");
@@ -35,7 +36,8 @@ export default function Home() {
       </div>
 
       <div className="pt-[9.31rem]">
-        <div className="bg-black w-[23rem] h-[11.06rem] mt-[0.94rem] ml-[1.38rem] mr-[1.38rem] rounded-[0.625rem]"></div>
+        <Carousel />
+        {/* <div className="bg-black w-[23rem] h-[11.06rem] mt-[0.94rem] ml-[1.38rem] mr-[1.38rem] rounded-[0.625rem]"></div> */}
 
         <div className="mt-[0.88rem] flex">
           <button className="flex items-center justify-center w-[11.38rem] h-[2.25rem] bg-[var(--azul-primario)] rounded-[0.625rem] ml-[1.19rem] text-white font-medium">
@@ -131,7 +133,7 @@ export default function Home() {
                   key={project._id}
                   title={project.name}
                   subtitle={project.company_name}
-                  imageUrl={ "/images/exampleProjectImage.jpg"} // fallback
+                  imageUrl={"/images/exampleProjectImage.jpg"} // fallback
                   favorited={true}
                   rated={false}
                 />
