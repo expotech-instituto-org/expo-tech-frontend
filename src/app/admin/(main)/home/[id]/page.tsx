@@ -23,8 +23,11 @@ export default function Page() {
     enabled: isUsersPage,
   });
 
-  const { getExhibitionsData, getExhibitionsError, getExhibitionsPending } =
-    useGetExhibitions({ enabled: !isUsersPage });
+  const {
+    getExhibitionsData,
+    getExhibitionsError,
+    getExhibitionsRest: getExhibitionsPending,
+  } = useGetExhibitions({ enabled: !isUsersPage });
 
   useEffect(() => {
     getUsersError && toast.error("erro ao listar usuários");

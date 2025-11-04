@@ -121,18 +121,20 @@ export function UpsertUserDrawer(props: IProps) {
     }
     return postCreateUser({
       body: {
-        email: data.email,
-        password: data.password,
-        role_id: idRoleSelected,
-        name: data.name,
-        ...(data.role === "aluno" ||
-        data.role === "expositor" ||
-        data.role === "guest"
-          ? { age: Number(data.age), class: data.class }
-          : { age: 1, class: "" }),
-        ...((data.role === "cliente" || data.role === "colaborador") && {
-          company: data.company,
-        }),
+        user: {
+          email: data.email,
+          password: data.password,
+          role_id: idRoleSelected,
+          name: data.name,
+          ...(data.role === "aluno" ||
+          data.role === "expositor" ||
+          data.role === "guest"
+            ? { age: Number(data.age), class: data.class }
+            : { age: 1, class: "" }),
+          ...((data.role === "cliente" || data.role === "colaborador") && {
+            company: data.company,
+          }),
+        },
       },
     });
   };
