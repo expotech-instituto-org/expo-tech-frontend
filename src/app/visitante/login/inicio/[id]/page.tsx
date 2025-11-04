@@ -93,23 +93,28 @@ export default function Page() {
       postCreateUser(
         {
           body: {
-            name: "",
-            email: data.email,
-            password: data.password,
-            age: Number(data.age),
-            class: data.class,
-            company: data.company,
-            knowledge: data.knowledge,
+            user: {
+              name: "",
+              email: data.email,
+              password: data.password,
+              age: Number(data.age),
+              class: data.class,
+              company: data.company,
+              knowledge: data.knowledge,
+            },
+            profile_picture: "",
           },
         },
         {
-          onError: (error) => {
+          onError(error) {
             if (error.response?.status === 409) {
               setAlreadySignedUp(true);
             }
-            toast.error(error.response?.data?.message);
+            toast.error(
+              "Erro ao criar usuário, " + error.response?.data?.message
+            );
           },
-          onSuccess: () => {
+          onSuccess() {
             login({
               body: {
                 password: data.password,
@@ -131,7 +136,7 @@ export default function Page() {
       Cookies.set("visitante-token", loginData.access_token, {
         path: "/",
       });
-      router.push("/visitante/home");
+      router.push("/visitante/exhibitions");
     }
     getClassesError && toast.error("Erro ao buscar turmas");
     getCompaniesError && toast.error("Erro ao buscar empresas");
@@ -569,10 +574,10 @@ export default function Page() {
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
         open={
-          loginRest &&
-          postCreateUserRest &&
-          getClassesPending &&
-          getCompaniesPending &&
+          loginRest ||
+          postCreateUserRest ||
+          getClassesPending ||
+          getCompaniesPending ||
           getKnowledgePending
         }
       >

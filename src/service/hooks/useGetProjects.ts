@@ -8,7 +8,7 @@ export const useGetProjects = ({
   company_name,
   exhibition_id,
   project_name,
-}: { enabled: boolean } & IGetProjectsParams) => {
+}: { enabled?: boolean } & IGetProjectsParams) => {
   const { refetch, data, error, isPending, isLoading, isRefetching } =
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
