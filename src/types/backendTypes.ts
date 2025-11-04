@@ -144,6 +144,10 @@ export interface IGetAllExhibitionsResponse {
   end_date: string;
 }
 
+export interface IGetExhibitionCurrentResponse {
+  _id: string;
+}
+
 export interface IUpdateExhibitionBody {
   id: string;
   criteria: {

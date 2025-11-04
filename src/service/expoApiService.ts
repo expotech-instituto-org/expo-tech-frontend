@@ -77,6 +77,7 @@ class Service {
     api.delete(`/classes/${class_id}`);
 
   getExhibitions = () => api.get("/exhibitions");
+  getExhibitionsCurrent = () => api.get("/exhibitions/current");
 
   postCreateExhibition = ({ body }: { body: ICreateExhibitionBody }) =>
     api.post("/exhibitions", body);
