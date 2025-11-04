@@ -6,17 +6,17 @@ Aplicativo web desenvolvido para a **ExpoTech**, feira de tecnologia do **Germin
 
 ## 🚀 Tecnologias Utilizadas
 
-- **Next.js 15** → Framework React para renderização híbrida (SSR/SSG) e otimização de performance.
-- **React 19 + TypeScript** → Base da aplicação, garantindo tipagem estática e desenvolvimento mais seguro.
-- **TailwindCSS 4** → Estilização rápida e consistente com classes utilitárias.
-- **Material UI (MUI)** → Conjunto de componentes visuais prontos e personalizáveis.
-- **React Hook Form + Zod** → Criação e validação de formulários de forma eficiente.
-- **TanStack React Query** → Gerenciamento de requisições assíncronas e cache de dados da API.
-- **Axios** → Cliente HTTP para comunicação com o backend.
-- **Dayjs / Luxon** → Manipulação e formatação de datas.
-- **JWT Decode + JS Cookie** → Controle de autenticação via tokens e cookies.
-- **Sonner** → Exibição de notificações elegantes e configuráveis.
-- **ESLint** → Padronização e qualidade do código durante o desenvolvimento.
+- **Next.js 15** → Framework React para renderização híbrida (SSR/SSG) e otimização de performance.  
+- **React 19 + TypeScript** → Base da aplicação, garantindo tipagem estática e desenvolvimento mais seguro.  
+- **TailwindCSS 4** → Estilização rápida e consistente com classes utilitárias.  
+- **Material UI (MUI)** → Conjunto de componentes visuais prontos e personalizáveis.  
+- **React Hook Form + Zod** → Criação e validação de formulários de forma eficiente.  
+- **TanStack React Query** → Gerenciamento de requisições assíncronas e cache de dados da API.  
+- **Axios** → Cliente HTTP para comunicação com o backend.  
+- **Dayjs / Luxon** → Manipulação e formatação de datas.  
+- **JWT Decode + JS Cookie** → Controle de autenticação via tokens e cookies.  
+- **Sonner** → Exibição de notificações elegantes e configuráveis.  
+- **ESLint** → Padronização e qualidade do código durante o desenvolvimento. 
 
 ---
 
