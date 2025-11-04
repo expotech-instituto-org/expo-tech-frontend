@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Expo Tech 🌐
 
-## Getting Started
+Aplicativo web desenvolvido para a **ExpoTech**, feira de tecnologia do **Germinare Tech**, com o objetivo de apresentar projetos e soluções inovadoras criadas pelos alunos.
 
-First, run the development server:
+---
+
+## 🚀 Tecnologias Utilizadas
+
+- **Next.js 15** → Framework React para renderização híbrida (SSR/SSG) e otimização de performance.  
+- **React 19 + TypeScript** → Base da aplicação, garantindo tipagem estática e desenvolvimento mais seguro.  
+- **TailwindCSS 4** → Estilização rápida e consistente com classes utilitárias.  
+- **Material UI (MUI)** → Conjunto de componentes visuais prontos e personalizáveis.  
+- **React Hook Form + Zod** → Criação e validação de formulários de forma eficiente.  
+- **TanStack React Query** → Gerenciamento de requisições assíncronas e cache de dados da API.  
+- **Axios** → Cliente HTTP para comunicação com o backend.  
+- **Dayjs / Luxon** → Manipulação e formatação de datas.  
+- **JWT Decode + JS Cookie** → Controle de autenticação via tokens e cookies.  
+- **Sonner** → Exibição de notificações elegantes e configuráveis.  
+- **ESLint** → Padronização e qualidade do código durante o desenvolvimento. 
+
+---
+
+## ⚙️ Configuração do Ambiente
+
+Antes de iniciar o projeto, crie um arquivo **.env** na raiz do diretório e adicione a seguinte variável de ambiente:
+
+```bash
+NEXT_PUBLIC_BACKEND_URL="url do back"
+```
+
+## 🧩 Como rodar o projeto
+
+No terminal, execute:
+
+```bash
+npm install
+```
+
+Inicie o servidor de desenvolvimento rodando:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse o aplicativo localmente no seu navegador:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+http://localhost:3000
+```
