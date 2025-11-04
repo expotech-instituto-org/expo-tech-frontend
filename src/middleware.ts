@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/admin/home", origin));
     }
     if (req.url.includes("/visitante") && visitanteIsAuth) {
-      return NextResponse.redirect(new URL("/visitante/home", origin));
+      return NextResponse.redirect(new URL("/visitante/exhibitions", origin));
     }
     return NextResponse.next();
   }

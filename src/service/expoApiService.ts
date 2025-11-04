@@ -8,7 +8,6 @@ import {
   IGetProjectsResponse,
   IGetUsersResponse,
   ILoginBody,
-  IProject,
   IUpdateExhibitionBody,
   IUpsertClassBody,
 } from "@/types/backendTypes";
@@ -17,8 +16,25 @@ import { api } from "./api";
 class Service {
   getUsers = () => api.get("/users");
 
-  postCreateUser = ({ body }: { body: ICreateUserBody }) =>
-    api.post("/users", body);
+  postCreateUser = ({ body }: { body: ICreateUserBody }) => {
+    const formData = new FormData();
+
+    // Append o campo user como string JSON
+    formData.append("user", JSON.stringify(body.user));
+
+    // Se houver arquivo
+    if (body.profile_picture) {
+      // Supondo que body.profile_picture seja um File (ex: do <input type="file" />)
+      formData.append("profile_picture", body.profile_picture);
+    }
+
+    return api.post("/users", formData, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "multipart/form-data", // Axios define o boundary automaticamente, mas não machuca definir
+      },
+    });
+  };
 
   getUserById = ({ user_id }: { user_id: string }) =>
     api.get(`/users/${user_id}`);
