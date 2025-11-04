@@ -22,4 +22,12 @@ const eslintConfig = [
   },
 ];
 
+module.exports = {
+  rules: {
+    '@typescript-eslint/no-unused-expressions': 'off',
+
+    "padded-blocks": "off",
+  },
+};
+
 export default eslintConfig;
