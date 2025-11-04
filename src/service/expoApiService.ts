@@ -36,12 +36,17 @@ class Service {
 
   getReadUsersMe = () => api.get(`/users/me`);
 
-  login = ({ body }: { body: ILoginBody }) =>
-    api.post("/users/login", body, {
+  login = ({ body }: { body: ILoginBody }) => {
+    const params = new URLSearchParams();
+    params.append("username", body.username);
+    params.append("password", body.password);
+
+    return api.post("/users/login", params.toString(), {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
+  };
 
   getReviews = () => api.get("/reviews");
 
