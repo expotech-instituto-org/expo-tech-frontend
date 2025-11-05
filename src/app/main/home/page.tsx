@@ -74,6 +74,8 @@ export default function Home() {
     exhibition_id: getExhibitionCurrentData?._id || "",
     project_name: search,
   });
+  console.log(getExhibitionCurrentData?._id)
+  console.log(getProjectsData)
 
   useEffect(() => {
     if (getExhibitionCurrentData?._id) {
@@ -91,7 +93,6 @@ export default function Home() {
     if (getProjectsError) toast.error("Erro ao listar projetos");
     if (getExhibitionCurrentError) toast.error("Erro ao obter feira atual");
   }, [getProjectsError, getExhibitionCurrentError]);
-  // Logo antes do return
 
   const filteredProjects = getProjectsData?.filter(
     (project: IGetProjectsResponse) => {
@@ -219,9 +220,10 @@ export default function Home() {
             filteredProjects?.map((project: IGetProjectsResponse) => (
               <ProjectCard
                 key={project._id}
+                project_id={project._id}
                 title={project.name}
                 subtitle={project.company_name}
-                imageUrl={"/images/exampleProjectImage.jpg"}
+                imageUrl={project.logo}
                 favorited={favoriteProjects.includes(project._id) ?? false}
                 onFavoriteToggle={() => favoriteProject(project._id)}
                 rated={
@@ -236,7 +238,7 @@ export default function Home() {
       {/* Loader */}
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={getProjectsPending} //|| getExhibitionCurrentPending}
+        open={getProjectsPending|| getExhibitionCurrentPending}
       >
         <CircularProgress color="inherit" />
       </Backdrop>
