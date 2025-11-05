@@ -53,7 +53,7 @@ export default function Home() {
       { project_id },
       {
         onSuccess: (data) => {
-          if (data.data.response === true) {
+          if (data.data === true) {
             toast.success("Projeto favoritado com sucesso!");
           } else {
             toast.success("Projeto desfavoritado com sucesso!");
@@ -195,6 +195,7 @@ export default function Home() {
               .map((project) => (
                 <ProjectCard
                   key={project._id}
+                  project_id={project._id}
                   title={project.name}
                   subtitle={project.company_name}
                   imageUrl={project.logo || "/images/exampleProjectImage.jpg"}
@@ -211,6 +212,7 @@ export default function Home() {
               <ProjectCard
                 key={project._id}
                 title={project.name}
+                project_id={project._id}
                 subtitle={project.company_name}
                 imageUrl={project.logo || "/images/exampleProjectImage.jpg"}
                 favorited={favoriteProjects.includes(project._id) ?? false}

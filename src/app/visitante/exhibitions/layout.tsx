@@ -1,16 +1,18 @@
 "use client";
+import { DataContext } from "@/dataContext";
 import { IToken } from "@/types/backendTypes";
 import { Container } from "@mui/material";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 
 export default function LayoutLogin({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { setUserId } = useContext(DataContext);
   const router = useRouter();
   useEffect(() => {
     const decodedToken: IToken = jwtDecode(Cookies.get("visitante-token")!);
@@ -19,6 +21,7 @@ export default function LayoutLogin({
       Cookies.remove("visitante-token");
       return router.push("/visitante/login");
     }
+    return setUserId(decodedToken.user_id);
   }, []);
 
   return (

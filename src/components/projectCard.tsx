@@ -3,7 +3,7 @@ import { Favorite, FavoriteBorder, Grade } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 
 interface IProjectProps {
-  project_id?: string;
+  project_id: string;
   favorited?: boolean;
   rated?: boolean;
   imageUrl: string;

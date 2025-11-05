@@ -10,7 +10,7 @@ export const useGetUserById = ({
   user_id: string;
   enabled: boolean;
 }) => {
-  const { refetch, data, error, isPending, isLoading, isRefetching } =
+  const { refetch, data, error, isLoading } =
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
       // Tipando a resposta e erro

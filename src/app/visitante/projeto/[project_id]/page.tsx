@@ -5,10 +5,8 @@ import { DataContext } from "@/dataContext";
 import { useGetProjectById } from "@/service/hooks/useGetProjectById";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { usePatchFavoriteProject } from "@/service/hooks/usePatchFavoriteProject";
-import { Favorite, FavoriteBorder, Grade } from "@mui/icons-material";
+import { Favorite, FavoriteBorder } from "@mui/icons-material";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import {
   Avatar,
@@ -17,45 +15,47 @@ import {
   Container,
   IconButton,
 } from "@mui/material";
-import Rating from "@mui/material/Rating";
-import { get } from "http";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 export default function Page() {
   const { project_id } = useParams();
   const [openModal, setOpenModal] = useState(false);
-  const [isReavaliating, setIsReavaliating] = useState(false);
   const { userId } = useContext(DataContext);
-
   const {
     getUserById: refreshUser,
     getUserByIdData,
     getUserByIdError,
     getUserByIdPending,
-  } = useGetUserById({ user_id: userId || "", enabled: !!userId });
-  const favoriteProjects = getUserByIdData?.favorited_projects || [];
-  const reviews = getUserByIdData?.reviews || [];
+  } = useGetUserById({ user_id: userId, enabled: true });
 
   const { getProjectByIdData, getProjectByIdError, getProjectByIdPending } =
     useGetProjectById({
       project_id: project_id!.toString(),
       enabled: true,
     });
+
   const {
     patchFavoriteProject,
-    patchFavoriteProjectData,
     patchFavoriteProjectError,
     patchFavoriteProjectPending,
   } = usePatchFavoriteProject();
+
+  const isFavorited = getUserByIdData?.favorited_projects!.find(
+    (item) => item === project_id
+  );
+
+  const isReviewed = getUserByIdData?.reviews!.find(
+    (item) => item.project_id === project_id
+  );
 
   function favoriteProject() {
     patchFavoriteProject(
       { project_id: project_id?.toString() ?? "" },
       {
         onSuccess: (data) => {
-          if (data.data.response === true) {
+          if (data.data === true) {
             toast.success("Projeto favoritado com sucesso!");
           } else {
             toast.success("Projeto desfavoritado com sucesso!");
@@ -68,6 +68,13 @@ export default function Page() {
       }
     );
   }
+
+  useEffect(() => {
+    getUserByIdError && toast.error("Erro ao pegar dados do usuário");
+    patchFavoriteProjectError && toast.error("Erro ao atualizar favorito");
+    getProjectByIdError && toast.error("Erro ao pegar dados do projeto");
+  }, [getUserByIdError, patchFavoriteProjectError, getProjectByIdError]);
+
   return (
     <Container maxWidth="sm" className="h-[120vh]">
       <div className="flex items-center justify-between pt-3">
@@ -80,7 +87,7 @@ export default function Page() {
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          {favoriteProjects.includes(project_id?.toString() ?? "") ? (
+          {isFavorited ? (
             <Favorite
               className="text-[var(--error)]"
               onClick={() => favoriteProject()}
@@ -120,14 +127,14 @@ export default function Page() {
             className="!text-center !font-bold !text-3xl !text-white"
             onClick={() => setOpenModal(true)}
           >
-            {isReavaliating ? "Reavaliar" : "Avaliar"}
+            {isReviewed ? "Reavaliar" : "Avaliar"}
             <KeyboardArrowUpIcon className="ml-3 !text-4xl" />
           </IconButton>
         </div>
       )}
       {openModal && (
         <SwipeableDrawerComponent
-          title={isReavaliating ? "Reavaliar" : "Avaliar"}
+          title={isReviewed ? "Reavaliar" : "Avaliar"}
           subtitle="Com base no que você viu do projeto, avaliar:"
           question={[
             {
@@ -163,7 +170,11 @@ export default function Page() {
       {/* Loader */}
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={getUserByIdPending || getProjectByIdPending}
+        open={
+          getUserByIdPending ||
+          getProjectByIdPending ||
+          patchFavoriteProjectPending
+        }
       >
         <CircularProgress color="inherit" />
       </Backdrop>
