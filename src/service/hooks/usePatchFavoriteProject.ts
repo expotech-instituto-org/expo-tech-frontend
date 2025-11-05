@@ -4,7 +4,7 @@ import { ExpoApiService } from "../expoApiService";
 
 export const usePatchFavoriteProject = () => {
   const { mutate, data, error, isPending } = useMutation<
-    AxiosResponse<{ response: boolean }>,
+    AxiosResponse<boolean>,
     AxiosError<{ message: string }>,
     { project_id: string }
   >({
