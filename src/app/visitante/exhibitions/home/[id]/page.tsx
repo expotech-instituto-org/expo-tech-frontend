@@ -103,13 +103,14 @@ export default function Home() {
         <Button
           className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
           variant="contained"
+          onClick={() => router.push("/visitante/info")}
         >
           <MapOutlined className="mr-[0.31rem]" /> Mapa da Feira
         </Button>
         <Button
           className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
           variant="contained"
-          onClick={() => router.push(path + "/qrcode")}
+          onClick={() => router.push("/visitante/qrcode")}
         >
           <QrCodeScanner className="mr-[0.31rem]" /> Ler QR Code
         </Button>
