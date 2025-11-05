@@ -11,9 +11,7 @@ export const useGetProjectById = ({
   enabled: boolean;
 }) => {
   const { refetch, data, error, isPending } =
-    //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
-      // Tipando a resposta e erro
       AxiosResponse<IGetProjectsResponse>,
       AxiosError<{ message: string }>
     >({

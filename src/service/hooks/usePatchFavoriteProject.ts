@@ -15,6 +15,6 @@ export const usePatchFavoriteProject = () => {
     patchFavoriteProject: mutate,
     patchFavoriteProjectData: data,
     patchFavoriteProjectError: error?.response?.data?.message,
-    patchFavoriteProjectRest: isPending,
+    patchFavoriteProjectPending: isPending,
   };
 };
