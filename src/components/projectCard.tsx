@@ -21,6 +21,7 @@ export default function ProjectCard({
   onFavoriteToggle,
 }: IProjectProps) {
   const router = useRouter();
+
   return (
     <div className=" h-[107px] bg-[url(/images/BackgroundCardProject.png)] bg-cover bg-center rounded-[10px] flex justify-left">
       <img
@@ -35,7 +36,7 @@ export default function ProjectCard({
         onClick={() => router.push(`/visitante/projeto/${project_id}`)}
       >
         <div className="flex flex-col">
-          <h1 className="text-[var(--azul-primario)] font-bold  ml-[14px] text-[22px]display:inline">
+          <h1 className="text-[var(--azul-primario)] font-bold  text-[22px]display:inline">
             {title}
           </h1>
           <p className="mt-[10px] ml-[14px] text-[var(--text)] text-[12px]">

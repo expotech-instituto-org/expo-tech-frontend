@@ -1,4 +1,5 @@
 "use client";
+import Carousel from "@/components/Carousel";
 import { MembersComponent } from "@/components/Members";
 import { SwipeableDrawerComponent } from "@/components/SwipeableDrawer";
 import { DataContext } from "@/dataContext";
@@ -22,7 +23,7 @@ import { toast } from "sonner";
 export default function Page() {
   const { project_id } = useParams();
   const [openModal, setOpenModal] = useState(false);
-  const { userId } = useContext(DataContext);
+  const { userId, exhibitionId } = useContext(DataContext);
   const {
     getUserById: refreshUser,
     getUserByIdData,
@@ -76,53 +77,51 @@ export default function Page() {
   }, [getUserByIdError, patchFavoriteProjectError, getProjectByIdError]);
 
   return (
-    <Container maxWidth="sm" className="h-[120vh]">
-      <div className="flex items-center justify-between pt-3">
-        <div className="flex items-center gap-2">
-          <IconButton onClick={() => history.back()}>
-            <ArrowBackIosIcon className="text-[var(--azul-primario)]" />
-          </IconButton>
-          <h1 className="text-[var(--azul-primario)] font-bold text-[2rem]">
-            {getProjectByIdData?.name}
-          </h1>
+    <div className="flex flex-col">
+      <Container maxWidth="sm" className="h-[90vh]">
+        <div className="flex items-center justify-between pt-3 mb-8">
+          <div className="flex items-center gap-2">
+            <IconButton onClick={() => history.back()}>
+              <ArrowBackIosIcon className="text-[var(--azul-primario)]" />
+            </IconButton>
+            <h1 className="text-[var(--azul-primario)] font-bold text-[2rem]">
+              {getProjectByIdData?.name}
+            </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            {isFavorited ? (
+              <Favorite
+                className="text-[var(--error)]"
+                onClick={() => favoriteProject()}
+              />
+            ) : (
+              <FavoriteBorder
+                className={`text-[var(--error)] `}
+                onClick={() => favoriteProject()}
+              />
+            )}
+            <Avatar sx={{ width: 24, height: 24 }} />
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          {isFavorited ? (
-            <Favorite
-              className="text-[var(--error)]"
-              onClick={() => favoriteProject()}
-            />
-          ) : (
-            <FavoriteBorder
-              className={`text-[var(--error)] `}
-              onClick={() => favoriteProject()}
-            />
-          )}
-          <Avatar sx={{ width: 24, height: 24 }} />
-        </div>
-      </div>
-      <Image
-        src={"/images/BackgroundCardProject.png"}
-        alt={getProjectByIdData?.name ?? ""}
-        width={100}
-        height={100}
-        className="w-full mb-5 mt-4"
-      />
-      <p className="text-[var(--text)] text-[.9rem] mb-6">
-        {getProjectByIdData?.description}
-      </p>
-      <h2 className="text-[var(--azul-primario)] font-medium text-center text-2xl mb-2">
-        Integrantes
-      </h2>
-      <MembersComponent
-        Class="1° Ano F"
-        Members={(getProjectByIdData?.expositors ?? []).map((expositor) => ({
-          name: expositor.name || "Nome não disponível",
-          photo: expositor.profile_picture,
-        }))}
-      />
+        <Carousel
+          images={getProjectByIdData ? getProjectByIdData.images : [""]}
+        />
+        <p className="text-[var(--text)] text-[.9rem] mb-6">
+          {getProjectByIdData?.description}
+        </p>
+        <h2 className="text-[var(--azul-primario)] font-medium text-center text-2xl mb-2">
+          Integrantes
+        </h2>
+        <MembersComponent
+          Members={(getProjectByIdData?.expositors ?? []).map((expositor) => ({
+            name: expositor.name || "Nome não disponível",
+            photo: expositor.profile_picture,
+            Class: expositor.class,
+          }))}
+        />
+      </Container>
       {!openModal && (
-        <div className="bg-[var(--azul-primario)] rounded-t-2xl fixed bottom-0 w-full right-0 h-[8%] flex items-center justify-center z-[9999]">
+        <div className="bg-[var(--azul-primario)] rounded-t-2xl  w-full  h-[10vh] flex items-center justify-center">
           <IconButton
             className="!text-center !font-bold !text-3xl !text-white"
             onClick={() => setOpenModal(true)}
@@ -134,6 +133,7 @@ export default function Page() {
       )}
       {openModal && (
         <SwipeableDrawerComponent
+          exhibitionId={exhibitionId}
           title={isReviewed ? "Reavaliar" : "Avaliar"}
           subtitle="Com base no que você viu do projeto, avaliar:"
           question={[
@@ -178,6 +178,6 @@ export default function Page() {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-    </Container>
+    </div>
   );
 }
