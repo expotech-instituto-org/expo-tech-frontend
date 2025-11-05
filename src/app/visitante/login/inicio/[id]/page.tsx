@@ -44,10 +44,13 @@ export default function Page() {
     enabled: true,
   });
 
-  const { getCompaniesData, getCompaniesError, getCompaniesPending } =
-    useGetCompanies({
-      enabled: !isLogin,
-    });
+  const {
+    getCompaniesData,
+    getCompaniesError,
+    getCompaniesRest: getCompaniesPending,
+  } = useGetCompanies({
+    enabled: !isLogin,
+  });
 
   const { getKnowledgeData, getKnowledgeError, getKnowledgePending } =
     useGetKnowledge({
@@ -136,7 +139,7 @@ export default function Page() {
       Cookies.set("visitante-token", loginData.access_token, {
         path: "/",
       });
-      router.push("/visitante/exhibitions");
+      router.push("/visitante/exhibitions/");
     }
     getClassesError && toast.error("Erro ao buscar turmas");
     getCompaniesError && toast.error("Erro ao buscar empresas");
@@ -574,10 +577,10 @@ export default function Page() {
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
         open={
-          loginRest &&
-          postCreateUserRest &&
-          getClassesPending &&
-          getCompaniesPending &&
+          loginRest ||
+          postCreateUserRest ||
+          getClassesPending ||
+          getCompaniesPending.isLoading ||
           getKnowledgePending
         }
       >

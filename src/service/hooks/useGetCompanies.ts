@@ -4,7 +4,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import { ExpoApiService } from "../expoApiService";
 
 export const useGetCompanies = ({ enabled }: { enabled: boolean }) => {
-  const { refetch, data, error, isPending } =
+  const { refetch, data, error, ...rest } =
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
       // Tipando a resposta e erro
@@ -20,6 +20,6 @@ export const useGetCompanies = ({ enabled }: { enabled: boolean }) => {
     getCompanies: refetch,
     getCompaniesData: data?.data,
     getCompaniesError: error?.response?.data?.message,
-    getCompaniesPending: isPending,
+    getCompaniesRest: rest,
   };
 };

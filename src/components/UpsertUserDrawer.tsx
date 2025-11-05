@@ -27,6 +27,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ interface IProps {
 }
 
 export function UpsertUserDrawer(props: IProps) {
+  const query = useQueryClient();
   const {
     handleSubmit,
     register,
@@ -45,7 +47,7 @@ export function UpsertUserDrawer(props: IProps) {
     reset,
     setValue,
     watch,
-    formState: { isValid, errors },
+    formState: { errors },
   } = useForm<TEditUserSchema>({
     resolver: zodResolver(editUserSchema),
   });
@@ -66,10 +68,13 @@ export function UpsertUserDrawer(props: IProps) {
     enabled: true,
   });
 
-  const { getCompaniesData, getCompaniesError, getCompaniesPending } =
-    useGetCompanies({
-      enabled: true,
-    });
+  const {
+    getCompaniesData,
+    getCompaniesError,
+    getCompaniesRest: getCompaniesPending,
+  } = useGetCompanies({
+    enabled: true,
+  });
 
   const { getProjectsData, getProjectsError, getProjectsPending } =
     useGetProjects({ enabled: true });
@@ -115,7 +120,9 @@ export function UpsertUserDrawer(props: IProps) {
           user_id: props.userId,
         },
         {
-          onSuccess: () => setTimeout(() => window.location.reload(), 2000),
+          onSuccess: () => (
+            query.invalidateQueries({ queryKey: ["/users"] }), props.onClose()
+          ),
         }
       );
     }
@@ -152,6 +159,7 @@ export function UpsertUserDrawer(props: IProps) {
         ? { age: String(data.age), class: data.class || "1" }
         : { age: String(data.age || 1), class: "" }),
     };
+
     setIdRoleSelected(data.role._id);
     Object.keys(formData).forEach((field) => {
       setValue(
@@ -239,6 +247,7 @@ export function UpsertUserDrawer(props: IProps) {
             size="small"
             {...register("password")}
             htmlFor="outlined-adornment-password"
+            id="outlined-adornment-password"
             sx={{
               color: "var(--azul-primario)",
             }}
@@ -428,7 +437,7 @@ export function UpsertUserDrawer(props: IProps) {
                     </MenuItem>
                   ) : (
                     getClassesData?.map((classe) => (
-                      <MenuItem key={classe._id} value={classe._id}>
+                      <MenuItem key={classe.name} value={classe.name}>
                         {classe.name}
                       </MenuItem>
                     ))

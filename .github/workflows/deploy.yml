@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEPLOY_PATH: /home/expo_tech/frontend
+      NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
 
     steps:
       - name: Checkout code
@@ -77,6 +78,7 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
           script_stop: true
+          envs: NEXT_PUBLIC_BACKEND_URL
           script: |
             set -e
 
@@ -89,6 +91,10 @@ jobs:
 
             echo "=== Iniciando deploy Blue-Green ==="
             cd $DEPLOY_PATH
+
+            echo "Atualizando arquivo .env"
+            echo "NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}" > .env
+            cat .env
 
             echo "Garantindo rede existente"
             docker network create $NETWORK >/dev/null 2>&1 || true
@@ -104,7 +110,10 @@ jobs:
             docker rm -f frontend-green-temp >/dev/null 2>&1 || true
 
             echo "Subindo novo container (frontend-green-temp)"
-            docker run -d --name frontend-green-temp --network $NETWORK "$IMAGE_GREEN"
+            docker run -d --name frontend-green-temp \
+              --network $NETWORK \
+              --env-file .env \
+              "$IMAGE_GREEN"
 
             sleep 5
 
@@ -143,7 +152,10 @@ jobs:
             docker rm frontend-blue >/dev/null 2>&1 || true
 
             echo "Subindo novo container como frontend-blue (com porta publicada)"
-            docker run -d --name frontend-blue --network $NETWORK -p 4444:4444 "$IMAGE_GREEN"
+            docker run -d --name frontend-blue \
+              --network $NETWORK \
+              --env-file .env \
+              -p 4444:4444 "$IMAGE_GREEN"
 
             echo "Removendo container temporário"
             docker rm -f frontend-green-temp >/dev/null 2>&1 || true

@@ -7,6 +7,7 @@ import {
 } from "@/schemas/upsertExhibition";
 import { useGetExhibitionById } from "@/service/hooks/useGetExhibitionById";
 import { usePostCreateExhibition } from "@/service/hooks/usePutCreateExhibition";
+import { usePutUpdateExhibition } from "@/service/hooks/usePutUpdateExhibition";
 import { IUpdateExhibitionBody } from "@/types/backendTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CloseIcon from "@mui/icons-material/Close";
@@ -28,6 +29,7 @@ import {
   TextField,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { useQueryClient } from "@tanstack/react-query";
 import { DateTime } from "luxon";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -43,6 +45,7 @@ interface ITableProps {
 export default function Page() {
   const params = useParams<{ id: string; metodo: string }>();
   const router = useRouter();
+  const query = useQueryClient();
   const isUpdate = params.metodo.split("_")[0] === "editar";
   const exhibitionId = isUpdate ? params.metodo.split("_")[1] : null;
   const [openCriteriaModal, setOpenCriteriaModal] = useState<boolean>(false);
@@ -50,12 +53,20 @@ export default function Page() {
     name: "",
     weight: "",
   });
+
   const [openExcludeCriteriaModal, setOpenExcludeCriteriaModal] =
     useState<ITableProps>({
       open: false,
       name: "",
       weight: "",
     });
+
+  const {
+    putUpdateExhibition,
+    putUpdateExhibitionData,
+    putUpdateExhibitionRest,
+    putUpdateExhibitionError,
+  } = usePutUpdateExhibition();
 
   const {
     postCreateExhibition,
@@ -67,7 +78,7 @@ export default function Page() {
   const {
     getExhibitionByIdData,
     getExhibitionByIdError,
-    getExhibitionByIdPending,
+    getExhibitionByIdRest: getExhibitionByIdPending,
   } = useGetExhibitionById({
     exhibition_id: exhibitionId!,
     enabled: isUpdate,
@@ -88,22 +99,65 @@ export default function Page() {
     },
   });
 
-  const onSubmit: SubmitHandler<TUpsertExhibitionSchema> = (data) => {
+  const onSubmit: SubmitHandler<TUpsertExhibitionSchema> = async (data) => {
+    const file = data.image;
+
+    const base64Image = {
+      name: file.name,
+      type: file.type,
+      base64: await fileToBase64(file),
+    };
+
     if (!exhibitionId) {
-      return postCreateExhibition({
-        body: {
-          name: data.name,
-          description: data.description,
-          image: data.image.name,
-          criteria: data.criteria.map((c) => ({
-            name: c.name,
-            weight: Number(c.weight),
-          })),
-          end_date: data.end_date.toFormat("yyyy-MM-dd"),
-          start_date: data.start_date.toFormat("yyyy-MM-dd"),
+      return postCreateExhibition(
+        {
+          body: {
+            exhibition: {
+              name: data.name,
+              description: data.description,
+              criteria: data.criteria?.map((c) => ({
+                name: c.name,
+                weight: Number(c.weight),
+              })),
+              end_date: data.end_date.toFormat("yyyy-MM-dd"),
+              start_date: data.start_date.toFormat("yyyy-MM-dd"),
+            },
+            image: base64Image.base64,
+          },
         },
-      });
+        {
+          onSuccess: () => (
+            toast.success("Exposição criada com sucesso"),
+            query.invalidateQueries({ queryKey: ["/exhibitions"] })
+          ),
+        }
+      );
     }
+
+    putUpdateExhibition(
+      {
+        body: {
+          exhibition: {
+            name: data.name,
+            description: data.description,
+            criteria: data.criteria!.map((c) => ({
+              name: c.name,
+              weight: Number(c.weight),
+            })),
+            end_date: data.end_date.toFormat("yyyy-MM-dd"),
+            start_date: data.start_date.toFormat("yyyy-MM-dd"),
+          },
+          image: base64Image.base64,
+        },
+        exhibition_id: exhibitionId,
+      },
+      {
+        onSuccess: () => (
+          toast.success("Exposição editada com sucesso"),
+          query.invalidateQueries({ queryKey: ["/exhibitions"] })
+        ),
+      }
+    );
   };
 
   const handleSetFormData = (data: IUpdateExhibitionBody) => {
@@ -116,7 +170,8 @@ export default function Page() {
         name: c.name,
         weight: String(c.weight),
       })),
-      image: data.image as unknown as File,
+      //colocar size
+      image: new File([], data.image!, { type: "image/jpeg" }),
     };
 
     Object.keys(formData).forEach((field) => {
@@ -136,22 +191,32 @@ export default function Page() {
   function handleExcludeCriteria(name: string, weight: string) {
     setValue(
       "criteria",
-      getValues("criteria").filter(
+      getValues("criteria")!.filter(
         (c) => c.name !== name && c.weight !== weight
       )
     );
   }
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   useEffect(() => {
     reset();
   }, []);
 
   useEffect(() => {
-    console.log(errors);
-    if (errors.criteria) {
+    if (errors.criteria && isUpdate) {
       toast.error("Adicione ao menos um critério de avaliação.");
     }
     if (errors.image) {
+      console.log(errors.image);
+      console.log(getValues("image"));
       toast.error("Adicione uma logo para a feira.");
     }
     postCreateExhibitionError &&
@@ -162,7 +227,15 @@ export default function Page() {
         router.back();
       }, 2000);
     }
-  }, [errors, postCreateExhibitionError, postCreateExhibitionData]);
+    getExhibitionByIdError && toast.error("Erro ao pegar dados do projeto");
+    putUpdateExhibitionError && toast.error("Erro ao atualizar projeto");
+  }, [
+    errors,
+    postCreateExhibitionError,
+    getExhibitionByIdError,
+    postCreateExhibitionData,
+    putUpdateExhibitionError,
+  ]);
 
   return (
     <AdminTitles
@@ -172,7 +245,7 @@ export default function Page() {
       } da feira`}
       goback
     >
-      <div className="flex w-full flex-col gap-6">
+      <div className="flex w-full flex-col gap-6 mb-10">
         <h2 className=" mt-4 text-[var(--azul-primario)] font-bold md:text-[1rem] text-[.9rem]">
           Informações
         </h2>
@@ -247,7 +320,7 @@ export default function Page() {
         <div className="w-full flex items-center justify-between">
           <h2 className=" mt-4 text-[var(--azul-primario)] font-bold md:text-[1rem] text-[.9rem]">
             Critérios de avaliação
-            <span className="text-[var(--error)]"> *</span>
+            {isUpdate && <span className="text-[var(--error)]"> *</span>}
           </h2>
           <Button
             size="small"
@@ -275,7 +348,7 @@ export default function Page() {
             </TableHead>
             <TableBody>
               {getValues("criteria") &&
-                getValues("criteria").map((row) => (
+                getValues("criteria")!.map((row) => (
                   <TableRow
                     key={row.name}
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -438,7 +511,7 @@ export default function Page() {
                     setValue("criteria", [newCriteria]);
                   } else {
                     setValue("criteria", [
-                      ...getValues("criteria"),
+                      ...getValues("criteria")!,
                       newCriteria,
                     ]);
                   }
@@ -523,7 +596,7 @@ export default function Page() {
               }}
               className="!bg-[var(--azul-primario)] !text-white"
             >
-              Criar
+              Excluir
             </Button>
           </div>
         }
@@ -531,7 +604,11 @@ export default function Page() {
 
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={postCreateExhibitionRest}
+        open={
+          postCreateExhibitionRest.isPending ||
+          getExhibitionByIdPending.isLoading ||
+          putUpdateExhibitionRest.isPending
+        }
       >
         <CircularProgress color="inherit" />
       </Backdrop>

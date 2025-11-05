@@ -11,6 +11,7 @@ import {
   DialogTitle,
   TextField,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ interface IProps {
 }
 
 export function DeleteUserDrawer(props: IProps) {
+  const query = useQueryClient();
   const [emailToDelete, setEmailToDelete] = useState<string>("");
 
   const { deleteUser, deleteUserData, deleteUserError, deleteUserRest } =
@@ -31,7 +33,7 @@ export function DeleteUserDrawer(props: IProps) {
     if (emailToDelete === props.email) {
       return deleteUser(
         { user_id: props.userId },
-        { onSuccess: () => setTimeout(() => window.location.reload(), 3000) }
+        { onSuccess: () => query.invalidateQueries({ queryKey: ["/users"] }) }
       );
     }
     return toast.error("e-mail incorreto");

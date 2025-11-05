@@ -10,7 +10,7 @@ export const useGetExhibitionById = ({
   exhibition_id: string;
   enabled: boolean;
 }) => {
-  const { refetch, data, error, isPending } =
+  const { refetch, data, error, ...rest } =
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
       // Tipando a resposta e erro
@@ -26,6 +26,6 @@ export const useGetExhibitionById = ({
     getExhibitionById: refetch,
     getExhibitionByIdData: data?.data,
     getExhibitionByIdError: error?.response?.data?.message,
-    getExhibitionByIdPending: isPending,
+    getExhibitionByIdRest: rest,
   };
 };
