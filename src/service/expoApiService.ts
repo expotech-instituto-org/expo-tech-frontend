@@ -102,6 +102,7 @@ class Service {
   deleteClass = ({ class_id }: { class_id: string }) =>
     api.delete(`/classes/${class_id}`);
 
+  getExhibitionsCurrent = () => api.get("/exhibitions/current/");
   getExhibitions = ({
     name,
     start_date,
@@ -223,6 +224,9 @@ class Service {
       name: string;
     };
   }) => api.put(`/companies/${company_id}`, body);
+
+  patchFavoriteProject = ({ project_id }: { project_id: string }) =>
+    api.patch(`/users/favorite/${project_id}`);
 
   deleteCompanies = ({ company_id }: { company_id: string }) =>
     api.delete(`/companies/${company_id}`);
