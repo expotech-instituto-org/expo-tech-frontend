@@ -115,7 +115,7 @@ export default function Page() {
             exhibition: {
               name: data.name,
               description: data.description,
-              criteria: data.criteria.map((c) => ({
+              criteria: data.criteria?.map((c) => ({
                 name: c.name,
                 weight: Number(c.weight),
               })),
@@ -140,7 +140,7 @@ export default function Page() {
           exhibition: {
             name: data.name,
             description: data.description,
-            criteria: data.criteria.map((c) => ({
+            criteria: data.criteria!.map((c) => ({
               name: c.name,
               weight: Number(c.weight),
             })),
@@ -170,6 +170,7 @@ export default function Page() {
         name: c.name,
         weight: String(c.weight),
       })),
+      //colocar size
       image: new File([], data.image!, { type: "image/jpeg" }),
     };
 
@@ -190,7 +191,7 @@ export default function Page() {
   function handleExcludeCriteria(name: string, weight: string) {
     setValue(
       "criteria",
-      getValues("criteria").filter(
+      getValues("criteria")!.filter(
         (c) => c.name !== name && c.weight !== weight
       )
     );
@@ -210,10 +211,12 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    if (errors.criteria) {
+    if (errors.criteria && isUpdate) {
       toast.error("Adicione ao menos um critério de avaliação.");
     }
     if (errors.image) {
+      console.log(errors.image);
+      console.log(getValues("image"));
       toast.error("Adicione uma logo para a feira.");
     }
     postCreateExhibitionError &&
@@ -317,7 +320,7 @@ export default function Page() {
         <div className="w-full flex items-center justify-between">
           <h2 className=" mt-4 text-[var(--azul-primario)] font-bold md:text-[1rem] text-[.9rem]">
             Critérios de avaliação
-            <span className="text-[var(--error)]"> *</span>
+            {isUpdate && <span className="text-[var(--error)]"> *</span>}
           </h2>
           <Button
             size="small"
@@ -345,7 +348,7 @@ export default function Page() {
             </TableHead>
             <TableBody>
               {getValues("criteria") &&
-                getValues("criteria").map((row) => (
+                getValues("criteria")!.map((row) => (
                   <TableRow
                     key={row.name}
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -508,7 +511,7 @@ export default function Page() {
                     setValue("criteria", [newCriteria]);
                   } else {
                     setValue("criteria", [
-                      ...getValues("criteria"),
+                      ...getValues("criteria")!,
                       newCriteria,
                     ]);
                   }

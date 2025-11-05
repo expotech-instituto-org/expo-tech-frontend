@@ -9,23 +9,13 @@ import {
   CircularProgress,
   IconButton,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DeleteUserDrawer } from "./DeleteUserDrawer";
 import { Modal } from "./Modal";
 import { UpsertUserDrawer } from "./UpsertUserDrawer";
-import { usePathname, useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-
-export type TUserType =
-  | "visitante"
-  | "administrador"
-  | "cliente"
-  | "professor"
-  | "expositor"
-  | "aluno"
-  | "colaborador"
-  | "avaliador";
 
 type TNotification =
   | { isUser: false; id: string; name: string }
@@ -35,47 +25,8 @@ type TNotification =
       photo?: string;
       name: string;
       email: string;
-      userType: TUserType;
+      userType: string;
     };
-
-const chipMap = {
-  visitante: (
-    <Chip size="small" label="Visitante" className=" !h-[18px] !bg-[#FFF3AF]" />
-  ),
-  administrador: (
-    <Chip
-      size="small"
-      label="Administrador"
-      className=" !h-[18px] !bg-[#FFAFAF]"
-    />
-  ),
-  cliente: (
-    <Chip size="small" label="Cliente" className=" !h-[18px] !bg-[#BDFFAF]" />
-  ),
-  professor: (
-    <Chip size="small" label="Professor" className=" !h-[18px] !bg-[#F6BFFF]" />
-  ),
-  expositor: (
-    <Chip size="small" label="Expositor" className=" !h-[18px] !bg-[#BFFFE5]" />
-  ),
-  aluno: (
-    <Chip size="small" label="Aluno" className=" !h-[18px] !bg-[#BFDBFF]" />
-  ),
-  colaborador: (
-    <Chip
-      size="small"
-      label="Colaborador"
-      className=" !h-[18px] !bg-[#FFDFBF]"
-    />
-  ),
-  avaliador: (
-    <Chip
-      size="small"
-      label="Avaliador"
-      className=" !h-[18px] !bg-[##FFA6C9]"
-    />
-  ),
-};
 
 export function ListCard(props: TNotification) {
   const router = useRouter();
@@ -121,7 +72,11 @@ export function ListCard(props: TNotification) {
                 <h4 className="font-bold !text-[var(--azul-primario)] ">
                   {props.name}
                 </h4>
-                {chipMap[props.userType]}
+                <Chip
+                  size="small"
+                  label={props.userType}
+                  className=" !h-[18px] !bg-[#BFFFE5]"
+                />
               </div>
               <h5 className="!text-[var(--azul-primario)]">{props.email}</h5>
             </div>
