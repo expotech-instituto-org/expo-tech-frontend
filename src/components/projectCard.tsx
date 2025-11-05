@@ -7,7 +7,7 @@ interface IProjectProps {
   imageUrl: string;
   title: string;
   subtitle?: string;
-  onFavoriteToggle: () => void;
+  onFavoriteToggle?: () => void;
 }
 export default function ProjectCard({
   favorited,
