@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEPLOY_PATH: /home/expo_tech/frontend
+      NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
 
     steps:
       - name: Checkout code
