@@ -12,9 +12,20 @@ export default function LayoutAdmin({
 }>) {
   const router = useRouter();
   useEffect(() => {
-    const decodedToken: IToken = jwtDecode(Cookies.get("visitante-token")!);
-    const isExpired = new Date() > new Date(decodedToken.exp * 1000);
-    if (isExpired) {
+    const token = Cookies.get("visitante-token");
+    if (!token) {
+      // Se não há token, redireciona para login
+      return router.push("/visitante/login");
+    }
+    try {
+      const decodedToken: IToken = jwtDecode(token);
+      const isExpired = new Date() > new Date(decodedToken.exp * 1000);
+      if (isExpired) {
+        Cookies.remove("visitante-token");
+        return router.push("/visitante/login");
+      }
+    } catch (e) {
+      // Token inválido, remove e redireciona
       Cookies.remove("visitante-token");
       return router.push("/visitante/login");
     }

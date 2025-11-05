@@ -13,16 +13,47 @@ interface ScannerWrapperProps {
 
 const ScannerWrapper: React.FC<ScannerWrapperProps> = ({ onScanSuccess, onScanError }) => {
   const html5QrCodeRef = useRef<any | null>(null);
+  const [permissionChecked, setPermissionChecked] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // Garante que só roda no client para evitar hydration error
+    setIsClient(typeof window !== "undefined" && typeof navigator !== "undefined");
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    let mounted = true;
+    const requestCameraPermission = async () => {
+      try {
+        await navigator.mediaDevices.getUserMedia({ video: true });
+        if (mounted) {
+          setPermissionGranted(true);
+        }
+      } catch (err) {
+        if (mounted) {
+          setPermissionGranted(false);
+          alert("Permissão de câmera negada. Não é possível iniciar o scanner.");
+        }
+      } finally {
+        if (mounted) setPermissionChecked(true);
+      }
+    };
+    requestCameraPermission();
+    return () => {
+      mounted = false;
+    };
+  }, [isClient]);
+
+  useEffect(() => {
+    if (!isClient || !permissionChecked || !permissionGranted) return;
     const readerElement = document.getElementById("reader");
     if (!readerElement) {
       console.log("Elemento 'reader' não encontrado. Abortando ScannerWrapper.");
       return;
     }
-
     let mounted = true;
-
     const startScanner = async () => {
       try {
         const module = await import("html5-qrcode");
@@ -30,20 +61,17 @@ const ScannerWrapper: React.FC<ScannerWrapperProps> = ({ onScanSuccess, onScanEr
         if (!Html5Qrcode) {
           throw new Error("Html5Qrcode não disponível");
         }
-
         const html5QrCode = new Html5Qrcode("reader");
         html5QrCodeRef.current = html5QrCode;
-
         const cameras = await Html5Qrcode.getCameras();
         if (cameras && cameras.length > 0) {
           const cameraId = (cameras[0] as any).id ?? (cameras[0] as any).deviceId ?? cameras[0];
-
           await html5QrCode.start(
             cameraId,
             {
               fps: 10,
-              qrbox: { width: 250, height: 250 }, // área de leitura (quadrado)
-              aspectRatio: 1.0, // força o feed da câmera quadrado
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0,
             },
             (decodedText: string) => {
               if (!mounted) return;
@@ -65,9 +93,7 @@ const ScannerWrapper: React.FC<ScannerWrapperProps> = ({ onScanSuccess, onScanEr
         alert("Não foi possível acessar a câmera. Verifique as permissões.");
       }
     };
-
     startScanner();
-
     return () => {
       mounted = false;
       if (html5QrCodeRef.current) {
@@ -83,8 +109,22 @@ const ScannerWrapper: React.FC<ScannerWrapperProps> = ({ onScanSuccess, onScanEr
         }
       }
     };
-  }, [onScanError, onScanSuccess]);
+  }, [onScanError, onScanSuccess, permissionChecked, permissionGranted, isClient]);
 
+  if (!isClient) {
+    // Evita renderizar qualquer coisa até garantir que está no client
+    return null;
+  }
+  if (!permissionChecked) {
+    return (
+      <div className="flex items-center justify-center h-full text-white">Solicitando permissão da câmera...</div>
+    );
+  }
+  if (!permissionGranted) {
+    return (
+      <div className="flex items-center justify-center h-full text-red-500">Permissão de câmera negada.</div>
+    );
+  }
   return (
     <div id="reader" className="qr-reader-fullscreen">
       {/* Overlay do quadrado de leitura */}
