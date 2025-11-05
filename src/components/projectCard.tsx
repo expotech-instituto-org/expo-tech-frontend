@@ -19,7 +19,7 @@ export default function ProjectCard({
 }: IProjectProps) {
   return (
     <div className=" h-[107px] bg-[url(/images/BackgroundCardProject.png)] bg-cover bg-center rounded-[10px] flex justify-left">
-      <Image
+      <img
         src={imageUrl}
         alt="Project Image"
         height={90}

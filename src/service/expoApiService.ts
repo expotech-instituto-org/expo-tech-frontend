@@ -97,8 +97,20 @@ class Service {
   deleteClass = ({ class_id }: { class_id: string }) =>
     api.delete(`/classes/${class_id}`);
 
-  getExhibitions = () => api.get("/exhibitions");
   getExhibitionsCurrent = () => api.get("/exhibitions/current/");
+  getExhibitions = ({
+    name,
+    start_date,
+  }: {
+    name?: string;
+    start_date?: string;
+  }) =>
+    api.get("/exhibitions", {
+      params: {
+        name,
+        start_date,
+      },
+    });
 
   postCreateExhibition = ({ body }: { body: ICreateExhibitionBody }) =>
     api.post("/exhibitions", body);
@@ -184,7 +196,7 @@ class Service {
       name: string;
     };
   }) => api.put(`/companies/${company_id}`, body);
-  
+
   patchFavoriteProject = ({ project_id }: { project_id: string }) =>
     api.patch(`/users/favorite/${project_id}`);
 
