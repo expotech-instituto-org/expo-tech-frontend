@@ -104,50 +104,39 @@ export default function QRCodePage() {
   };
 
   return (
-    <div className="phone-frame-center">
-      <div className="phone-frame">
-        {/* Header */}
-        <div className="phone-header">
-          <div className="left-btn">
-            <IconButton
-              size="small"
-              onClick={() => (typeof window !== "undefined" && window.history.back())}
-            >
-              <ArrowBackIosIcon style={{ color: "#001489" }} />
-            </IconButton>
-          </div>
-          <div className="title">Leitura QR Code</div>
+    <div className="flex flex-col items-center h-screen bg-black relative">
+      {/* Header fixo */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 bg-black/60 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <IconButton
+            onClick={() => (typeof window !== "undefined" && window.history.back())}
+          >
+            <ArrowBackIosIcon className="text-white" />
+          </IconButton>
+          <h1 className="text-white font-bold text-lg">Leitura QR Code</h1>
         </div>
+      </div>
 
-        {/* Área da câmera */}
-        <div className="camera-area">
-          {!scanResult ? (
-            <ScannerWrapper
-              key="qr-scanner"
-              onScanSuccess={handleScanSuccess}
-              onScanError={handleScanError}
-            />
-          ) : (
-            <div className="result-overlay">
-              <div style={{ textAlign: "center" }}>
-                <h2 style={{ color: "#001489", fontSize: 20, fontWeight: 700 }}>
-                  QR Code Detectado:
-                </h2>
-                <p className="mt-4 break-all" style={{ color: "#111", maxWidth: 260 }}>
-                  {scanResult}
-                </p>
-                <div style={{ marginTop: 18 }}>
-                  <button
-                    className="bg-white text-black px-6 py-2 rounded-lg shadow hover:opacity-90 transition"
-                    onClick={() => setScanResult(null)}
-                  >
-                    Ler Novamente
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+      {/* Corpo */}
+      <div className="flex-1 flex items-center justify-center w-full">
+        {!scanResult ? (
+          <ScannerWrapper
+            key="qr-scanner"
+            onScanSuccess={handleScanSuccess}
+            onScanError={handleScanError}
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white text-center p-6">
+            <h2 className="text-xl font-semibold">QR Code Detectado:</h2>
+            <p className="mt-4 break-all">{scanResult}</p>
+            <button
+              className="mt-6 bg-white text-black px-6 py-2 rounded-lg shadow hover:opacity-90 transition"
+              onClick={() => setScanResult(null)}
+            >
+              Ler Novamente
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
