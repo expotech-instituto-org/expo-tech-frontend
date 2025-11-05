@@ -1,6 +1,6 @@
 "use client";
 import { AdminTitles } from "@/components/AdminTitles";
-import { ListCard, TUserType } from "@/components/ListCard";
+import { ListCard } from "@/components/ListCard";
 import { ProjectsAccordion } from "@/components/ProjectsAccordion";
 import { UpsertUserDrawer } from "@/components/UpsertUserDrawer";
 import { useGetExhibitions } from "@/service/hooks/useGetExhibitions";
@@ -14,25 +14,31 @@ export default function Page() {
   const params = useParams();
   const router = useRouter();
   const path = usePathname();
-  const isUsersPage = params.id === "usuarios";
+  const isUsersPage = params.id === "users";
   const [searchByName, setSearchByName] = useState<string>("");
   const [openUpsertUsersDrawer, setOpenUpsertUsersDrawer] =
     useState<boolean>(false);
 
-  const { getUsersData, getUsersError, getUsersPending } = useGetUsers({
+  const { getUsers, getUsersData, getUsersError, getUsersRest } = useGetUsers({
     enabled: isUsersPage,
+    name: searchByName,
   });
 
   const {
     getExhibitionsData,
+    getExhibitions,
     getExhibitionsError,
-    getExhibitionsRest: getExhibitionsPending,
-  } = useGetExhibitions({ enabled: !isUsersPage });
+    getExhibitionsRest,
+  } = useGetExhibitions({ enabled: !isUsersPage, name: searchByName });
 
   useEffect(() => {
     getUsersError && toast.error("erro ao listar usuários");
     getExhibitionsError && toast.error("erro ao listar feiras");
   }, [getUsersError, getExhibitionsError]);
+
+  useEffect(() => {
+    !isUsersPage ? getExhibitions() : getUsers();
+  }, [searchByName]);
 
   return (
     <AdminTitles
@@ -70,7 +76,7 @@ export default function Page() {
               photo={user.profile_picture}
               name={user.name || ""}
               email={user.email || ""}
-              userType={user.role.name?.toLocaleLowerCase() as TUserType}
+              userType={user.role.name}
             />
           );
         })
@@ -89,7 +95,7 @@ export default function Page() {
 
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={getExhibitionsPending && getUsersPending}
+        open={getExhibitionsRest.isLoading || getUsersRest.isLoading}
       >
         <CircularProgress color="inherit" />
       </Backdrop>
