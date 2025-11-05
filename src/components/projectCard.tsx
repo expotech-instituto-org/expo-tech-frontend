@@ -44,16 +44,18 @@ export default function ProjectCard({
         </div>
         <div className="flex flex-row gap-2">
           {rated && <Grade className="text-[var(--amarelo)] mt-[8px] " />}
-          {favorited ? (
+          {favorited === true ? (
             <Favorite
               className="text-[var(--error)] mt-[8px]"
               onClick={onFavoriteToggle}
             />
           ) : (
-            <FavoriteBorder
-              className={`text-[var(--error)] mt-[8px] `}
-              onClick={onFavoriteToggle}
-            />
+            favorited === false && (
+              <FavoriteBorder
+                className={`text-[var(--error)] mt-[8px] `}
+                onClick={onFavoriteToggle}
+              />
+            )
           )}
         </div>
       </div>
