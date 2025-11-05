@@ -129,7 +129,7 @@ export interface ICreateExhibitionBody {
     end_date: string;
     name: string;
     start_date: string;
-    criteria: {
+    criteria?: {
       name: string;
       weight: number;
     }[];

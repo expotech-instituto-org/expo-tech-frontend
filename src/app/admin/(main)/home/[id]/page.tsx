@@ -1,6 +1,6 @@
 "use client";
 import { AdminTitles } from "@/components/AdminTitles";
-import { ListCard, TUserType } from "@/components/ListCard";
+import { ListCard } from "@/components/ListCard";
 import { ProjectsAccordion } from "@/components/ProjectsAccordion";
 import { UpsertUserDrawer } from "@/components/UpsertUserDrawer";
 import { useGetExhibitions } from "@/service/hooks/useGetExhibitions";
@@ -76,7 +76,7 @@ export default function Page() {
               photo={user.profile_picture}
               name={user.name || ""}
               email={user.email || ""}
-              userType={user.role.name?.toLocaleLowerCase() as TUserType}
+              userType={user.role.name}
             />
           );
         })

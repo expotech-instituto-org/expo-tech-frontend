@@ -44,10 +44,13 @@ export default function Page() {
     enabled: true,
   });
 
-  const { getCompaniesData, getCompaniesError, getCompaniesPending } =
-    useGetCompanies({
-      enabled: !isLogin,
-    });
+  const {
+    getCompaniesData,
+    getCompaniesError,
+    getCompaniesRest: getCompaniesPending,
+  } = useGetCompanies({
+    enabled: !isLogin,
+  });
 
   const { getKnowledgeData, getKnowledgeError, getKnowledgePending } =
     useGetKnowledge({
@@ -577,7 +580,7 @@ export default function Page() {
           loginRest ||
           postCreateUserRest ||
           getClassesPending ||
-          getCompaniesPending ||
+          getCompaniesPending.isLoading ||
           getKnowledgePending
         }
       >

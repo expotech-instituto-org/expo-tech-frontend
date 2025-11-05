@@ -4,7 +4,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import { ExpoApiService } from "../expoApiService";
 
 export const useGetKnowledge = ({ enabled }: { enabled: boolean }) => {
-  const { refetch, data, error, isPending } =
+  const { refetch, data, error, ...rest } =
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
       // Tipando a resposta e erro
@@ -20,6 +20,6 @@ export const useGetKnowledge = ({ enabled }: { enabled: boolean }) => {
     getKnowledge: refetch,
     getKnowledgeData: data?.data,
     getKnowledgeError: error?.response?.data?.message,
-    getKnowledgePending: isPending,
+    getKnowledgePending: rest.isLoading,
   };
 };
