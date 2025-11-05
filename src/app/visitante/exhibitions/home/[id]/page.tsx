@@ -1,6 +1,5 @@
 "use client";
 import ProjectCard from "@/components/projectCard";
-import { useGetExhibitionCurrent } from "@/service/hooks/useGetExhibitionsCurrent";
 import { useGetProjects } from "@/service/hooks/useGetProjects";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { IGetProjectsResponse } from "@/types/backendTypes";
