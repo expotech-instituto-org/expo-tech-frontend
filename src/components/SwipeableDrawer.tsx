@@ -1,5 +1,6 @@
 import { createSchemaFromQuestions } from "@/schemas";
-import { IQuestion, TResponseType } from "@/types/question";
+import { usePostCreateReview } from "@/service/hooks/usePostCreateReview";
+import { IQuestion } from "@/types/question";
 import { zodResolver } from "@hookform/resolvers/zod";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
@@ -9,10 +10,9 @@ import {
   SwipeableDrawer,
   TextareaAutosize,
 } from "@mui/material";
-import { useEffect } from "react";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-
-
 
 interface IDrawerProps {
   open: boolean;
@@ -20,11 +20,18 @@ interface IDrawerProps {
   question: IQuestion[];
   title: string;
   subtitle: string;
+  exhibitionId: string;
 }
 
 export type TFormValues = {
   [key: string]: number | string | undefined;
 };
+
+interface IValues {
+  name: string;
+  score: number;
+  description: any;
+}
 
 export function SwipeableDrawerComponent({
   open,
@@ -32,8 +39,17 @@ export function SwipeableDrawerComponent({
   question,
   title,
   subtitle,
+  exhibitionId,
 }: IDrawerProps) {
+  const { project_id } = useParams();
   const dynamicSchema = createSchemaFromQuestions(question);
+  const [body, setBody] = useState<IValues[]>([]);
+  const {
+    postCreateReview,
+    postCreateReviewData,
+    postCreateReviewError,
+    postCreateReviewRest,
+  } = usePostCreateReview();
 
   const {
     handleSubmit,
@@ -46,8 +62,35 @@ export function SwipeableDrawerComponent({
   });
 
   const onSubmit = (data: TFormValues) => {
-    console.log("Dados do Formulário Validados:", data);
+    const newBody = question.map((item) => ({
+      name: item.responseType !== "Comment" ? item.description : "",
+      score:
+        item.responseType !== "Comment" ? Number(data[item.description]) : 0,
+      description:
+        item.responseType === "Comment" ? data[item.description] : "",
+    }));
+
+    setBody(newBody);
   };
+
+  useEffect(() => {
+    console.log(body);
+    body.length > 0 &&
+      postCreateReview({
+        body: {
+          comment: body.filter((item) => item.score === 0)[0].description,
+          exhibition_id: exhibitionId,
+          project_id: project_id!.toString(),
+          grades: body.filter(
+            (item) =>
+              item.score !== 0 && {
+                name: item.name,
+                score: Number(item.score),
+              }
+          ),
+        },
+      });
+  }, [body]);
 
   useEffect(() => {
     console.log(errors);

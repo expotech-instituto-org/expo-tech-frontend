@@ -24,7 +24,7 @@ export default function LayoutAdmin({
   }, []);
   return (
     <>
-      <Container maxWidth="xl">{children}</Container>
+      <div>{children}</div>
     </>
   );
 }

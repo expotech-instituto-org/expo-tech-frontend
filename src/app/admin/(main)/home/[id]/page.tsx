@@ -100,10 +100,12 @@ export default function Page() {
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      <UpsertUserDrawer
-        open={openUpsertUsersDrawer}
-        onClose={() => setOpenUpsertUsersDrawer(false)}
-      />
+      {openUpsertUsersDrawer && (
+        <UpsertUserDrawer
+          open={openUpsertUsersDrawer}
+          onClose={() => setOpenUpsertUsersDrawer(false)}
+        />
+      )}
     </AdminTitles>
   );
 }

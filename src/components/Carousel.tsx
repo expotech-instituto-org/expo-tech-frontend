@@ -7,14 +7,7 @@ import "swiper/css/pagination";
 
 import { Box, Card, CardMedia } from "@mui/material";
 
-const images = [
-  "/images/exampleImgCarousel.png",
-  "/images/exampleImgCarousel.png",
-  "/images/exampleImgCarousel.png",
-  "/images/exampleImgCarousel.png",
-];
-
-export default function Carousel() {
+export default function Carousel({ images }: { images: string[] }) {
   return (
     <Box
       sx={{
@@ -42,7 +35,7 @@ export default function Carousel() {
               <CardMedia
                 component="img"
                 image={img}
-                alt={`slide-${i}`}
+                alt={`slide-${img}`}
                 sx={{ width: "100%", height: 200, objectFit: "cover" }}
               />
             </Card>

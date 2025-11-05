@@ -24,8 +24,7 @@ export default function Home() {
   const [avaliados, setAvaliados] = useState(true);
   const [search, setSearch] = useState("");
   const router = useRouter();
-  const path = usePathname();
-  const { userId } = useContext(DataContext);
+  const { userId, setExhibitionId } = useContext(DataContext);
   const params = useParams<{ id: string }>();
 
   const {
@@ -76,6 +75,10 @@ export default function Home() {
   }, [getUserByIdData]);
 
   useEffect(() => {
+    setExhibitionId(params.id!);
+  }, [params.id]);
+
+  useEffect(() => {
     if (getExhibitionByIdError) toast.error("Erro ao listar projetos");
     if (getUserByIdError) toast.error("Erro ao pegar dados do usuaŕio");
   }, [getExhibitionByIdError, getUserByIdError]);
@@ -96,7 +99,7 @@ export default function Home() {
   return (
     <div>
       {/* Banner */}
-      <Carousel />
+      <Carousel images={getExhibitionByIdData?.banner || []} />
 
       {/* Botões principais */}
       <div className="mt-[0.88rem] flex justify-between px-[1.19rem]">

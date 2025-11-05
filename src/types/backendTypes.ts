@@ -59,20 +59,13 @@ export interface IGetReadUsersMe {
 
 export interface ICreateReviewBody {
   comment: string;
-  exhibition_id: {
-    id: string;
-    name: string;
-  };
+  exhibition_id: string;
   grades: {
     name: string;
     score: number;
-    weight: number;
   }[];
 
-  project: {
-    id: string;
-    name: string;
-  };
+  project_id: string;
 }
 
 export interface IGetReviewsResponse {
@@ -174,6 +167,7 @@ export interface IUpdateExhibitionBody {
     name: string;
     weight: number;
   }[];
+  banner: string[];
 }
 
 export interface IGetProjectsParams {
@@ -192,10 +186,13 @@ export interface IGetProjectsResponse {
     _id: string;
     name: string;
     profile_picture: string;
+    class: string;
   }[];
   images: string[];
   logo: string;
   name: string;
+  is_rated?: boolean;
+  is_favorited?: boolean;
 }
 
 export interface ICreateProjectBody {
