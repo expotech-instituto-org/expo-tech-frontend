@@ -41,15 +41,11 @@ export interface IGetUsersResponse {
     name: string;
   };
   reviews?: {
+    _id: string;
     comment: string;
     exhibition_id: string;
     project_id: string;
-    reviews?: {
-      comment: string;
-      exhibition_id: string;
-      project_id: string;
-    }[];
-  };
+  }[];
   role: {
     _id: string;
     name: string;

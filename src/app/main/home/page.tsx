@@ -4,7 +4,6 @@ import { useGetExhibitionCurrent } from "@/service/hooks/useGetExhibitionsCurren
 import { useGetProjects } from "@/service/hooks/useGetProjects";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { IGetProjectsResponse } from "@/types/backendTypes";
-import { Button } from "@mui/material";
 import {
   Favorite,
   FormatListBulleted,
@@ -12,25 +11,58 @@ import {
   QrCodeScanner,
   Search,
   Star,
+  StarBorder,
 } from "@mui/icons-material";
 import { Backdrop, CircularProgress } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { DataContext } from "@/dataContext";
+import { usePatchFavoriteProject } from "@/service/hooks/usePatchFavoriteProject";
 
-export default function Home({ userId }: { userId: string | null }) {
+export default function Home() {
   const [selected, setSelected] = useState("todos");
+  const [avaliados, setAvaliados] = useState(true);
   const [search, setSearch] = useState("");
-
-  const { getUserByIdData, getUserByIdError, getUserByIdPending } =
-    useGetUserById({ user_id: userId || "", enabled: !!userId });
-  console.log(getUserByIdData?._id);
+  const { userId } = useContext(DataContext);
+  const {
+    getUserById: refreshUser,
+    getUserByIdData,
+    getUserByIdError,
+    getUserByIdPending,
+  } = useGetUserById({ user_id: userId || "", enabled: !!userId });
   const favoriteProjects = getUserByIdData?.favorited_projects || [];
+  const reviews = getUserByIdData?.reviews || [];
 
   const {
     getExhibitionCurrentData,
     getExhibitionCurrentError,
     getExhibitionCurrentPending,
   } = useGetExhibitionCurrent({ enabled: true });
+
+  const {
+    patchFavoriteProject,
+    patchFavoriteProjectData,
+    patchFavoriteProjectError,
+  } = usePatchFavoriteProject();
+
+  function favoriteProject(project_id: string) {
+    patchFavoriteProject(
+      { project_id },
+      {
+        onSuccess: (data) => {
+          if (data.data.response === true) {
+            toast.success("Projeto favoritado com sucesso!");
+          } else {
+            toast.success("Projeto desfavoritado com sucesso!");
+          }
+          refreshUser();
+        },
+        onError: () => {
+          toast.error("Erro ao atualizar favorito");
+        },
+      }
+    );
+  }
 
   const {
     getProjectsData,
@@ -49,9 +81,30 @@ export default function Home({ userId }: { userId: string | null }) {
   }, [getExhibitionCurrentData?._id, search, refetchProjects]);
 
   useEffect(() => {
+    if (getUserByIdData) {
+      refetchProjects();
+    }
+  }, [getUserByIdData]);
+
+  useEffect(() => {
     if (getProjectsError) toast.error("Erro ao listar projetos");
     if (getExhibitionCurrentError) toast.error("Erro ao obter feira atual");
   }, [getProjectsError, getExhibitionCurrentError]);
+  // Logo antes do return
+
+  const filteredProjects = getProjectsData?.filter(
+    (project: IGetProjectsResponse) => {
+      if (selected === "todos") return true;
+      if (selected === "favoritos")
+        return favoriteProjects.includes(project._id);
+      if (selected === "avaliados" && avaliados)
+        return reviews.some((review) => review.project_id === project._id);
+      if (selected === "avaliados" && !avaliados)
+        return !reviews.some((review) => review.project_id === project._id);
+
+      return true;
+    }
+  );
 
   return (
     <div>
@@ -65,14 +118,6 @@ export default function Home({ userId }: { userId: string | null }) {
             Expo360
           </h1>
         </div>
-        <Button
-          variant="contained"
-          color="primary"
-          className="absolute top-4 right-[-50]"
-          onClick={() => {}}
-        >
-          Logout
-        </Button>
       </div>
 
       <div className="pt-[9.31rem]">
@@ -120,10 +165,20 @@ export default function Home({ userId }: { userId: string | null }) {
           </button>
 
           <button
-            onClick={() => setSelected("avaliados")}
+            onClick={() => {
+              if (selected === "avaliados") {
+                setAvaliados(!avaliados);
+              }
+              setSelected("avaliados");
+            }}
             className="flex items-center pb-[0.25rem] border-b-2 border-transparent hover:opacity-80 transition"
           >
-            <Star className="mr-[0.25rem] text-[var(--amarelo)]" />
+            {avaliados ? (
+              <Star className="mr-[0.25rem] text-[var(--amarelo)]" />
+            ) : (
+              <StarBorder className="mr-[0.25rem] text-[var(--amarelo)]" />
+            )}
+
             <span
               className={`${
                 selected === "avaliados"
@@ -131,7 +186,7 @@ export default function Home({ userId }: { userId: string | null }) {
                   : "text-[var(--azul-primario)]/50"
               }`}
             >
-              Já Avaliados
+              {avaliados ? "Já Avaliados" : "Não Avaliados"}
             </span>
           </button>
 
@@ -153,21 +208,25 @@ export default function Home({ userId }: { userId: string | null }) {
         </div>
 
         {/* Lista de projetos */}
-        <div className="mt-4 ml-[1.19rem] grid grid-cols-1 gap-4">
+        <div className="mx-4 mt-4 ml-[1.19rem] grid grid-cols-1 gap-4">
           {!getProjectsPending &&
             !getProjectsError &&
-            getProjectsData?.length === 0 && <p>Nenhum projeto encontrado.</p>}
+            filteredProjects?.length === 0 && <p>Nenhum projeto encontrado.</p>}
 
           {!getProjectsPending &&
             !getProjectsError &&
-            getProjectsData?.map((project: IGetProjectsResponse) => (
+            filteredProjects?.map((project: IGetProjectsResponse) => (
               <ProjectCard
                 key={project._id}
                 title={project.name}
                 subtitle={project.company_name}
                 imageUrl={"/images/exampleProjectImage.jpg"}
                 favorited={favoriteProjects.includes(project._id) ?? false}
-                rated={false}
+                onFavoriteToggle={() => favoriteProject(project._id)}
+                rated={
+                  reviews.some((review) => review.project_id === project._id) ??
+                  false
+                }
               />
             ))}
         </div>
@@ -176,7 +235,7 @@ export default function Home({ userId }: { userId: string | null }) {
       {/* Loader */}
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={getProjectsPending || getExhibitionCurrentPending}
+        open={getProjectsPending} //|| getExhibitionCurrentPending}
       >
         <CircularProgress color="inherit" />
       </Backdrop>
