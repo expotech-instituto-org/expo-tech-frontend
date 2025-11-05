@@ -11,8 +11,8 @@ import {
   QrCodeScanner,
   Search,
   Star,
-  StarBorder,
 } from "@mui/icons-material";
+import StarBorderOutlined from "@mui/icons-material/StarBorderOutlined";
 import { Backdrop, CircularProgress } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -176,7 +176,7 @@ export default function Home() {
             {avaliados ? (
               <Star className="mr-[0.25rem] text-[var(--amarelo)]" />
             ) : (
-              <StarBorder className="mr-[0.25rem] text-[var(--amarelo)]" />
+              <StarBorderOutlined className="mr-[0.25rem] text-[var(--amarelo)]" />
             )}
 
             <span

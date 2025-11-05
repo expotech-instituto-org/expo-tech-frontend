@@ -4,12 +4,12 @@ import { IToken } from "@/types/backendTypes";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
-import { cloneElement, useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 
 export default function LayoutHome({
   children,
 }: {
-  children: React.ReactElement;
+  children: React.ReactNode;
 }) {
   const router = useRouter();
   const { setUserId } = useContext(DataContext);
