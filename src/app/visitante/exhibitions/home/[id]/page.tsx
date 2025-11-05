@@ -1,7 +1,7 @@
 "use client";
 import ProjectCard from "@/components/projectCard"; // ajuste o caminho
-import { useGetProjects } from "@/service/hooks/useGetProjects"; // ajuste o caminho
-import { IGetProjectsResponse } from "@/types/backendTypes";
+import { useGetExhibitionById } from "@/service/hooks/useGetExhibitionById";
+import { useGetProjects } from "@/service/hooks/useGetProjects";
 import {
   Favorite,
   FormatListBulleted,
@@ -10,23 +10,29 @@ import {
   Search,
   Star,
 } from "@mui/icons-material";
-import { Backdrop, Button, CircularProgress, Container } from "@mui/material";
+import { Backdrop, Button, CircularProgress } from "@mui/material";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function Home() {
   const [selected, setSelected] = useState("todos");
   const [search, setSearch] = useState("");
+  const params = useParams<{ id: string }>();
 
-  const { getProjectsData, getProjectsPending, getProjectsError } =
-    useGetProjects({
-      exhibition_id: "exhibition-uuid-1234",
-      project_name: search,
-    });
+  const {
+    getExhibitionByIdData,
+    getExhibitionByIdError,
+    getExhibitionByIdRest,
+  } = useGetExhibitionById({
+    exhibition_id: params.id,
+    enabled: true,
+  });
 
   useEffect(() => {
-    getProjectsError && toast.error("erro ao listar projetos");
-  }, [getProjectsError]);
+    getExhibitionByIdError && toast.error("erro ao listar projetos");
+  }, [getExhibitionByIdError]);
+
   return (
     <>
       <div className="bg-black h-[11.06rem] mt-[0.94rem]  rounded-[0.625rem]"></div>
@@ -52,7 +58,7 @@ export default function Home() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar grupo"
-          className="w-full outline-none text-[0.875rem]"
+          className="w-full outline-none text-[0.875rem] text-black"
         />
         <Search className="text-gray-500" />
       </div>
@@ -107,12 +113,23 @@ export default function Home() {
         </button>
       </div>
       <div className="mt-4  grid grid-cols-1 gap-4">
-        {!getProjectsPending &&
-          !getProjectsError &&
-          getProjectsData?.length === 0 && <p>Nenhum projeto encontrado.</p>}
-        {!getProjectsPending &&
-          !getProjectsError &&
-          getProjectsData?.map((project: IGetProjectsResponse) => (
+        {search.length > 0 ? (
+          getExhibitionByIdData?.projects
+            ?.filter((project) => {
+              return project.name.toLowerCase().includes(search.toLowerCase());
+            })
+            .map((project) => (
+              <ProjectCard
+                key={project._id}
+                title={project.name}
+                subtitle={project.company_name}
+                imageUrl={project.logo}
+                favorited={true}
+                rated={false}
+              />
+            ))
+        ) : getExhibitionByIdData ? (
+          getExhibitionByIdData.projects?.map((project) => (
             <ProjectCard
               key={project._id}
               title={project.name}
@@ -121,11 +138,14 @@ export default function Home() {
               favorited={true}
               rated={false}
             />
-          ))}
+          ))
+        ) : (
+          <p>Nenhum projeto encontrado.</p>
+        )}
       </div>
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={getProjectsPending}
+        open={getExhibitionByIdRest.isLoading}
       >
         <CircularProgress color="inherit" />
       </Backdrop>
