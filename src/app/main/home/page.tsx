@@ -1,34 +1,120 @@
 "use client";
-import { useState } from "react";
+import ProjectCard from "@/components/projectCard";
+import { useGetExhibitionCurrent } from "@/service/hooks/useGetExhibitionsCurrent";
+import { useGetProjects } from "@/service/hooks/useGetProjects";
+import { useGetUserById } from "@/service/hooks/useGetUserById";
+import { IGetProjectsResponse } from "@/types/backendTypes";
 import {
+  Favorite,
+  FormatListBulleted,
   MapOutlined,
   QrCodeScanner,
   Search,
   Star,
-  FormatListBulleted,
-  Favorite,
 } from "@mui/icons-material";
-import { useGetProjects } from "@/service/hooks/useGetProjects"; // ajuste o caminho
-import ProjectCard from "@/components/projectCard"; // ajuste o caminho
-import { IProject } from "@/types/backendTypes";
+import StarBorderOutlined from "@mui/icons-material/StarBorderOutlined";
+import { Backdrop, CircularProgress } from "@mui/material";
+import { useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { DataContext } from "@/dataContext";
+import { usePatchFavoriteProject } from "@/service/hooks/usePatchFavoriteProject";
 import Carousel from "@/components/Carousel";
 
 export default function Home() {
   const [selected, setSelected] = useState("todos");
+  const [avaliados, setAvaliados] = useState(true);
   const [search, setSearch] = useState("");
+  const { userId } = useContext(DataContext);
+  const {
+    getUserById: refreshUser,
+    getUserByIdData,
+    getUserByIdError,
+    getUserByIdPending,
+  } = useGetUserById({ user_id: userId || "", enabled: !!userId });
+  const favoriteProjects = getUserByIdData?.favorited_projects || [];
+  const reviews = getUserByIdData?.reviews || [];
 
-  const { projects, projectsLoading, projectsError } = useGetProjects({
-    exhibition_id: "exhibition-uuid-1234",
+  const {
+    getExhibitionCurrentData,
+    getExhibitionCurrentError,
+    getExhibitionCurrentPending,
+  } = useGetExhibitionCurrent({ enabled: true });
+
+  const {
+    patchFavoriteProject,
+    patchFavoriteProjectData,
+    patchFavoriteProjectError,
+  } = usePatchFavoriteProject();
+
+  function favoriteProject(project_id: string) {
+    patchFavoriteProject(
+      { project_id },
+      {
+        onSuccess: (data) => {
+          if (data.data.response === true) {
+            toast.success("Projeto favoritado com sucesso!");
+          } else {
+            toast.success("Projeto desfavoritado com sucesso!");
+          }
+          refreshUser();
+        },
+        onError: () => {
+          toast.error("Erro ao atualizar favorito");
+        },
+      }
+    );
+  }
+
+  const {
+    getProjectsData,
+    getProjectsPending,
+    getProjectsError,
+    getProjects: refetchProjects,
+  } = useGetProjects({
+    exhibition_id: getExhibitionCurrentData?._id || "",
+    project_name: search,
   });
 
-  console.log("Projetos:", projects);
-  console.log("Carregando:", projectsLoading);
-  console.log("Erro:", projectsError);
+  useEffect(() => {
+    if (getExhibitionCurrentData?._id) {
+      refetchProjects();
+    }
+  }, [getExhibitionCurrentData?._id, search, refetchProjects]);
+
+  useEffect(() => {
+    if (getUserByIdData) {
+      refetchProjects();
+    }
+  }, [getUserByIdData]);
+
+  useEffect(() => {
+    if (getProjectsError) toast.error("Erro ao listar projetos");
+    if (getExhibitionCurrentError) toast.error("Erro ao obter feira atual");
+  }, [getProjectsError, getExhibitionCurrentError]);
+  // Logo antes do return
+
+  const filteredProjects = getProjectsData?.filter(
+    (project: IGetProjectsResponse) => {
+      if (selected === "todos") return true;
+      if (selected === "favoritos")
+        return favoriteProjects.includes(project._id);
+      if (selected === "avaliados" && avaliados)
+        return reviews.some((review) => review.project_id === project._id);
+      if (selected === "avaliados" && !avaliados)
+        return !reviews.some((review) => review.project_id === project._id);
+
+      return true;
+    }
+  );
+
   return (
     <div>
+      {/* Cabeçalho */}
       <div className="bg-[url(/images/Cabeçalho.png)] w-full h-[9.31rem] bg-fixed fixed top-0 left-0">
         <div className="absolute">
-          <p className="text-[1.25rem] ml-[0.94rem] mt-[2.5rem]">Bem vindo a</p>
+          <p className="text-[1.25rem] ml-[0.94rem] mt-[2.5rem]">
+            Bem-vindo(a) à
+          </p>
           <h1 className="text-[3rem] font-bold ml-[0.94rem] mt-[-0.31rem]">
             Expo360
           </h1>
@@ -36,27 +122,32 @@ export default function Home() {
       </div>
 
       <div className="pt-[9.31rem]">
-        <Carousel />
-        {/* <div className="bg-black w-[23rem] h-[11.06rem] mt-[0.94rem] ml-[1.38rem] mr-[1.38rem] rounded-[0.625rem]"></div> */}
+        {/* Banner */}
+        <Carousel/>
 
+        {/* Botões principais */}
         <div className="mt-[0.88rem] flex">
-          <button className="flex items-center justify-center w-[11.38rem] h-[2.25rem] bg-[var(--azul-primario)] rounded-[0.625rem] ml-[1.19rem] text-white font-medium">
+          <button className="flex items-center justify-center w-[11.38rem] h-[2.25rem] bg-[var(--azul-primario)] rounded-[0.625rem] ml-[1.19rem] text-white font-medium hover:opacity-90">
             <MapOutlined className="mr-[0.31rem]" /> Mapa da Feira
           </button>
-          <button className="flex items-center justify-center w-[11.38rem] h-[2.25rem] bg-[var(--azul-primario)] rounded-[0.625rem] ml-[0.63rem] text-white font-medium">
+          <button className="flex items-center justify-center w-[11.38rem] h-[2.25rem] bg-[var(--azul-primario)] rounded-[0.625rem] ml-[0.63rem] text-white font-medium hover:opacity-90">
             <QrCodeScanner className="mr-[0.31rem]" /> Ler QR Code
           </button>
         </div>
 
+        {/* Barra de busca */}
         <div className="flex items-center justify-between w-[23.38rem] h-[2.5rem] bg-white border border-gray-300 rounded-[0.625rem] mt-[0.63rem] ml-[1.19rem] px-[0.63rem] shadow-sm">
           <input
             type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar grupo"
             className="w-full outline-none text-[0.875rem]"
           />
           <Search className="text-gray-500" />
         </div>
 
+        {/* Filtros */}
         <div className="flex justify-around items-center w-[23.38rem] mt-[1rem] text-[0.875rem] font-medium ml-[1.19rem]">
           <button
             onClick={() => setSelected("todos")}
@@ -75,10 +166,20 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => setSelected("avaliados")}
+            onClick={() => {
+              if (selected === "avaliados") {
+                setAvaliados(!avaliados);
+              }
+              setSelected("avaliados");
+            }}
             className="flex items-center pb-[0.25rem] border-b-2 border-transparent hover:opacity-80 transition"
           >
-            <Star className="mr-[0.25rem] text-[var(--amarelo)]" />
+            {avaliados ? (
+              <Star className="mr-[0.25rem] text-[var(--amarelo)]" />
+            ) : (
+              <StarBorderOutlined className="mr-[0.25rem] text-[var(--amarelo)]" />
+            )}
+
             <span
               className={`${
                 selected === "avaliados"
@@ -86,7 +187,7 @@ export default function Home() {
                   : "text-[var(--azul-primario)]/50"
               }`}
             >
-              Já Avaliados
+              {avaliados ? "Já Avaliados" : "Não Avaliados"}
             </span>
           </button>
 
@@ -106,40 +207,39 @@ export default function Home() {
             </span>
           </button>
         </div>
-        <div className="mt-4 ml-[1.19rem] grid grid-cols-1 gap-4">
-          {projectsLoading && (
-            <p className="text-[var(--azul-primario)]">
-              Carregando projetos...
-            </p>
-          )}
-          {projectsError && (
-            <p className="text-[var(--error)]">{projectsError}</p>
-          )}
-          {!projectsLoading && !projectsError && projects?.length === 0 && (
-            <p>Nenhum projeto encontrado.</p>
-          )}
 
-          {!projectsLoading &&
-            !projectsError &&
-            projects
-              ?.filter((project: IProject) => {
-                if (selected === "todos") return true;
-                // if (selected === "avaliados") return project.rated; // ou campo equivalente
-                // if (selected === "favoritos") return project.favorited; // ou campo equivalente
-                return true;
-              })
-              .map((project: IProject) => (
-                <ProjectCard
-                  key={project._id}
-                  title={project.name}
-                  subtitle={project.company_name}
-                  imageUrl={"/images/exampleProjectImage.jpg"} // fallback
-                  favorited={true}
-                  rated={false}
-                />
-              ))}
+        {/* Lista de projetos */}
+        <div className="mx-4 mt-4 ml-[1.19rem] grid grid-cols-1 gap-4">
+          {!getProjectsPending &&
+            !getProjectsError &&
+            filteredProjects?.length === 0 && <p>Nenhum projeto encontrado.</p>}
+
+          {!getProjectsPending &&
+            !getProjectsError &&
+            filteredProjects?.map((project: IGetProjectsResponse) => (
+              <ProjectCard
+                key={project._id}
+                title={project.name}
+                subtitle={project.company_name}
+                imageUrl={"/images/exampleProjectImage.jpg"}
+                favorited={favoriteProjects.includes(project._id) ?? false}
+                onFavoriteToggle={() => favoriteProject(project._id)}
+                rated={
+                  reviews.some((review) => review.project_id === project._id) ??
+                  false
+                }
+              />
+            ))}
         </div>
       </div>
+
+      {/* Loader */}
+      <Backdrop
+        sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+        open={getProjectsPending} //|| getExhibitionCurrentPending}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </div>
   );
 }

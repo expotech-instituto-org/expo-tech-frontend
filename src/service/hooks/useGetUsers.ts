@@ -3,7 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { ExpoApiService } from "../expoApiService";
 
-export const useGetUsers = ({ enabled }: { enabled: boolean }) => {
+export const useGetUsers = ({
+  enabled,
+  name,
+  role_id,
+}: {
+  enabled?: boolean;
+  name?: string;
+  role_id?: string;
+}) => {
   const { refetch, data, error, ...rest } =
     //   useQuery é usado para fazer chamadas que não alteram o banco (Get)
     useQuery<
@@ -12,7 +20,7 @@ export const useGetUsers = ({ enabled }: { enabled: boolean }) => {
       AxiosError<{ message: string }>
     >({
       queryKey: ["/users"],
-      queryFn: () => ExpoApiService.getUsers(),
+      queryFn: () => ExpoApiService.getUsers({ name, role_id }),
       enabled,
     });
 

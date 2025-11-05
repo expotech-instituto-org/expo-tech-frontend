@@ -9,7 +9,7 @@ export const usePostCreateProject = () => {
     AxiosError<{ message: string }>,
     { body: ICreateProjectBody }
   >({
-    mutationFn: ExpoApiService.postCreateProject,
+    mutationFn: (variables) => ExpoApiService.postCreateProject(variables),
   });
 
   return {
