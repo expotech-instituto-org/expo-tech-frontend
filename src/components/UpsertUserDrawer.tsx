@@ -27,6 +27,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ interface IProps {
 }
 
 export function UpsertUserDrawer(props: IProps) {
+  const query = useQueryClient();
   const {
     handleSubmit,
     register,
@@ -45,7 +47,7 @@ export function UpsertUserDrawer(props: IProps) {
     reset,
     setValue,
     watch,
-    formState: { isValid, errors },
+    formState: { errors },
   } = useForm<TEditUserSchema>({
     resolver: zodResolver(editUserSchema),
   });
@@ -115,7 +117,9 @@ export function UpsertUserDrawer(props: IProps) {
           user_id: props.userId,
         },
         {
-          onSuccess: () => setTimeout(() => window.location.reload(), 2000),
+          onSuccess: () => (
+            query.invalidateQueries({ queryKey: ["/users"] }), props.onClose()
+          ),
         }
       );
     }

@@ -15,6 +15,7 @@ import { DeleteUserDrawer } from "./DeleteUserDrawer";
 import { Modal } from "./Modal";
 import { UpsertUserDrawer } from "./UpsertUserDrawer";
 import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 export type TUserType =
   | "visitante"
@@ -79,6 +80,7 @@ const chipMap = {
 export function ListCard(props: TNotification) {
   const router = useRouter();
   const path = usePathname();
+  const query = useQueryClient();
   const [openEditDrawer, setOpenEditDrawer] = useState<boolean>(false);
   const [openDeleteDrawer, setOpenDeleteDrawer] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string>("");
@@ -100,9 +102,7 @@ export function ListCard(props: TNotification) {
       toast.error("Erro ao deletar projeto, " + deleteProjectError);
     if (deleteProjectData) {
       toast.success("Projeto deletado com sucesso");
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
+      query.invalidateQueries({ queryKey: ["/projects"] });
     }
   }, [deleteProjectError, deleteProjectData]);
 

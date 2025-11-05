@@ -14,13 +14,14 @@ export default function Page() {
   const params = useParams();
   const router = useRouter();
   const path = usePathname();
-  const isUsersPage = params.id === "usuarios";
+  const isUsersPage = params.id === "users";
   const [searchByName, setSearchByName] = useState<string>("");
   const [openUpsertUsersDrawer, setOpenUpsertUsersDrawer] =
     useState<boolean>(false);
 
-  const { getUsersData, getUsersError, getUsersRest } = useGetUsers({
+  const { getUsers, getUsersData, getUsersError, getUsersRest } = useGetUsers({
     enabled: isUsersPage,
+    name: searchByName,
   });
 
   const {
@@ -36,7 +37,7 @@ export default function Page() {
   }, [getUsersError, getExhibitionsError]);
 
   useEffect(() => {
-    !isUsersPage && getExhibitions();
+    !isUsersPage ? getExhibitions() : getUsers();
   }, [searchByName]);
 
   return (

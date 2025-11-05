@@ -124,15 +124,17 @@ export interface IUpsertClassBody {
 }
 
 export interface ICreateExhibitionBody {
-  description?: string;
-  end_date: string;
-  image?: string;
-  name: string;
-  start_date: string;
-  criteria: {
+  exhibition: {
+    description?: string;
+    end_date: string;
     name: string;
-    weight: number;
-  }[];
+    start_date: string;
+    criteria: {
+      name: string;
+      weight: number;
+    }[];
+  };
+  image: string;
 }
 
 export interface IGetAllExhibitionsResponse {
@@ -195,17 +197,19 @@ export interface IGetProjectsResponse {
 }
 
 export interface ICreateProjectBody {
-  name: string;
-  company_name: string;
-  description: string;
-  images: string[];
-  expositors: {
-    id: string;
-    name?: string;
-  }[];
-  coordinates: number;
+  project: {
+    company_name: string;
+    coordinates: number;
+    description: string;
+    exhibition_id: string;
+    expositors: {
+      id: string;
+    }[];
+
+    name: string;
+  };
   logo: string;
-  exhibition_id: string;
+  images: string[];
 }
 
 export interface IIdAndName {
