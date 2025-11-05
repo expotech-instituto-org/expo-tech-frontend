@@ -30,6 +30,7 @@ export interface IGetUsersResponse {
   class?: string;
   company?: string;
   email: string;
+  favorited_projects?: string[];
   knowledge?: string;
   password: string;
   phone?: string;
@@ -40,15 +41,11 @@ export interface IGetUsersResponse {
     name: string;
   };
   reviews?: {
+    _id: string;
     comment: string;
     exhibition_id: string;
     project_id: string;
-    reviews?: {
-      comment: string;
-      exhibition_id: string;
-      project_id: string;
-    }[];
-  };
+  }[];
   role: {
     _id: string;
     name: string;
@@ -144,6 +141,10 @@ export interface IGetAllExhibitionsResponse {
   image: string;
   start_date: string;
   end_date: string;
+}
+
+export interface IGetExhibitionCurrentResponse {
+  _id: string;
 }
 
 export interface IUpdateExhibitionBody {

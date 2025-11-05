@@ -136,7 +136,7 @@ export default function Page() {
       Cookies.set("visitante-token", loginData.access_token, {
         path: "/",
       });
-      router.push("/visitante/exhibitions");
+      router.push("/main/home");
     }
     getClassesError && toast.error("Erro ao buscar turmas");
     getCompaniesError && toast.error("Erro ao buscar empresas");
