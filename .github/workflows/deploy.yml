@@ -130,7 +130,7 @@ jobs:
             HEALTHY=false
 
             while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-              HTTP_CODE=$(docker run --rm --network "$NETWORK" curlimages/curl:latest -s -o /dev/null -w "%{http_code}" "http://frontend-green-temp:4444/" || echo "000")
+              HTTP_CODE=$(docker run --rm --network "$NETWORK" curlimages/curl:latest -s -o /dev/null -w "%{http_code}" "http://frontend-green-temp:3000/" || echo "000")
               echo "Tentativa $((ATTEMPTS+1))/$MAX_ATTEMPTS - HTTP $HTTP_CODE"
               if [ "$HTTP_CODE" = "200" ]; then
                 HEALTHY=true
@@ -155,7 +155,7 @@ jobs:
             docker run -d --name frontend-blue \
               --network $NETWORK \
               --env-file .env \
-              -p 4444:4444 "$IMAGE_GREEN"
+              -p 3000:3000 "$IMAGE_GREEN"
 
             echo "Removendo container temporário"
             docker rm -f frontend-green-temp >/dev/null 2>&1 || true
