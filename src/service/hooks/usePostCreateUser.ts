@@ -9,7 +9,9 @@ export const usePostCreateUser = () => {
     AxiosError<{ message: string }>,
     { body: ICreateUserBody }
   >({
-    mutationFn: ExpoApiService.postCreateUser,
+    mutationFn: (variables) => {
+      return ExpoApiService.postCreateUser(variables);
+    },
   });
 
   return {

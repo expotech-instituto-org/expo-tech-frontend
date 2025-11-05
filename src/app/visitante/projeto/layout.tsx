@@ -1,12 +1,11 @@
 "use client";
 import { IToken } from "@/types/backendTypes";
 import { Container } from "@mui/material";
+import { useEffect } from "react";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
-export default function LayoutLogin({
+export default function LayoutAdmin({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -20,6 +19,9 @@ export default function LayoutLogin({
       return router.push("/visitante/login");
     }
   }, []);
-
-  return <Container maxWidth="sm">{children}</Container>;
+  return (
+    <>
+      <Container maxWidth="xl">{children}</Container>
+    </>
+  );
 }
