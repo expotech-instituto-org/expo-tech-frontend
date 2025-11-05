@@ -1,4 +1,6 @@
 "use client";
+
+import Carousel from "@/components/Carousel";
 import ProjectCard from "@/components/projectCard";
 import { useGetProjects } from "@/service/hooks/useGetProjects";
 import { IGetProjectsResponse } from "@/types/backendTypes";
@@ -36,15 +38,17 @@ export default function Home() {
     if (selected === "avaliados") {
       return projects.filter((project: IGetProjectsResponse) => project.is_rated);
     }
+
     if (selected === "favoritos") {
       return projects.filter((project: IGetProjectsResponse) => project.is_favorited);
     }
+
     return projects;
   }, [getProjectsData, selected]);
 
   return (
     <>
-      <div className="bg-black h-[11.06rem] mt-[0.94rem] rounded-[0.625rem]" />
+      <Carousel />
 
       <div className="mt-[0.88rem] flex w-full justify-between">
         <Button

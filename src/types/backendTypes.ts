@@ -166,6 +166,7 @@ export interface IUpdateExhibitionBody {
     company_name: string;
     logo: string;
     name: string;
+    coordinates: number;
   }[];
 
   roles: {

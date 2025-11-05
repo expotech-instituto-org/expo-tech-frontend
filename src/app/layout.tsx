@@ -35,7 +35,6 @@ export default function RootLayout({
       >
         <Toaster richColors position="bottom-left" duration={5000} />
         <DataContextProvider>
-          {" "}
           <QueryProvider> {children}</QueryProvider>
         </DataContextProvider>
       </body>
