@@ -174,6 +174,7 @@ export default function Home() {
           filteredProjects.map((project: IGetProjectsResponse) => (
             <ProjectCard
               key={project._id}
+              project_id={project._id}
               title={project.name}
               subtitle={project.company_name}
               imageUrl={project.logo}
