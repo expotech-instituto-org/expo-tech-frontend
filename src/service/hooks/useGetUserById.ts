@@ -26,6 +26,6 @@ export const useGetUserById = ({
     getUserById: refetch,
     getUserByIdData: data?.data,
     getUserByIdError: error?.response?.data?.message,
-    getUserByIdPending: isPending || isLoading || isRefetching,
+    getUserByIdPending: isLoading,
   };
 };

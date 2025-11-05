@@ -19,8 +19,6 @@ export default function Carousel() {
     <Box
       sx={{
         width: "100%",
-        maxWidth: 350,
-        margin: "22px auto",
         position: "relative",
       }}
     >
