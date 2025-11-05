@@ -13,7 +13,7 @@ export default function Page() {
       <div className="flex gap-8 flex-col md:flex-row">
         <Card className="!w-fit h-[15vh]">
           <Button
-            onClick={() => router.push(pathname + `/usuarios`)}
+            onClick={() => router.push(pathname + `/users`)}
             variant="outlined"
             className="!w-full flex flex-col !items-start h-full"
           >
@@ -30,7 +30,7 @@ export default function Page() {
         </Card>
         <Card className="!w-fit h-[15vh]">
           <Button
-            onClick={() => router.push(pathname + `/feiras`)}
+            onClick={() => router.push(pathname + `/exhibitions`)}
             variant="outlined"
             className="!w-full flex flex-col !items-start h-full"
           >

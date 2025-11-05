@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ListCard } from "./ListCard";
 import { Modal } from "./Modal";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface IProps {
   id: string;
@@ -30,6 +31,7 @@ interface IProps {
 }
 
 export function ProjectsAccordion(props: IProps) {
+  const query = useQueryClient();
   const [searchInput, setSearchInput] = useState("");
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [exhibitionNameForChanging, setExhibitionNameForChanging] =
@@ -63,9 +65,9 @@ export function ProjectsAccordion(props: IProps) {
   useEffect(() => {
     if (deleteExhibitionData) {
       toast.error("exposição excluida com sucesso");
+      query.invalidateQueries({ queryKey: ["/exhibitions"] });
       setTimeout(() => {
         setOpenModal(false);
-        window.location.reload();
       }, 3500);
     }
     deleteExhibitionError && toast.error("erro ao excluir exposição");

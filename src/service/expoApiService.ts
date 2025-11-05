@@ -5,7 +5,6 @@ import {
   ICreateRoleBody,
   ICreateUserBody,
   IGetProjectsParams,
-  IGetProjectsResponse,
   IGetUsersResponse,
   ILoginBody,
   IUpdateExhibitionBody,
@@ -14,7 +13,13 @@ import {
 import { api } from "./api";
 
 class Service {
-  getUsers = () => api.get("/users");
+  getUsers = ({ name, role_id }: { name?: string; role_id?: string }) =>
+    api.get("/users", {
+      params: {
+        name,
+        role_id,
+      },
+    });
 
   postCreateUser = ({ body }: { body: ICreateUserBody }) => {
     const formData = new FormData();
@@ -112,15 +117,26 @@ class Service {
     });
 
   postCreateExhibition = ({ body }: { body: ICreateExhibitionBody }) =>
-    api.post("/exhibitions", body);
+    api.post("/exhibitions", body, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
 
   putUpdateExhibition = ({
     exhibition_id,
     body,
   }: {
     exhibition_id: string;
-    body: IUpdateExhibitionBody;
-  }) => api.put(`/exhibitions/${exhibition_id}`, body);
+    body: ICreateExhibitionBody;
+  }) =>
+    api.put(`/exhibitions/${exhibition_id}`, body, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
 
   getExhibitionById = ({ exhibition_id }: { exhibition_id: string }) =>
     api.get(`/exhibitions/${exhibition_id}`);
@@ -141,16 +157,28 @@ class Service {
       },
     });
 
-  postCreateProject = ({ body }: { body: ICreateProjectBody }) =>
-    api.post("/projects", body);
+  postCreateProject = ({ body }: { body: ICreateProjectBody }) => {
+    return api.post("/projects", body, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+  };
 
   putUpdateProject = ({
     project_id,
     body,
   }: {
     project_id: string;
-    body: IGetProjectsResponse;
-  }) => api.put(`/projects/${project_id}`, body);
+    body: ICreateProjectBody;
+  }) =>
+    api.put(`/projects/${project_id}`, body, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
 
   deleteProject = ({ project_id }: { project_id: string }) =>
     api.delete(`/projects/${project_id}`);
