@@ -195,6 +195,8 @@ export interface IGetProjectsResponse {
   images: string[];
   logo: string;
   name: string;
+  is_rated?: boolean;
+  is_favorited?: boolean;
 }
 
 export interface ICreateProjectBody {
