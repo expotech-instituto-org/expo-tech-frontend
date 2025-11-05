@@ -62,6 +62,7 @@ export default function Page() {
           }
         >
           <ProjectCard
+          
             title={exhibition.name}
             imageUrl={exhibition.image}
             subtitle={
