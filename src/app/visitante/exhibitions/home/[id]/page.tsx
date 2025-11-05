@@ -15,7 +15,7 @@ import {
 } from "@mui/icons-material";
 import StarBorderOutlined from "@mui/icons-material/StarBorderOutlined";
 import { Backdrop, Button, CircularProgress } from "@mui/material";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -23,6 +23,8 @@ export default function Home() {
   const [selected, setSelected] = useState("todos");
   const [avaliados, setAvaliados] = useState(true);
   const [search, setSearch] = useState("");
+  const router = useRouter();
+  const path = usePathname();
   const { userId } = useContext(DataContext);
   const params = useParams<{ id: string }>();
 
@@ -101,12 +103,14 @@ export default function Home() {
         <Button
           className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
           variant="contained"
+          onClick={() => router.push("/visitante/info")}
         >
           <MapOutlined className="mr-[0.31rem]" /> Mapa da Feira
         </Button>
         <Button
           className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
           variant="contained"
+          onClick={() => router.push("/visitante/qrcode")}
         >
           <QrCodeScanner className="mr-[0.31rem]" /> Ler QR Code
         </Button>
@@ -125,7 +129,7 @@ export default function Home() {
       </div>
 
       {/* Filtros */}
-      <div className="flex justify-around items-center w-[23.38rem] mt-[1rem] text-[0.875rem] font-medium ml-[1.19rem]">
+      <div className="flex justify-around items-center w-full mt-[1rem] text-[0.875rem] font-medium ml-[1.19rem]">
         <button
           onClick={() => setSelected("todos")}
           className="flex items-center pb-[0.25rem] hover:opacity-80 transition"

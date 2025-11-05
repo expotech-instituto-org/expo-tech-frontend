@@ -23,13 +23,21 @@ export default function Page() {
   });
 
   function handleClickExhibition(id: string, start: string, end: string) {
-    if (DateTime.fromISO(end) < DateTime.now()) {
-      toast.error("A feira ja terminou");
-    } else if (DateTime.fromISO(start) < DateTime.now()) {
-      toast.error("A feira ainda nao iniciou");
-    } else {
-      router.push(path + "/home/" + id);
+    const now = DateTime.now();
+    const startDate = DateTime.fromISO(start);
+    const endDate = DateTime.fromISO(end);
+
+    if (now < startDate) {
+      toast.error("A feira ainda não iniciou");
+      return;
     }
+
+    if (now > endDate) {
+      toast.error("A feira já terminou");
+      return;
+    }
+
+    router.push(path + "/home/" + id);
   }
 
   useEffect(() => {
