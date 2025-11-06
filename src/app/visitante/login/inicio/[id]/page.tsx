@@ -37,6 +37,7 @@ export default function Page() {
   const [isVisitor, setIsVisitor] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState(false);
   const [alreadySignedUp, setAlreadySignedUp] = useState(false);
+  const [loginErrorMessage, setLoginErrorMessage] = useState<string>("");
   const { login, loginData, loginError, loginRest } = useLogin();
   const { postCreateUser, postCreateUserError, postCreateUserRest } =
     usePostCreateUser();
@@ -85,13 +86,22 @@ export default function Page() {
   }, []);
 
   const onSubmit: SubmitHandler<TLoginSchema> = (data) => {
-    isLogin &&
-      login({
-        body: {
-          password: data.password,
-          username: data.email,
+    if (isLogin) {
+      setLoginErrorMessage(""); // Limpa mensagem de erro anterior
+      login(
+        {
+          body: {
+            password: data.password,
+            username: data.email,
+          },
         },
-      });
+        {
+          onError(error) {
+            setLoginErrorMessage("E-mail ou senha incorretos");
+          },
+        }
+      );
+    }
 
     if (data.step === 2) {
       postCreateUser(
@@ -171,6 +181,12 @@ export default function Page() {
               size="small"
               variant="outlined"
               className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-[20rem] "
+              onChange={(e) => {
+                register("email").onChange(e);
+                if (loginErrorMessage) {
+                  setLoginErrorMessage("");
+                }
+              }}
             />
             {errors.email && (
               <span className="text-red-500">{errors.email.message}</span>
@@ -196,6 +212,12 @@ export default function Page() {
                 type={showPassword ? "text" : "password"}
                 {...register("password")}
                 size="small"
+                onChange={(e) => {
+                  register("password").onChange(e);
+                  if (loginErrorMessage) {
+                    setLoginErrorMessage("");
+                  }
+                }}
                 endAdornment={
                   <InputAdornment position="end">
                     <IconButton
@@ -233,6 +255,9 @@ export default function Page() {
               />
               {errors.password && (
                 <span className="text-red-500">{errors.password.message}</span>
+              )}
+              {isLogin && loginErrorMessage && (
+                <span className="text-red-500 text-sm mt-1">{loginErrorMessage}</span>
               )}
             </FormControl>
 
