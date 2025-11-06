@@ -19,15 +19,21 @@ export default function QRCodePage() {
         return;
       }
 
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
       const backCamera =
         cameras.find((cam) => cam.label.toLowerCase().includes("back"))?.id ||
         cameras[0].id;
 
       const html5QrCode = new Html5Qrcode("qr-reader");
       scannerRef.current = html5QrCode;
+      
+      const cameraConfig = isIOS
+        ? { facingMode: "environment" }
+        : backCamera;
 
       await html5QrCode.start(
-        backCamera,
+        cameraConfig,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
@@ -36,8 +42,6 @@ export default function QRCodePage() {
         (decodedText) => {
           stopScanner();
           setResult(decodedText);
-
-          // ✅ Redireciona para o link lido
           router.push(decodedText);
         },
         (error) => {
@@ -61,14 +65,16 @@ export default function QRCodePage() {
     }
   };
 
-useEffect(() => {
-  startScanner();
+  useEffect(() => {
+    startScanner();
 
-  return () => {
-    stopScanner().catch(err => console.error("Erro ao parar scanner:", err));
-  };
-}, []);
-
+    return () => {
+      stopScanner().catch((err) =>
+        console.error("Erro ao parar scanner:", err)
+      );
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div style={{ padding: 20 }}>
