@@ -158,7 +158,7 @@ export default function QRCodePage() {
       </div>
 
       {/* Corpo */}
-      <div className="flex-1 flex items-center justify-center w-full">
+      <div className="flex-1 flex items-center justify-center w-full m-0 p-0">
         {!scanResult ? (
           <ScannerWrapper
             key="qr-scanner"
@@ -166,7 +166,7 @@ export default function QRCodePage() {
             onScanError={handleScanError}
           />
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white text-center p-6">
+          <div className="absolute inset-0 m-0 p-0 flex flex-col items-center justify-center bg-black text-white text-center p-6">
             <h2 className="text-xl font-semibold">QR Code Detectado:</h2>
             <p className="mt-4 break-all">{scanResult}</p>
             <button
