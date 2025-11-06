@@ -107,7 +107,7 @@ export function SwipeableDrawerComponent({
         disableSwipeToOpen={false}
         keepMounted
       >
-        <div className=" flex flex-col gap-[1.2rem] px-[3rem]  top-[-56] rounded-t-[8] visible right-0 left-0 bg-[var(--background)] ">
+        <div className=" flex flex-col gap-[1.2rem] px-[3rem] top-[-56] rounded-t-[8] visible right-0 left-0 bg-[var(--background)] ">
           <div
             className="w-[30rem] h-[6rem] bg-grey rounded-[3rem] absolute top-[8]
           left-[(calc(50%) - 15px)]"
