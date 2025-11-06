@@ -120,7 +120,7 @@ export default function Page() {
         {
           onSuccess: () => (
             toast.success("Exposição criada com sucesso"),
-            query.invalidateQueries({ queryKey: ["/feiras"] })
+            query.invalidateQueries({ queryKey: ["/exhibitions"] })
           ),
         }
       );
@@ -146,7 +146,7 @@ export default function Page() {
       {
         onSuccess: () => (
           toast.success("Exposição editada com sucesso"),
-          query.invalidateQueries({ queryKey: ["/feiras"] })
+          query.invalidateQueries({ queryKey: ["/exhibitions"] })
         ),
       }
     );
