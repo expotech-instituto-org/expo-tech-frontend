@@ -16,7 +16,7 @@ export const useGetExhibitions = ({
     AxiosResponse<IGetAllExhibitionsResponse[]>,
     AxiosError<{ message: string }>
   >({
-    queryKey: ["/feiras"],
+    queryKey: ["/exhibitions"],
     queryFn: () => ExpoApiService.getExhibitions({ name, start_date }),
     enabled,
   });

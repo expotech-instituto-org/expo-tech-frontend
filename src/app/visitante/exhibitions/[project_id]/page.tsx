@@ -35,6 +35,7 @@ export default function Page() {
   const { getExhibitionCurrent, getExhibitionCurrentData } =
     useGetExhibitionCurrent({ enabled: true });
 
+
   const { getProjectByIdData, getProjectByIdError, getProjectByIdPending } =
     useGetProjectById({
       project_id: project_id!.toString(),
