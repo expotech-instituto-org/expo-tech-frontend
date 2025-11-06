@@ -125,3 +125,9 @@ body {
   justify-content: center;
 }
 
+#qr-reader video {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+}
+
