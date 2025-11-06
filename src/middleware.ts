@@ -13,15 +13,15 @@ export async function middleware(req: NextRequest) {
   ) {
     return NextResponse.redirect(new URL("/visitante/login/inicio", origin));
   }
-  if (req.url.includes("/login")) {
-    if (req.url.includes("/admin") && adminIsAuth) {
-      return NextResponse.redirect(new URL("/admin/home", origin));
+    if (req.url.includes("/login")) {
+      if (req.url.includes("/admin") && adminIsAuth) {
+        return NextResponse.redirect(new URL("/admin/home", origin));
+      }
+      if (req.url.includes("/visitante") && visitanteIsAuth) {
+        return NextResponse.redirect(new URL("/visitante/feiras", origin));
+      }
+      return NextResponse.next();
     }
-    if (req.url.includes("/visitante") && visitanteIsAuth) {
-      return NextResponse.redirect(new URL("/visitante/feiras", origin));
-    }
-    return NextResponse.next();
-  }
 
   if (!visitanteIsAuth && pathname.includes("/visitante")) {
     const loginUrl = new URL("/visitante/login", origin);

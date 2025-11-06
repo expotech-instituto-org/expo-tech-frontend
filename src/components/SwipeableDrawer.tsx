@@ -80,7 +80,7 @@ export function SwipeableDrawerComponent({
       postCreateReview({
         body: {
           comment: body.filter((item) => item.score === 0)[0].description,
-          exhibition_id: exhibitionId,
+          exhibition_id: "7f6ecb5b-dec2-48c0-951c-bb5492591482",
           project_id: project_id!.toString(),
           grades: body.filter(
             (item) =>
