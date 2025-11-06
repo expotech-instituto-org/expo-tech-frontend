@@ -33,14 +33,14 @@ export default function MetaProgressBar({
         }}
       />
 
-      <Box display="flex" justifyContent="space-between" mt={1}>
+      {/* <Box display="flex" justifyContent="space-between" mt={1}>
         <Typography variant="body2" color="text.secondary">
           R$ {value.toLocaleString()}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           de R$ {goal.toLocaleString()}
         </Typography>
-      </Box>
+      </Box> */}
     </Box>
   );
 }
