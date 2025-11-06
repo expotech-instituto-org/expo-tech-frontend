@@ -9,6 +9,7 @@ interface IProjectProps {
   imageUrl: string;
   title: string;
   subtitle?: string;
+  type?: string;
   onFavoriteToggle?: () => void;
 }
 export default function ProjectCard({
@@ -18,6 +19,7 @@ export default function ProjectCard({
   imageUrl,
   title,
   subtitle,
+  type,
   onFavoriteToggle,
 }: IProjectProps) {
   const router = useRouter();
@@ -34,7 +36,7 @@ export default function ProjectCard({
       <div className="flex flex-row justify-between px-2 w-[70%] pr-5">
         <div
           className="flex flex-col w-full gap-2 mt-2"
-          onClick={() => router.push(`/visitante/projeto/${project_id}`)}
+          onClick={() => type !== "1" ? router.push(`/visitante/projeto/${project_id}`) : null}
         >
           <h1 className="text-[var(--azul-primario)] font-bold  text-[15px]">
             {title}

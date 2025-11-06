@@ -78,6 +78,7 @@ export default function Page() {
               " - " +
               DateTime.fromISO(exhibition.end_date).toFormat("dd/MM/yyyy")
             }
+            type="1"
           />
         </Button>
       ))}

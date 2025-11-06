@@ -1,10 +1,12 @@
 "use client";
 import Carousel from "@/components/Carousel";
 import ProjectCard from "@/components/projectCard";
+import Image from "next/image";
 import { DataContext } from "@/dataContext";
 import { useGetExhibitionById } from "@/service/hooks/useGetExhibitionById";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { usePatchFavoriteProject } from "@/service/hooks/usePatchFavoriteProject";
+import AddIcon from "@mui/icons-material/Add";
 import {
   Favorite,
   FormatListBulleted,
@@ -14,7 +16,7 @@ import {
   Star,
 } from "@mui/icons-material";
 import StarBorderOutlined from "@mui/icons-material/StarBorderOutlined";
-import { Backdrop, Button, CircularProgress } from "@mui/material";
+import { Backdrop, Button, CircularProgress, Fab } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -249,6 +251,14 @@ export default function Home() {
             rated={reviews.some((r) => r.project_id === project._id) ?? false}
           />
         ))}
+      </div>
+      <div
+        className="fixed bottom-10 px-5 right-5 z-100 bg-[var(--vermelho)] rounded-full p-3 shadow-lg cursor-pointer w-fit h-fit"
+        onClick={() => router.push("/visitante/contribuicao")}
+      >
+        <div className="flex flex-row gap-2 items-center "><Image src="/images/beca.png" width={30} height={30} alt="Beca" />
+          <h2 className="text-[1.2rem]">Doe agora!</h2>
+        </div>
       </div>
 
       {/* Loader */}
