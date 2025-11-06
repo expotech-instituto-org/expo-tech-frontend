@@ -13,6 +13,7 @@ import {
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 interface IDrawerProps {
   open: boolean;
@@ -189,7 +190,11 @@ export function SwipeableDrawerComponent({
               variant="contained"
               type="submit"
               className="!bg-[var(--azul-primario)]"
-              onClick={handleSubmit(onSubmit)}
+              onClick={() => {
+                handleSubmit(onSubmit);
+                setOpen(false);
+                toast.success("Avaliação enviada com sucesso!");
+              }}
             >
               Enviar
             </Button>
