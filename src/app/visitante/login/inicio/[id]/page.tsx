@@ -389,6 +389,9 @@ export default function Page() {
                       Empresa/colaborador
                     </MenuItem>
                     <MenuItem value="2" onClick={() => setIsFromCompany(false)}>
+                      Empresa/colaborador
+                    </MenuItem>
+                    <MenuItem value="3" onClick={() => setIsFromCompany(false)}>
                       Aluno
                     </MenuItem>
                   </Select>

@@ -123,6 +123,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+}
+
+#qr-reader video {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
 }
 
