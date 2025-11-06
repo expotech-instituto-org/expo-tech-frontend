@@ -7,13 +7,14 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - frontend_net
+      - backend_net  
 
 networks:
   frontend_net:
+    external: true
+  backend_net:
     external: true

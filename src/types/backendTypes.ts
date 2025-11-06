@@ -30,6 +30,7 @@ export interface IGetUsersResponse {
   class?: string;
   company?: string;
   email: string;
+  favorited_projects?: string[];
   knowledge?: string;
   password: string;
   phone?: string;
@@ -40,19 +41,48 @@ export interface IGetUsersResponse {
     name: string;
   };
   reviews?: {
+    _id: string;
     comment: string;
     exhibition_id: string;
     project_id: string;
-    reviews?: {
-      comment: string;
-      exhibition_id: string;
-      project_id: string;
-    }[];
-  };
+  }[];
   role: {
     _id: string;
     name: string;
   };
+}
+
+export interface IUpdateUserBody {
+  user: {
+    profile_picture?: string;
+    phone?: string;
+    favorited_projects?: string[];
+    role: {
+      _id: string;
+      name: string;
+    };
+    class?: string;
+    project?: {
+      _id: string;
+      company_name: string;
+      logo: string;
+      name: string;
+    };
+    _id: string;
+    reviews?: {
+      _id: string;
+      comment: string;
+      exhibition_id: string;
+      project_id: string;
+    }[];
+
+    password: string;
+    email: string;
+    company?: string;
+    knowledge?: string;
+    age: number;
+  };
+  profile_picture: string | File | null;
 }
 
 export interface IGetReadUsersMe {
@@ -62,20 +92,13 @@ export interface IGetReadUsersMe {
 
 export interface ICreateReviewBody {
   comment: string;
-  exhibition_id: {
-    id: string;
-    name: string;
-  };
+  exhibition_id: string;
   grades: {
     name: string;
     score: number;
-    weight: number;
   }[];
 
-  project: {
-    id: string;
-    name: string;
-  };
+  project_id: string;
 }
 
 export interface IGetReviewsResponse {
@@ -127,15 +150,17 @@ export interface IUpsertClassBody {
 }
 
 export interface ICreateExhibitionBody {
-  description?: string;
-  end_date: string;
-  image?: string;
-  name: string;
-  start_date: string;
-  criteria: {
+  exhibition: {
+    description?: string;
+    end_date: string;
     name: string;
-    weight: number;
-  }[];
+    start_date: string;
+    criteria?: {
+      name: string;
+      weight: number;
+    }[];
+  };
+  image: File;
 }
 
 export interface IGetAllExhibitionsResponse {
@@ -144,6 +169,35 @@ export interface IGetAllExhibitionsResponse {
   image: string;
   start_date: string;
   end_date: string;
+}
+
+export interface IGetExhibitionCurrentResponse {
+  _id: string;
+  criteria: {
+    name: string;
+    weight: number;
+  }[];
+  date?: string;
+  end_date: string;
+  start_date: string;
+  description?: string;
+  image?: string;
+  name: string;
+  projects?: {
+    _id: string;
+    company_name: string;
+    logo: string;
+    name: string;
+    description: string;
+    coordinates: number;
+  }[];
+
+  roles: {
+    _id: string;
+    name: string;
+    weight: number;
+  }[];
+  banner: string[];
 }
 
 export interface IUpdateExhibitionBody {
@@ -163,6 +217,8 @@ export interface IUpdateExhibitionBody {
     company_name: string;
     logo: string;
     name: string;
+    description: string;
+    coordinates: number;
   }[];
 
   roles: {
@@ -170,6 +226,7 @@ export interface IUpdateExhibitionBody {
     name: string;
     weight: number;
   }[];
+  banner: string[];
 }
 
 export interface IGetProjectsParams {
@@ -187,24 +244,30 @@ export interface IGetProjectsResponse {
   expositors?: {
     _id: string;
     name: string;
+    profile_picture: string;
+    class: string;
   }[];
   images: string[];
   logo: string;
   name: string;
+  is_rated?: boolean;
+  is_favorited?: boolean;
 }
 
 export interface ICreateProjectBody {
-  name: string;
-  company_name: string;
-  description: string;
-  images: string[];
-  expositors: {
-    id: string;
-    name?: string;
-  }[];
-  coordinates: number;
+  project: {
+    company_name: string;
+    coordinates: number;
+    description: string;
+    exhibition_id: string;
+    expositors: {
+      id: string;
+    }[];
+
+    name: string;
+  };
   logo: string;
-  exhibition_id: string;
+  images: string[];
 }
 
 export interface IIdAndName {

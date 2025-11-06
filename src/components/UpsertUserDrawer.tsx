@@ -27,6 +27,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ interface IProps {
 }
 
 export function UpsertUserDrawer(props: IProps) {
+  const query = useQueryClient();
   const {
     handleSubmit,
     register,
@@ -45,7 +47,7 @@ export function UpsertUserDrawer(props: IProps) {
     reset,
     setValue,
     watch,
-    formState: { isValid, errors },
+    formState: { errors },
   } = useForm<TEditUserSchema>({
     resolver: zodResolver(editUserSchema),
   });
@@ -66,10 +68,13 @@ export function UpsertUserDrawer(props: IProps) {
     enabled: true,
   });
 
-  const { getCompaniesData, getCompaniesError, getCompaniesPending } =
-    useGetCompanies({
-      enabled: true,
-    });
+  const {
+    getCompaniesData,
+    getCompaniesError,
+    getCompaniesRest: getCompaniesPending,
+  } = useGetCompanies({
+    enabled: true,
+  });
 
   const { getProjectsData, getProjectsError, getProjectsPending } =
     useGetProjects({ enabled: true });
@@ -95,27 +100,32 @@ export function UpsertUserDrawer(props: IProps) {
       return putUpdateUser(
         {
           body: {
-            _id: props.userId,
-            email: data.email,
-            password: data.password,
-            role: {
-              _id: idRoleSelected,
-              name: String(data.role),
+            user: {
+              _id: props.userId,
+              email: data.email,
+              password: data.password,
+              role: {
+                _id: idRoleSelected,
+                name: String(data.role),
+              },
+              ...(data.role === "aluno" ||
+              data.role === "expositor" ||
+              data.role === "guest"
+                ? { age: Number(data.age), class: data.class }
+                : { age: 1, class: "" }),
+              ...((data.role === "cliente" || data.role === "colaborador") && {
+                company: data.company,
+              }),
             },
-            name: data.name,
-            ...(data.role === "aluno" ||
-            data.role === "expositor" ||
-            data.role === "guest"
-              ? { age: Number(data.age), class: data.class }
-              : { age: 1, class: "" }),
-            ...((data.role === "cliente" || data.role === "colaborador") && {
-              company: data.company,
-            }),
+            profile_picture:
+              "https://pt.quizur.com/_image?href=https://img.quizur.com/f/img648efbd5b00b28.10275519.jpg?lastEdited=1687092187&w=1024&h=1024&f=webp",
           },
           user_id: props.userId,
         },
         {
-          onSuccess: () => setTimeout(() => window.location.reload(), 2000),
+          onSuccess: () => (
+            query.invalidateQueries({ queryKey: ["/users"] }), props.onClose()
+          ),
         }
       );
     }
@@ -152,6 +162,7 @@ export function UpsertUserDrawer(props: IProps) {
         ? { age: String(data.age), class: data.class || "1" }
         : { age: String(data.age || 1), class: "" }),
     };
+
     setIdRoleSelected(data.role._id);
     Object.keys(formData).forEach((field) => {
       setValue(
@@ -239,6 +250,7 @@ export function UpsertUserDrawer(props: IProps) {
             size="small"
             {...register("password")}
             htmlFor="outlined-adornment-password"
+            id="outlined-adornment-password"
             sx={{
               color: "var(--azul-primario)",
             }}
@@ -394,7 +406,9 @@ export function UpsertUserDrawer(props: IProps) {
         )}
 
         {/* Mostrar campo de turma */}
-        {(watch("role") === "expositor" || watch("role") === "aluno") && (
+        {(watch("role") === "expositor" ||
+          watch("role") === "aluno" ||
+          watch("role") === "guest") && (
           <FormControl
             sx={{ m: 1, minWidth: 120 }}
             size="small"
@@ -413,6 +427,7 @@ export function UpsertUserDrawer(props: IProps) {
             <Controller
               name="class"
               control={control}
+              defaultValue=""
               render={({ field }) => (
                 <Select
                   {...register("class")}
@@ -428,7 +443,7 @@ export function UpsertUserDrawer(props: IProps) {
                     </MenuItem>
                   ) : (
                     getClassesData?.map((classe) => (
-                      <MenuItem key={classe._id} value={classe._id}>
+                      <MenuItem key={classe.name} value={classe.name}>
                         {classe.name}
                       </MenuItem>
                     ))

@@ -7,7 +7,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import { ExpoApiService } from "../expoApiService";
 
 export const usePostCreateExhibition = () => {
-  const { mutate, data, error, isPending } = useMutation<
+  const { mutate, data, error, ...rest } = useMutation<
     AxiosResponse<{ response: IUpdateExhibitionBody }>,
     AxiosError<{ message: string }>,
     { body: ICreateExhibitionBody }
@@ -19,6 +19,6 @@ export const usePostCreateExhibition = () => {
     postCreateExhibition: mutate,
     postCreateExhibitionData: data?.data,
     postCreateExhibitionError: error?.response?.data?.message,
-    postCreateExhibitionRest: isPending,
+    postCreateExhibitionRest: rest,
   };
 };

@@ -1,7 +1,10 @@
 "use client";
-import ProjectCard from "@/components/projectCard"; // ajuste o caminho
-import { useGetProjects } from "@/service/hooks/useGetProjects"; // ajuste o caminho
-import { IGetProjectsResponse } from "@/types/backendTypes";
+import Carousel from "@/components/Carousel";
+import ProjectCard from "@/components/projectCard";
+import { DataContext } from "@/dataContext";
+import { useGetExhibitionById } from "@/service/hooks/useGetExhibitionById";
+import { useGetUserById } from "@/service/hooks/useGetUserById";
+import { usePatchFavoriteProject } from "@/service/hooks/usePatchFavoriteProject";
 import {
   Favorite,
   FormatListBulleted,
@@ -10,125 +13,251 @@ import {
   Search,
   Star,
 } from "@mui/icons-material";
-import { Backdrop, Button, CircularProgress, Container } from "@mui/material";
-import { useEffect, useState } from "react";
+import StarBorderOutlined from "@mui/icons-material/StarBorderOutlined";
+import { Backdrop, Button, CircularProgress } from "@mui/material";
+import { useParams, useRouter } from "next/navigation";
+import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export default function Home() {
   const [selected, setSelected] = useState("todos");
+  const [avaliados, setAvaliados] = useState(true);
   const [search, setSearch] = useState("");
+  const [showCarousel, setShowCarousel] = useState(true);
+  const router = useRouter();
+  const { userId, setExhibitionId } = useContext(DataContext);
+  const params = useParams<{ id: string }>();
+  const stickyRef = useRef<HTMLDivElement>(null);
 
-  const { getProjectsData, getProjectsPending, getProjectsError } =
-    useGetProjects({
-      exhibition_id: "exhibition-uuid-1234",
-      project_name: search,
-    });
+  const {
+    getUserById: refreshUser,
+    getUserByIdData,
+    getUserByIdError,
+    getUserByIdPending,
+  } = useGetUserById({ user_id: userId || "", enabled: !!userId });
+
+  const {
+    getExhibitionByIdData,
+    getExhibitionByIdError,
+    getExhibitionByIdRest,
+    getExhibitionById,
+  } = useGetExhibitionById({
+    exhibition_id: params.id!,
+    enabled: true,
+  });
+
+  const favoriteProjects = getUserByIdData?.favorited_projects || [];
+  const reviews = getUserByIdData?.reviews || [];
+
+  const { patchFavoriteProject } = usePatchFavoriteProject();
+
+  function favoriteProject(project_id: string) {
+    patchFavoriteProject(
+      { project_id },
+      {
+        onSuccess: (data) => {
+          toast.success(
+            data.data
+              ? "Projeto favoritado com sucesso!"
+              : "Projeto desfavoritado com sucesso!"
+          );
+          refreshUser();
+        },
+        onError: () => toast.error("Erro ao atualizar favorito"),
+      }
+    );
+  }
 
   useEffect(() => {
-    getProjectsError && toast.error("erro ao listar projetos");
-  }, [getProjectsError]);
+    if (getUserByIdData) getExhibitionById();
+  }, [getUserByIdData]);
+
+  useEffect(() => {
+    setExhibitionId(params.id!);
+  }, [params.id]);
+
+  useEffect(() => {
+    if (getExhibitionByIdError) toast.error("Erro ao listar projetos");
+    if (getUserByIdError) toast.error("Erro ao pegar dados do usuário");
+  }, [getExhibitionByIdError, getUserByIdError]);
+
+  useEffect(() => {
+    const sentinela = document.getElementById("sentinela");
+    if (!sentinela) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowCarousel(entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(sentinela);
+    return () => observer.disconnect();
+  }, []);
+
+  const filteredProjects = getExhibitionByIdData?.projects?.filter(
+    (project) => {
+      if (selected === "todos") return true;
+      if (selected === "favoritos")
+        return favoriteProjects.includes(project._id);
+      if (selected === "avaliados" && avaliados)
+        return reviews.some((r) => r.project_id === project._id);
+      if (selected === "avaliados" && !avaliados)
+        return !reviews.some((r) => r.project_id === project._id);
+      return true;
+    }
+  );
+
   return (
-    <>
-      <div className="bg-black h-[11.06rem] mt-[0.94rem]  rounded-[0.625rem]"></div>
+    <div>
+      <div id="sentinela" className="h-[1px]" />
 
-      <div className="mt-[0.88rem] flex w-full justify-between">
-        <Button
-          className="!bg-[var(--azul-primario)] w-[45%]"
-          variant="contained"
+      {/* Banner + filtros */}
+      <div
+        ref={stickyRef}
+        className={`sticky top-[7.5rem] left-0 bg-[var(--background)] py-2 rounded-b-xl z-20 transition-all duration-500`}
+      >
+        <div
+          className={`transition-all duration-500 overflow-hidden ${
+            showCarousel ? "opacity-100" : "opacity-0 hidden"
+          }`}
         >
-          <MapOutlined className="mr-[0.31rem]" /> Mapa da Feira
-        </Button>
-        <Button
-          className="!bg-[var(--azul-primario)] w-[45%] "
-          variant="contained"
-        >
-          <QrCodeScanner className="mr-[0.31rem]" /> Ler QR Code
-        </Button>
-      </div>
+          <Carousel
+            images={
+              getExhibitionByIdData?.banner?.length
+                ? getExhibitionByIdData.banner
+                : ["/images/exampleImgCarousel.png"]
+            }
+          />
+        </div>
 
-      <div className="flex items-center justify-between h-[2.5rem] bg-white border border-gray-300 rounded-[0.625rem] mt-[0.63rem] px-[0.63rem] shadow-sm">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar grupo"
-          className="w-full outline-none text-[0.875rem]"
-        />
-        <Search className="text-gray-500" />
-      </div>
-
-      <div className="flex justify-around items-center mt-[1rem] text-[0.875rem] font-medium">
-        <button
-          onClick={() => setSelected("todos")}
-          className="flex items-center pb-[0.25rem] border-b-2 border-transparent hover:opacity-80 transition"
-        >
-          <FormatListBulleted className="mr-[0.25rem] text-[var(--azul-primario)]" />
-          <span
-            className={`${
-              selected === "todos"
-                ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)]"
-                : "text-[var(--azul-primario)]/50"
-            }`}
+        {/* Botões principais */}
+        <div className="mt-[0.88rem] flex justify-between px-[1.19rem]">
+          <Button
+            className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
+            variant="contained"
+            onClick={() => router.push("/visitante/info")}
           >
-            Todos
-          </span>
-        </button>
-
-        <button
-          onClick={() => setSelected("avaliados")}
-          className="flex items-center pb-[0.25rem] border-b-2 border-transparent hover:opacity-80 transition"
-        >
-          <Star className="mr-[0.25rem] text-[var(--amarelo)]" />
-          <span
-            className={`${
-              selected === "avaliados"
-                ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)]"
-                : "text-[var(--azul-primario)]/50"
-            }`}
+            <MapOutlined className="mr-[0.31rem]" /> Mapa da Feira
+          </Button>
+          <Button
+            className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
+            variant="contained"
+            onClick={() =>
+              router.push(`/visitante/exhibitions/home/${params.id}/qrcode`)
+            }
           >
-            Já Avaliados
-          </span>
-        </button>
+            <QrCodeScanner className="mr-[0.31rem]" /> Ler QR Code
+          </Button>
+        </div>
 
-        <button
-          onClick={() => setSelected("favoritos")}
-          className="flex items-center pb-[0.25rem] border-b-2 border-transparent hover:opacity-80 transition"
-        >
-          <Favorite className="mr-[0.25rem] text-[var(--error)]" />
-          <span
-            className={`${
-              selected === "favoritos"
-                ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)]"
-                : "text-[var(--azul-primario)]/50"
-            }`}
+        {/* Barra de busca */}
+        <div className="flex items-center justify-between w-full h-[2.5rem] bg-white border border-gray-300 rounded-[0.625rem] mt-[0.63rem] px-[0.63rem] shadow-sm">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar grupo"
+            className="w-full outline-none text-[0.875rem] text-black"
+          />
+          <Search className="text-gray-500" />
+        </div>
+
+        {/* Filtros */}
+        <div className="flex justify-around items-center w-full mt-[1rem] text-[0.875rem] font-medium ">
+          <button
+            onClick={() => setSelected("todos")}
+            className="flex items-center pb-[0.25rem] hover:opacity-80 transition"
           >
-            Favoritos
-          </span>
-        </button>
+            <FormatListBulleted className="mr-[0.25rem] text-[var(--azul-primario)]" />
+            <span
+              className={`${
+                selected === "todos"
+                  ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)] cursor-pointer"
+                  : "text-[var(--azul-primario)]/50 cursor-pointer"
+              }`}
+            >
+              Todos
+            </span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (selected === "avaliados") setAvaliados(!avaliados);
+              setSelected("avaliados");
+            }}
+            className="flex items-center pb-[0.25rem] hover:opacity-80 transition"
+          >
+            {avaliados ? (
+              <Star className="mr-[0.25rem] text-[var(--amarelo)]" />
+            ) : (
+              <StarBorderOutlined className="mr-[0.25rem] text-[var(--amarelo)]" />
+            )}
+            <span
+              className={`${
+                selected === "avaliados"
+                  ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)] cursor-pointer"
+                  : "text-[var(--azul-primario)]/50 cursor-pointer"
+              }`}
+            >
+              {avaliados ? "Já Avaliados" : "Não Avaliados"}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setSelected("favoritos")}
+            className="flex items-center pb-[0.25rem] hover:opacity-80 transition"
+          >
+            <Favorite className="mr-[0.25rem] text-[var(--error)]" />
+            <span
+              className={`${
+                selected === "favoritos"
+                  ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)] cursor-pointer"
+                  : "text-[var(--azul-primario)]/50 cursor-pointer"
+              }`}
+            >
+              Favoritos
+            </span>
+          </button>
+        </div>
       </div>
-      <div className="mt-4  grid grid-cols-1 gap-4">
-        {!getProjectsPending &&
-          !getProjectsError &&
-          getProjectsData?.length === 0 && <p>Nenhum projeto encontrado.</p>}
-        {!getProjectsPending &&
-          !getProjectsError &&
-          getProjectsData?.map((project: IGetProjectsResponse) => (
-            <ProjectCard
-              key={project._id}
-              title={project.name}
-              subtitle={project.company_name}
-              imageUrl={project.logo}
-              favorited={true}
-              rated={false}
-            />
-          ))}
+
+      {/* Lista de projetos */}
+      <div className="pt-[8rem] w-full grid grid-cols-1 gap-4">
+        {filteredProjects?.length === 0 && (
+          <p className="text-black">Nenhum projeto encontrado.</p>
+        )}
+        {(search.length > 0
+          ? filteredProjects?.filter((p) =>
+              p.name.toLowerCase().includes(search.toLowerCase())
+            )
+          : filteredProjects
+        )?.map((project) => (
+          <ProjectCard
+            key={project._id}
+            title={
+              project.name.toUpperCase() == project.company_name.toUpperCase()
+                ? project.name
+                : project.name + " - " + project.company_name
+            }
+            subtitle={project.description}
+            project_id={project._id}
+            imageUrl={project.logo || "/images/exampleProjectImage.jpg"}
+            favorited={favoriteProjects.includes(project._id) ?? false}
+            onFavoriteToggle={() => favoriteProject(project._id)}
+            rated={reviews.some((r) => r.project_id === project._id) ?? false}
+          />
+        ))}
       </div>
+
+      {/* Loader */}
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
-        open={getProjectsPending}
+        open={getExhibitionByIdRest.isLoading || getUserByIdPending}
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-    </>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   upsertProjectSchema,
 } from "@/schemas/upsertProject";
 import { useGetProjectById } from "@/service/hooks/useGetProjectById";
+import { useGetUsers } from "@/service/hooks/useGetUsers";
 import { usePostCreateProject } from "@/service/hooks/usePostCreateProject";
 import { usePutUpdateProject } from "@/service/hooks/useUpdateProject";
 import { IGetProjectsResponse } from "@/types/backendTypes";
@@ -25,12 +26,14 @@ import {
   TextareaAutosize,
   TextField,
 } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function Page() {
+  const query = useQueryClient();
   const params = useParams<{ id: string; metodo: string }>();
   const router = useRouter();
   const [selectedLogoIndex, setSelectedLogoIndex] = useState<number | null>(
@@ -46,12 +49,9 @@ export default function Page() {
       enabled: isUpdate,
     });
 
-  const {
-    putUpdateProject,
-    putUpdateProjectData,
-    putUpdateProjectError,
-    putUpdateProjectRest,
-  } = usePutUpdateProject();
+  const { getUsersData, getUsersError, getUsersRest } = useGetUsers({});
+
+  const { putUpdateProject, putUpdateProjectRest } = usePutUpdateProject();
 
   const {
     postCreateProject,
@@ -77,29 +77,76 @@ export default function Page() {
     },
   });
 
-  const onSubmit: SubmitHandler<TUpsertProjectSchema> = (data) => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const onSubmit: SubmitHandler<TUpsertProjectSchema> = async (data) => {
+    const base64Images = await Promise.all(
+      data.images.map(async (file: File) => ({
+        name: file.name,
+        type: file.type,
+        base64: await fileToBase64(file),
+      }))
+    );
+
     if (selectedLogoIndex === null)
       return toast.error("Selecione uma imagem como logo do projeto");
     else {
       if (isUpdate) {
-        return toast.success("Projeto atualizado com sucesso");
+        return putUpdateProject(
+          {
+            body: {
+              project: {
+                name: data.name,
+                company_name: data.name,
+                description: data.description,
+                exhibition_id: exhibitionId,
+                expositors: data.participants.map((participant) => {
+                  return {
+                    id: participant,
+                  };
+                }),
+                coordinates: Number(data.coordinates),
+              },
+              images: base64Images.map((image) => image.base64),
+              logo: base64Images[selectedLogoIndex].base64,
+            },
+            project_id: projectId!,
+          },
+          {
+            onSuccess: () => (
+              toast.success("Projeto atualizado com sucesso"),
+              query.invalidateQueries({ queryKey: ["/projects"] })
+            ),
+            onError: () => {
+              toast.error("erro ao atualizar projeto");
+            },
+          }
+        );
       }
 
       postCreateProject({
         body: {
-          name: data.name,
-          company_name: data.name,
-          description: data.description,
-          images: data.images.map((file) => file.name),
-          expositors: data.participants.map((participant) => {
-            return {
-              id: participant,
-            };
-          }),
-          coordinates: Number(data.coordinates),
-
-          logo: data.images[selectedLogoIndex].name,
-          exhibition_id: exhibitionId,
+          project: {
+            name: data.name,
+            company_name: data.name,
+            description: data.description,
+            exhibition_id: exhibitionId,
+            expositors: data.participants.map((participant) => {
+              return {
+                id: participant,
+              };
+            }),
+            coordinates: Number(data.coordinates),
+          },
+          images: base64Images.map((image) => image.base64),
+          logo: base64Images[selectedLogoIndex].base64,
         },
       });
     }
@@ -111,10 +158,13 @@ export default function Page() {
       company_name: data.company_name,
       coordinates: String(data.coordinates),
       description: data.description,
-      images: data.images.map((imageName: string) => {
-        const file = new File([], imageName, { type: "image/jpeg" });
-        return file;
-      }),
+      images:
+        data.images.length > 0
+          ? data.images.map((imageName: string) => {
+              const file = new File([], imageName, { type: "image/jpeg" });
+              return file;
+            })
+          : [new File([], data.logo, { type: "image/jpeg" })],
       participants: data.expositors!.map((expositor) => {
         return expositor._id;
       }),
@@ -143,16 +193,14 @@ export default function Page() {
     errors.images && toast.error(errors.images.message || "");
     errors.description && toast.error(errors.description.message);
     postCreateProjectError && toast.error("erro ao criar projeto");
-    putUpdateProjectError && toast.error("erro ao atualizar projeto");
     postCreateProjectData && toast.success("Projeto criado com sucesso");
-    putUpdateProjectData && toast.success("Projeto atualizado com sucesso");
     getProjectByIdError && toast.error("erro ao buscar projeto");
+    getUsersError && toast.error("erro ao buscar usuários");
   }, [
     errors,
     postCreateProjectError,
-    putUpdateProjectError,
+    getUsersError,
     postCreateProjectData,
-    putUpdateProjectData,
     getProjectByIdError,
   ]);
 
@@ -164,7 +212,7 @@ export default function Page() {
       } do projeto`}
       goback
     >
-      <div className="flex w-full flex-col gap-6">
+      <div className="flex w-full flex-col gap-6 mb-10">
         <h2 className=" mt-4 text-[var(--azul-primario)] font-bold md:text-[1rem] text-[.9rem]">
           Informações
         </h2>
@@ -245,9 +293,15 @@ export default function Page() {
                 {...field}
                 label="Participantes *"
               >
-                <MenuItem value={"10"}>Ten</MenuItem>
-                <MenuItem value={"20"}>Twenty</MenuItem>
-                <MenuItem value={"30"}>Thirty</MenuItem>
+                {getUsersData &&
+                  getUsersData.map(
+                    (user) =>
+                      user.role.name === "expositor" && (
+                        <MenuItem key={user._id} value={user._id}>
+                          {user.name}
+                        </MenuItem>
+                      )
+                  )}
               </Select>
             )}
           ></Controller>
@@ -273,9 +327,15 @@ export default function Page() {
                 {...field}
                 label="Coordenadores *"
               >
-                <MenuItem value={"10"}>Ten</MenuItem>
-                <MenuItem value={"20"}>Twenty</MenuItem>
-                <MenuItem value={"30"}>Thirty</MenuItem>
+                {getUsersData &&
+                  getUsersData.map(
+                    (user) =>
+                      user.role.name === "professor_tech" && (
+                        <MenuItem key={user._id} value={user._id}>
+                          {user.name}
+                        </MenuItem>
+                      )
+                  )}
               </Select>
             )}
           ></Controller>
@@ -423,6 +483,7 @@ export default function Page() {
         open={
           postCreateProjectRest ||
           putUpdateProjectRest ||
+          getUsersRest.isLoading ||
           (isUpdate ? getProjectByIdPending : false)
         }
       >
