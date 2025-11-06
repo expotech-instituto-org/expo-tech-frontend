@@ -99,7 +99,15 @@ export default function Home() {
   return (
     <div>
       {/* Banner */}
-      <Carousel images={getExhibitionByIdData?.banner || []} />
+      <Carousel
+        images={
+          getExhibitionByIdData?.banner
+            ? getExhibitionByIdData.banner.length > 0
+              ? getExhibitionByIdData.banner
+              : ["/images/exampleImgCarousel.png"]
+            : ["/images/exampleImgCarousel.png"]
+        }
+      />
 
       {/* Botões principais */}
       <div className="mt-[0.88rem] flex justify-between px-[1.19rem]">
@@ -141,8 +149,8 @@ export default function Home() {
           <span
             className={`${
               selected === "todos"
-                ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)]"
-                : "text-[var(--azul-primario)]/50"
+                ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)] cursor-pointer"
+                : "text-[var(--azul-primario)]/50 cursor-pointer"
             }`}
           >
             Todos
@@ -164,8 +172,8 @@ export default function Home() {
           <span
             className={`${
               selected === "avaliados"
-                ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)]"
-                : "text-[var(--azul-primario)]/50"
+                ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)] cursor-pointer"
+                : "text-[var(--azul-primario)]/50 cursor-pointer"
             }`}
           >
             {avaliados ? "Já Avaliados" : "Não Avaliados"}
@@ -180,8 +188,8 @@ export default function Home() {
           <span
             className={`${
               selected === "favoritos"
-                ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)]"
-                : "text-[var(--azul-primario)]/50"
+                ? "text-[var(--azul-primario)] border-b-2 border-[var(--azul-primario)] cursor-pointer"
+                : "text-[var(--azul-primario)]/50 cursor-pointer"
             }`}
           >
             Favoritos
@@ -203,8 +211,8 @@ export default function Home() {
                 <ProjectCard
                   key={project._id}
                   project_id={project._id}
-                  title={project.name}
-                  subtitle={project.company_name}
+                  title={project.name + " - " + project.company_name}
+                  subtitle={project.description}
                   imageUrl={project.logo || "/images/exampleProjectImage.jpg"}
                   favorited={favoriteProjects.includes(project._id) ?? false}
                   onFavoriteToggle={() => favoriteProject(project._id)}
@@ -218,9 +226,9 @@ export default function Home() {
           : filteredProjects?.map((project) => (
               <ProjectCard
                 key={project._id}
-                title={project.name}
+                title={project.name + " - " + project.company_name}
+                subtitle={project.description}
                 project_id={project._id}
-                subtitle={project.company_name}
                 imageUrl={project.logo || "/images/exampleProjectImage.jpg"}
                 favorited={favoriteProjects.includes(project._id) ?? false}
                 onFavoriteToggle={() => favoriteProject(project._id)}

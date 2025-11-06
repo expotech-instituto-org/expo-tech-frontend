@@ -6,6 +6,7 @@ import { DataContext } from "@/dataContext";
 import { useGetProjectById } from "@/service/hooks/useGetProjectById";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { usePatchFavoriteProject } from "@/service/hooks/usePatchFavoriteProject";
+import { IQuestion } from "@/types/question";
 import { Favorite, FavoriteBorder } from "@mui/icons-material";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -77,8 +78,8 @@ export default function Page() {
   }, [getUserByIdError, patchFavoriteProjectError, getProjectByIdError]);
 
   return (
-    <div className="flex flex-col">
-      <Container maxWidth="sm" className="h-[90vh]">
+    <div className="flex flex-col h-full">
+      <Container maxWidth="sm" className="h-fit pb-30">
         <div className="flex items-center justify-between pt-3 mb-8">
           <div className="flex items-center gap-2">
             <IconButton onClick={() => history.back()}>
@@ -100,11 +101,20 @@ export default function Page() {
                 onClick={() => favoriteProject()}
               />
             )}
-            <Avatar sx={{ width: 24, height: 24 }} />
+            <Avatar
+              sx={{ width: 24, height: 24 }}
+              src={getUserByIdData?.profile_picture}
+            />
           </div>
         </div>
         <Carousel
-          images={getProjectByIdData ? getProjectByIdData.images : [""]}
+          images={
+            getProjectByIdData
+              ? getProjectByIdData.images.length > 0
+                ? getProjectByIdData.images
+                : ["/images/exampleImgCarousel.png"]
+              : ["/images/exampleImgCarousel.png"]
+          }
         />
         <p className="text-[var(--text)] text-[.9rem] mb-6">
           {getProjectByIdData?.description}
@@ -121,7 +131,7 @@ export default function Page() {
         />
       </Container>
       {!openModal && (
-        <div className="bg-[var(--azul-primario)] rounded-t-2xl  w-full  h-[10vh] flex items-center justify-center">
+        <div className="bg-[var(--azul-primario)] rounded-t-2xl  h-[5rem] flex items-center fixed bottom-0 left-0 w-full border-t justify-around p-4">
           <IconButton
             className="!text-center !font-bold !text-3xl !text-white"
             onClick={() => setOpenModal(true)}
@@ -136,33 +146,20 @@ export default function Page() {
           exhibitionId={exhibitionId}
           title={isReviewed ? "Reavaliar" : "Avaliar"}
           subtitle="Com base no que você viu do projeto, avaliar:"
-          question={[
-            {
-              description: "Como foi a organização do grupo?",
-              responseType: "Rating",
-              isRequired: true,
-            },
-            {
-              description: "Como foi a ideia do grupo?",
-              responseType: "Rating",
-              isRequired: true,
-            },
-            {
-              description: "Como foi a apresentação do grupo?",
-              responseType: "Rating",
-              isRequired: true,
-            },
-            {
-              description: "Como foi a execução do grupo?",
-              responseType: "Rating",
-              isRequired: true,
-            },
-            {
+          question={getProjectByIdData!.criterias
+            .map(
+              (item) =>
+                ({
+                  description: item.name,
+                  responseType: "Rating",
+                  isRequired: true,
+                } as IQuestion)
+            )
+            .concat({
               description: "Deixe um comentário para o grupo",
               responseType: "Comment",
               isRequired: false,
-            },
-          ]}
+            })}
           open={openModal}
           setOpen={setOpenModal}
         />

@@ -8,6 +8,7 @@ import {
   IGetUsersResponse,
   ILoginBody,
   IUpdateExhibitionBody,
+  IUpdateUserBody,
   IUpsertClassBody,
 } from "@/types/backendTypes";
 import { api } from "./api";
@@ -44,13 +45,31 @@ class Service {
   getUserById = ({ user_id }: { user_id: string }) =>
     api.get(`/users/${user_id}`);
 
-  putUpdateUser = ({
+  putUpdateUser = async ({
     user_id,
     body,
   }: {
-    body: IGetUsersResponse;
+    body: IUpdateUserBody;
     user_id: string;
-  }) => api.put(`/users/${user_id}`, body);
+  }) => {
+    const formData = new FormData();
+
+    const { profile_picture, ...userData } = body;
+
+    // user precisa ser um JSON string
+    formData.append("user", JSON.stringify(userData));
+
+    // Se tiver imagem nova (File), adiciona
+    if (profile_picture && profile_picture instanceof File) {
+      formData.append("profile_picture", profile_picture);
+    }
+
+    return api.put(`/users/${user_id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  };
 
   deleteUser = ({ user_id }: { user_id: string }) =>
     api.delete(`/users/${user_id}`);
@@ -117,13 +136,18 @@ class Service {
       },
     });
 
-  postCreateExhibition = ({ body }: { body: ICreateExhibitionBody }) =>
-    api.post("/exhibitions", body, {
+  postCreateExhibition = ({ body }: { body: ICreateExhibitionBody }) => {
+    const formData = new FormData();
+
+    formData.append("exhibition", JSON.stringify(body.exhibition));
+    formData.append("image", body.image); // precisa ser um File vindo do input
+
+    return api.post("/exhibitions", formData, {
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
     });
+  };
 
   putUpdateExhibition = ({
     exhibition_id,

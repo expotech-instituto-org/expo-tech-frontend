@@ -100,22 +100,25 @@ export function UpsertUserDrawer(props: IProps) {
       return putUpdateUser(
         {
           body: {
-            _id: props.userId,
-            email: data.email,
-            password: data.password,
-            role: {
-              _id: idRoleSelected,
-              name: String(data.role),
+            user: {
+              _id: props.userId,
+              email: data.email,
+              password: data.password,
+              role: {
+                _id: idRoleSelected,
+                name: String(data.role),
+              },
+              ...(data.role === "aluno" ||
+              data.role === "expositor" ||
+              data.role === "guest"
+                ? { age: Number(data.age), class: data.class }
+                : { age: 1, class: "" }),
+              ...((data.role === "cliente" || data.role === "colaborador") && {
+                company: data.company,
+              }),
             },
-            name: data.name,
-            ...(data.role === "aluno" ||
-            data.role === "expositor" ||
-            data.role === "guest"
-              ? { age: Number(data.age), class: data.class }
-              : { age: 1, class: "" }),
-            ...((data.role === "cliente" || data.role === "colaborador") && {
-              company: data.company,
-            }),
+            profile_picture:
+              "https://pt.quizur.com/_image?href=https://img.quizur.com/f/img648efbd5b00b28.10275519.jpg?lastEdited=1687092187&w=1024&h=1024&f=webp",
           },
           user_id: props.userId,
         },
@@ -403,7 +406,9 @@ export function UpsertUserDrawer(props: IProps) {
         )}
 
         {/* Mostrar campo de turma */}
-        {(watch("role") === "expositor" || watch("role") === "aluno") && (
+        {(watch("role") === "expositor" ||
+          watch("role") === "aluno" ||
+          watch("role") === "guest") && (
           <FormControl
             sx={{ m: 1, minWidth: 120 }}
             size="small"
@@ -422,6 +427,7 @@ export function UpsertUserDrawer(props: IProps) {
             <Controller
               name="class"
               control={control}
+              defaultValue=""
               render={({ field }) => (
                 <Select
                   {...register("class")}

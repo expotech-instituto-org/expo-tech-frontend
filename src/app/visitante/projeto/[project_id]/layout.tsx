@@ -22,9 +22,5 @@ export default function LayoutAdmin({
     }
     return setUserId(decodedToken.user_id);
   }, []);
-  return (
-    <>
-      <div>{children}</div>
-    </>
-  );
+  return <div className="h-[100vh]">{children}</div>;
 }
