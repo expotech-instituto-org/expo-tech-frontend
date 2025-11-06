@@ -83,7 +83,7 @@ useEffect(() => {
   postCreateReview({
     body: {
       comment,
-      exhibition_id: exhibitionId,
+      exhibition_id: "7f6ecb5b-dec2-48c0-951c-bb5492591482",
       project_id: project_id!.toString(),
       grades,
     },
