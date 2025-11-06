@@ -163,7 +163,7 @@ export function SwipeableDrawerComponent({
                     id={q.description}
                     {...register(q.description)}
                     aria-label="minimum height"
-                    minRows={10}
+                    minRows={7}
                     style={{ width: 200 }}
                   />
                 )}
