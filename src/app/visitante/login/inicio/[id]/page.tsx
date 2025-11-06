@@ -249,7 +249,7 @@ export default function Page() {
                     color: "var(--azul-primario)",
                   }}
                 >
-                  Confirmação
+                  Repita a senha
                 </InputLabel>
                 <OutlinedInput
                   className=" [&_fieldset]:!border-[var(--azul-primario)] w-[20rem] "
@@ -385,14 +385,14 @@ export default function Page() {
                     <MenuItem value="0" disabled>
                       Selecione
                     </MenuItem>
-                    <MenuItem value="1" onClick={() => setIsFromCompany(true)}>
-                      Empresa/colaborador
-                    </MenuItem>
                     <MenuItem value="2" onClick={() => setIsFromCompany(false)}>
-                      Empresa/colaborador
+                      Visitante
                     </MenuItem>
                     <MenuItem value="3" onClick={() => setIsFromCompany(false)}>
                       Aluno
+                    </MenuItem>
+                    <MenuItem value="1" onClick={() => setIsFromCompany(true)}>
+                      Empresa/colaborador
                     </MenuItem>
                   </Select>
                 </FormControl>
@@ -466,8 +466,14 @@ export default function Page() {
                       onChange={field.onChange}
                       label="Turma"
                     >
+                      <MenuItem value="0" disabled>
+                        Selecione
+                      </MenuItem>
+                      <MenuItem value="not_student">
+                        Não sou aluno
+                      </MenuItem>
                       {getClassesData?.length === 0 ? (
-                        <MenuItem disabled key={"0"} value={"0"}>
+                        <MenuItem disabled key={"no-classes"} value={"no-classes"}>
                           Turmas não encontradas
                         </MenuItem>
                       ) : (
