@@ -30,7 +30,7 @@ export default function Page() {
         </Card>
         <Card className="!w-fit h-[15vh]">
           <Button
-            onClick={() => router.push(pathname + `/exhibitions`)}
+            onClick={() => router.push(pathname + `/feiras`)}
             variant="outlined"
             className="!w-full flex flex-col !items-start h-full"
           >

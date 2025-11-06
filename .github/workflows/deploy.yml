@@ -26,9 +26,9 @@ jobs:
         run: |
           IMAGE_BASE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front"
           echo "Build & Push das imagens blue e green"
-          docker build -t "${IMAGE_BASE}:blue" .
+          docker build --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} -t "${IMAGE_BASE}:blue" .
           docker push "${IMAGE_BASE}:blue"
-          docker build -t "${IMAGE_BASE}:green" .
+          docker build --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} -t "${IMAGE_BASE}:green" .
           docker push "${IMAGE_BASE}:green"
 
       - name: Copy Compose & Nginx to VM
@@ -134,7 +134,7 @@ jobs:
             HEALTHY=false
 
             while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-              HTTP_CODE=$(docker run --rm --network "$NETWORK_FRONT" curlimages/curl:latest -s -o /dev/null -w "%{http_code}" "http://frontend-green-temp:3000/" || echo "000")
+              HTTP_CODE=$(docker run --rm --network "$NETWORK_FRONT" curlimages/curl:latest -s -L -o /dev/null -w "%{http_code}" "http://frontend-green-temp:3000/" || echo "000")
               echo "Tentativa $((ATTEMPTS+1))/$MAX_ATTEMPTS - HTTP $HTTP_CODE"
               if [ "$HTTP_CODE" = "200" ]; then
                 HEALTHY=true
