@@ -77,21 +77,19 @@ export function SwipeableDrawerComponent({
     setGrades(newGrades);
     setComment(newComment);
   };
+useEffect(() => {
+  if (grades.length === 0 && !comment) return;
 
-  useEffect(() => {
-    if (grades.length === 0 && !comment) return;
-
-    const body = {
+  postCreateReview({
+    body: {
       comment,
-      exhibition_id: exhibitionId,
+      exhibition_id: "7f6ecb5b-dec2-48c0-951c-bb5492591482",
       project_id: project_id!.toString(),
       grades,
-    };
+    },
+  });
+}, [grades, comment]);
 
-    console.log("Body enviado ao backend:", body);
-
-    postCreateReview({ body });
-  }, [grades, comment]);
 
   useEffect(() => {
     if (postCreateReviewData) {
