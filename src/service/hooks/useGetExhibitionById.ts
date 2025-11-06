@@ -17,7 +17,7 @@ export const useGetExhibitionById = ({
       AxiosResponse<IUpdateExhibitionBody>,
       AxiosError<{ message: string }>
     >({
-      queryKey: ["/feiras/", exhibition_id],
+      queryKey: ["/exhibitions/", exhibition_id],
       queryFn: () => ExpoApiService.getExhibitionById({ exhibition_id }),
       enabled,
     });
