@@ -47,6 +47,10 @@ export const loginSchema = z
         profile: z.literal("2"),
         class: z.string().optional(),
       }),
+      z.object({
+        profile: z.literal("3"),
+        class: z.string().optional(),
+      }),
     ])
   )
   .superRefine((data, ctx) => {
