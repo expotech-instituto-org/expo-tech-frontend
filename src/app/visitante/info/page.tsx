@@ -3,13 +3,16 @@
 import { useGetExhibitionById } from "@/service/hooks/useGetExhibitionById";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useContext } from "react";
+import { DataContext } from "@/dataContext";
 
 export default function InfoPage() {
   const router = useRouter();
+  const { exhibitionId } = useContext(DataContext);
 
   const { getExhibitionByIdData, getExhibitionByIdRest } = useGetExhibitionById(
     {
-      exhibition_id: "exhibition-uuid-1234",
+      exhibition_id: exhibitionId,
       enabled: true,
     }
   );
