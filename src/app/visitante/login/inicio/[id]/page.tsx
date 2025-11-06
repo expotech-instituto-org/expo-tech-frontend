@@ -34,6 +34,7 @@ export default function Page() {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const isLogin = param.id === "login";
   const [isFromCompany, setIsFromCompany] = useState<boolean>(true);
+  const [isVisitor, setIsVisitor] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState(false);
   const [alreadySignedUp, setAlreadySignedUp] = useState(false);
   const { login, loginData, loginError, loginRest } = useLogin();
@@ -370,123 +371,106 @@ export default function Page() {
                   <InputLabel
                     required
                     sx={{ color: "var(--azul-primario)" }}
-                    id="demo-select-small-label"
+                    id="select-profile-label"
                   >
                     Qual perfil você se encaixa?
                   </InputLabel>
+
                   <Select
                     {...field}
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
+                    labelId="select-profile-label"
+                    id="select-profile"
                     size="small"
                     className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
                     label="Qual perfil você se encaixa?"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      const value = e.target.value;
+
+                      if (value === "2") {        // Visitante
+                        setIsVisitor(true);
+                        setIsFromCompany(false);
+                      } else if (value === "3") { // Aluno
+                        setIsVisitor(false);
+                        setIsFromCompany(false);
+                      } else if (value === "1") { // Empresa/colaborador
+                        setIsVisitor(false);
+                        setIsFromCompany(true);
+                      }
+                    }}
                   >
                     <MenuItem value="0" disabled>
                       Selecione
                     </MenuItem>
-                    <MenuItem value="2" onClick={() => setIsFromCompany(false)}>
-                      Visitante
-                    </MenuItem>
-                    <MenuItem value="3" onClick={() => setIsFromCompany(false)}>
-                      Aluno
-                    </MenuItem>
-                    <MenuItem value="1" onClick={() => setIsFromCompany(true)}>
-                      Empresa/colaborador
-                    </MenuItem>
+                    <MenuItem value="2">Visitante</MenuItem>
+                    <MenuItem value="3">Aluno</MenuItem>
+                    <MenuItem value="1">Empresa/colaborador</MenuItem>
                   </Select>
                 </FormControl>
               )}
             />
-
-            {isFromCompany ? (
-              <Controller
-                name="company"
-                control={control}
-                defaultValue="0"
-                render={({ field }) => (
-                  <FormControl
-                    sx={{ m: 1, minWidth: 120 }}
-                    size="small"
-                    className="!m-0"
-                  >
-                    <InputLabel
-                      required
-                      sx={{ color: "var(--azul-primario)" }}
-                      id="demo-select-small-label"
-                    >
-                      Empresa
-                    </InputLabel>
-                    <Select
-                      {...field}
-                      labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      size="small"
-                      className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
-                      label="Empresa"
-                    >
-                      <MenuItem value="0" disabled>
-                        Selecione
-                      </MenuItem>
-                      {getCompaniesData?.map((company) => (
-                        <MenuItem key={company._id} value={company._id}>
-                          {company.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+            {!isVisitor && (
+              <>
+                {isFromCompany ? (
+                  // SELECT EMPRESA
+                  <Controller
+                    name="company"
+                    control={control}
+                    defaultValue="0"
+                    render={({ field }) => (
+                      <FormControl size="small" className="!m-0">
+                        <InputLabel
+                          required
+                          sx={{ color: "var(--azul-primario)" }}
+                        >
+                          Empresa
+                        </InputLabel>
+                        <Select
+                          {...field}
+                          className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
+                          label="Empresa"
+                        >
+                          <MenuItem value="0" disabled>Selecione</MenuItem>
+                          {getCompaniesData?.map((company) => (
+                            <MenuItem key={company._id} value={company._id}>
+                              {company.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
+                  />
+                ) : (
+                  // SELECT TURMA
+                  <Controller
+                    name="class"
+                    control={control}
+                    defaultValue="0"
+                    render={({ field }) => (
+                      <FormControl size="small" className="!m-0">
+                        <InputLabel
+                          required
+                          sx={{ color: "var(--azul-primario)" }}
+                        >
+                          Turma
+                        </InputLabel>
+                        <Select
+                          {...field}
+                          className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
+                          label="Turma"
+                        >
+                          <MenuItem value="0" disabled>Selecione</MenuItem>
+                          {getClassesData?.map((classe) => (
+                            <MenuItem key={classe._id} value={classe._id}>
+                              {classe.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
+                  />
                 )}
-              />
-            ) : (
-              <FormControl
-                sx={{ m: 1, minWidth: 120 }}
-                size="small"
-                className="!m-0"
-              >
-                <InputLabel
-                  {...register("class")}
-                  id="demo-select-small-label"
-                  sx={{
-                    color: "var(--azul-primario)",
-                  }}
-                  required
-                >
-                  Turma
-                </InputLabel>
-                <Controller
-                  name="class"
-                  defaultValue="0"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...register("class")}
-                      className=" [&_fieldset]:!border-[var(--azul-primario)]    "
-                      id="demo-select-small-label"
-                      value={field.value}
-                      onChange={field.onChange}
-                      label="Turma"
-                    >
-                      <MenuItem value="0" disabled>
-                        Selecione
-                      </MenuItem>
-                      <MenuItem value="not_student">
-                        Não sou aluno
-                      </MenuItem>
-                      {getClassesData?.length === 0 ? (
-                        <MenuItem disabled key={"no-classes"} value={"no-classes"}>
-                          Turmas não encontradas
-                        </MenuItem>
-                      ) : (
-                        getClassesData?.map((classe) => (
-                          <MenuItem key={classe._id} value={classe._id}>
-                            {classe.name}
-                          </MenuItem>
-                        ))
-                      )}
-                    </Select>
-                  )}
-                />
-              </FormControl>
+              </>
             )}
           </div>
         )}
