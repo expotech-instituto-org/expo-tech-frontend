@@ -48,7 +48,7 @@ export default function Page() {
     getExhibitions();
   }, [searchByName]);
   return (
-    <div className="flex flex-col gap-4 mt-4">
+    <div className="flex flex-col gap-4 mt-[33%]">
       <TextField
         value={searchByName}
         onChange={(e) => setSearchByName(e.target.value)}

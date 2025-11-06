@@ -26,11 +26,7 @@ export default function LayoutLogin({
 
   return (
     <div>
-      <div className="bg-[url(/images/Cabeçalho.png)] bg-cover bg-left mb-2 w-full h-30">
-        <p className="text-[1.25rem] ml-[0.94rem] pt-4">Bem vindo a</p>
-        <h1 className="text-[3rem] font-bold ml-[0.94rem] mt-[-0.31rem]">
-          Expo360
-        </h1>
+      <div className="bg-[url(/images/banner.jpg)] bg-cover bg-left mb-2 w-full h-30 fixed top-0 left-0 z-30">
       </div>
       <Container maxWidth="sm">{children}</Container>
     </div>

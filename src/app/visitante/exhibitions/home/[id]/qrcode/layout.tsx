@@ -32,7 +32,7 @@ export default function LayoutAdmin({
   }, []);
   return (
     <>
-      <Container maxWidth="xl">{children}</Container>
+      <Container maxWidth="xl" className="!p-0">{children}</Container>
     </>
   );
 }

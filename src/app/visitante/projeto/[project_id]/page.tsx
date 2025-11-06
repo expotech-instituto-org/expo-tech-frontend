@@ -4,6 +4,7 @@ import { MembersComponent } from "@/components/Members";
 import { SwipeableDrawerComponent } from "@/components/SwipeableDrawer";
 import { DataContext } from "@/dataContext";
 import { useGetProjectById } from "@/service/hooks/useGetProjectById";
+import { useGetExhibitionCurrent } from "@/service/hooks/useGetExhibitionsCurrent";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { usePatchFavoriteProject } from "@/service/hooks/usePatchFavoriteProject";
 import { IQuestion } from "@/types/question";
@@ -31,6 +32,8 @@ export default function Page() {
     getUserByIdError,
     getUserByIdPending,
   } = useGetUserById({ user_id: userId, enabled: true });
+  const { getExhibitionCurrent, getExhibitionCurrentData } =
+    useGetExhibitionCurrent({ enabled: true });
 
   const { getProjectByIdData, getProjectByIdError, getProjectByIdPending } =
     useGetProjectById({
@@ -142,27 +145,27 @@ export default function Page() {
         </div>
       )}
       {openModal && (
-        <SwipeableDrawerComponent
-          exhibitionId={exhibitionId}
-          title={isReviewed ? "Reavaliar" : "Avaliar"}
-          subtitle="Com base no que você viu do projeto, avaliar:"
-          question={getProjectByIdData!.criterias
-            .map(
-              (item) =>
-                ({
-                  description: item.name,
-                  responseType: "Rating",
-                  isRequired: true,
-                } as IQuestion)
-            )
-            .concat({
-              description: "Deixe um comentário para o grupo",
-              responseType: "Comment",
-              isRequired: false,
-            })}
-          open={openModal}
-          setOpen={setOpenModal}
-        />
+          <SwipeableDrawerComponent
+            exhibitionId={exhibitionId}
+            title={isReviewed ? "Reavaliar" : "Avaliar"}
+            subtitle="Com base no que você viu do projeto, avaliar:"
+            question={getExhibitionCurrentData!.criteria
+              .map(
+                (item) =>
+                  ({
+                    description: item.name,
+                    responseType: "Rating",
+                    isRequired: true,
+                  } as IQuestion)
+              )
+              .concat({
+                description: "Deixe um comentário para o grupo",
+                responseType: "Comment",
+                isRequired: false,
+              })}
+            open={openModal}
+            setOpen={setOpenModal}
+          />
       )}
       {/* Loader */}
       <Backdrop
