@@ -61,10 +61,14 @@ export default function QRCodePage() {
     }
   };
 
-  useEffect(() => {
-    startScanner();
-    return () => stopScanner();
-  }, []);
+useEffect(() => {
+  startScanner();
+
+  return () => {
+    stopScanner().catch(err => console.error("Erro ao parar scanner:", err));
+  };
+}, []);
+
 
   return (
     <div style={{ padding: 20 }}>
