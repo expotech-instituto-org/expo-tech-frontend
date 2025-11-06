@@ -147,7 +147,7 @@ export default function Home() {
             className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
             variant="contained"
             onClick={() =>
-              router.push(`/visitante/exhibitions/home/${params.id}/qrcode`)
+              router.push(`/visitante/feiras/home/${params.id}/qrcode`)
             }
           >
             <QrCodeScanner className="mr-[0.31rem]" /> Ler QR Code
@@ -256,7 +256,8 @@ export default function Home() {
         className="fixed bottom-10 px-5 right-5 z-100 bg-[var(--vermelho)] rounded-full p-3 shadow-lg cursor-pointer w-fit h-fit"
         onClick={() => router.push("/visitante/contribuicao")}
       >
-        <div className="flex flex-row gap-2 items-center "><Image src="/images/beca.png" width={30} height={30} alt="Beca" />
+        <div className="flex flex-row gap-2 items-center ">
+          <Image src="/images/beca.png" width={30} height={30} alt="Beca" />
           <h2 className="text-[1.2rem]">Doe agora!</h2>
         </div>
       </div>

@@ -80,7 +80,7 @@ export default function InfoPage() {
                           }`}
                           onClick={() =>
                             project?._id &&
-                            router.push(`/visitante/projeto/${project._id}`)
+                            router.push(`/visitante/exhibitions/${project._id}`)
                           }
                         >
                           {/* Imagem central */}
