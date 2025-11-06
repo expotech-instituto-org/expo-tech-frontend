@@ -100,14 +100,6 @@ export default function Page() {
   });
 
   const onSubmit: SubmitHandler<TUpsertExhibitionSchema> = async (data) => {
-    const file = data.image;
-
-    const base64Image = {
-      name: file.name,
-      type: file.type,
-      base64: await fileToBase64(file),
-    };
-
     if (!exhibitionId) {
       return postCreateExhibition(
         {
@@ -122,7 +114,7 @@ export default function Page() {
               end_date: data.end_date.toFormat("yyyy-MM-dd"),
               start_date: data.start_date.toFormat("yyyy-MM-dd"),
             },
-            image: base64Image.base64,
+            image: data.image,
           },
         },
         {
@@ -147,7 +139,7 @@ export default function Page() {
             end_date: data.end_date.toFormat("yyyy-MM-dd"),
             start_date: data.start_date.toFormat("yyyy-MM-dd"),
           },
-          image: base64Image.base64,
+          image: data.image,
         },
         exhibition_id: exhibitionId,
       },
@@ -196,15 +188,6 @@ export default function Page() {
       )
     );
   }
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
 
   useEffect(() => {
     reset();

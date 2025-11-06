@@ -52,6 +52,39 @@ export interface IGetUsersResponse {
   };
 }
 
+export interface IUpdateUserBody {
+  user: {
+    profile_picture?: string;
+    phone?: string;
+    favorited_projects?: string[];
+    role: {
+      _id: string;
+      name: string;
+    };
+    class?: string;
+    project?: {
+      _id: string;
+      company_name: string;
+      logo: string;
+      name: string;
+    };
+    _id: string;
+    reviews?: {
+      _id: string;
+      comment: string;
+      exhibition_id: string;
+      project_id: string;
+    }[];
+
+    password: string;
+    email: string;
+    company?: string;
+    knowledge?: string;
+    age: number;
+  };
+  profile_picture: string | File | null;
+}
+
 export interface IGetReadUsersMe {
   username: string;
   role: string;
@@ -127,7 +160,7 @@ export interface ICreateExhibitionBody {
       weight: number;
     }[];
   };
-  image: string;
+  image: File;
 }
 
 export interface IGetAllExhibitionsResponse {
@@ -159,6 +192,7 @@ export interface IUpdateExhibitionBody {
     company_name: string;
     logo: string;
     name: string;
+    description: string;
     coordinates: number;
   }[];
 
@@ -193,6 +227,10 @@ export interface IGetProjectsResponse {
   name: string;
   is_rated?: boolean;
   is_favorited?: boolean;
+  criterias: {
+    name: string;
+    score: number;
+  }[];
 }
 
 export interface ICreateProjectBody {
