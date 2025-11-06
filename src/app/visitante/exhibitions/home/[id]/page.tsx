@@ -253,11 +253,12 @@ export default function Home() {
         ))}
       </div>
       <div
-        className="fixed bottom-10 px-5 right-5 z-100 bg-[var(--vermelho)] rounded-full p-3 shadow-lg cursor-pointer w-fit h-fit"
+        className="fixed bottom-10 px-4 right-5 z-100 bg-[var(--vermelho)] rounded-full p-2 shadow-lg cursor-pointer w-fit h-fit"
         onClick={() => router.push("/visitante/contribuicao")}
       >
-        <div className="flex flex-row gap-2 items-center "><Image src="/images/beca.png" width={30} height={30} alt="Beca" />
-          <h2 className="text-[1.2rem]">Doe agora!</h2>
+        <div className="flex flex-row gap-2 items-center ">
+          <Image src="/images/beca.png" width={26} height={26} alt="Beca" />
+          <h2 className="text-[1rem] select-none">Doe agora!</h2>
         </div>
       </div>
 
