@@ -139,7 +139,7 @@ export default function Page() {
       Cookies.set("visitante-token", loginData.access_token, {
         path: "/",
       });
-      router.push("/visitante/exhibitions/");
+      router.push("/visitantes/login/autentication");
     }
     getClassesError && toast.error("Erro ao buscar turmas");
     getCompaniesError && toast.error("Erro ao buscar empresas");
@@ -389,6 +389,9 @@ export default function Page() {
                       Empresa/colaborador
                     </MenuItem>
                     <MenuItem value="2" onClick={() => setIsFromCompany(false)}>
+                      Empresa/colaborador
+                    </MenuItem>
+                    <MenuItem value="3" onClick={() => setIsFromCompany(false)}>
                       Aluno
                     </MenuItem>
                   </Select>

@@ -1,10 +1,13 @@
 "use client";
+import Carousel from "@/components/Carousel";
 import { MembersComponent } from "@/components/Members";
 import { SwipeableDrawerComponent } from "@/components/SwipeableDrawer";
 import { DataContext } from "@/dataContext";
 import { useGetProjectById } from "@/service/hooks/useGetProjectById";
+import { useGetExhibitionCurrent } from "@/service/hooks/useGetExhibitionsCurrent";
 import { useGetUserById } from "@/service/hooks/useGetUserById";
 import { usePatchFavoriteProject } from "@/service/hooks/usePatchFavoriteProject";
+import { IQuestion } from "@/types/question";
 import { Favorite, FavoriteBorder } from "@mui/icons-material";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -22,13 +25,15 @@ import { toast } from "sonner";
 export default function Page() {
   const { project_id } = useParams();
   const [openModal, setOpenModal] = useState(false);
-  const { userId } = useContext(DataContext);
+  const { userId, exhibitionId } = useContext(DataContext);
   const {
     getUserById: refreshUser,
     getUserByIdData,
     getUserByIdError,
     getUserByIdPending,
   } = useGetUserById({ user_id: userId, enabled: true });
+  const { getExhibitionCurrent, getExhibitionCurrentData } =
+    useGetExhibitionCurrent({ enabled: true });
 
   const { getProjectByIdData, getProjectByIdError, getProjectByIdPending } =
     useGetProjectById({
@@ -76,53 +81,60 @@ export default function Page() {
   }, [getUserByIdError, patchFavoriteProjectError, getProjectByIdError]);
 
   return (
-    <Container maxWidth="sm" className="h-[120vh]">
-      <div className="flex items-center justify-between pt-3">
-        <div className="flex items-center gap-2">
-          <IconButton onClick={() => history.back()}>
-            <ArrowBackIosIcon className="text-[var(--azul-primario)]" />
-          </IconButton>
-          <h1 className="text-[var(--azul-primario)] font-bold text-[2rem]">
-            {getProjectByIdData?.name}
-          </h1>
-        </div>
-        <div className="flex items-center gap-4">
-          {isFavorited ? (
-            <Favorite
-              className="text-[var(--error)]"
-              onClick={() => favoriteProject()}
+    <div className="flex flex-col h-full">
+      <Container maxWidth="sm" className="h-fit pb-30">
+        <div className="flex items-center justify-between pt-3 mb-8">
+          <div className="flex items-center gap-2">
+            <IconButton onClick={() => history.back()}>
+              <ArrowBackIosIcon className="text-[var(--azul-primario)]" />
+            </IconButton>
+            <h1 className="text-[var(--azul-primario)] font-bold text-[2rem]">
+              {getProjectByIdData?.name}
+            </h1>
+          </div>
+          <div className="flex items-center gap-4">
+            {isFavorited ? (
+              <Favorite
+                className="text-[var(--error)]"
+                onClick={() => favoriteProject()}
+              />
+            ) : (
+              <FavoriteBorder
+                className={`text-[var(--error)] `}
+                onClick={() => favoriteProject()}
+              />
+            )}
+            <Avatar
+              sx={{ width: 24, height: 24 }}
+              src={getUserByIdData?.profile_picture}
             />
-          ) : (
-            <FavoriteBorder
-              className={`text-[var(--error)] `}
-              onClick={() => favoriteProject()}
-            />
-          )}
-          <Avatar sx={{ width: 24, height: 24 }} />
+          </div>
         </div>
-      </div>
-      <Image
-        src={"/images/BackgroundCardProject.png"}
-        alt={getProjectByIdData?.name ?? ""}
-        width={100}
-        height={100}
-        className="w-full mb-5 mt-4"
-      />
-      <p className="text-[var(--text)] text-[.9rem] mb-6">
-        {getProjectByIdData?.description}
-      </p>
-      <h2 className="text-[var(--azul-primario)] font-medium text-center text-2xl mb-2">
-        Integrantes
-      </h2>
-      <MembersComponent
-        Class="1° Ano F"
-        Members={(getProjectByIdData?.expositors ?? []).map((expositor) => ({
-          name: expositor.name || "Nome não disponível",
-          photo: expositor.profile_picture,
-        }))}
-      />
+        <Carousel
+          images={
+            getProjectByIdData
+              ? getProjectByIdData.images.length > 0
+                ? getProjectByIdData.images
+                : ["/images/exampleImgCarousel.png"]
+              : ["/images/exampleImgCarousel.png"]
+          }
+        />
+        <p className="text-[var(--text)] text-[.9rem] mb-6">
+          {getProjectByIdData?.description}
+        </p>
+        <h2 className="text-[var(--azul-primario)] font-medium text-center text-2xl mb-2">
+          Integrantes
+        </h2>
+        <MembersComponent
+          Members={(getProjectByIdData?.expositors ?? []).map((expositor) => ({
+            name: expositor.name || "Nome não disponível",
+            photo: expositor.profile_picture,
+            Class: expositor.class,
+          }))}
+        />
+      </Container>
       {!openModal && (
-        <div className="bg-[var(--azul-primario)] rounded-t-2xl fixed bottom-0 w-full right-0 h-[8%] flex items-center justify-center z-[9999]">
+        <div className="bg-[var(--azul-primario)] rounded-t-2xl  h-[5rem] flex items-center fixed bottom-0 left-0 w-full border-t justify-around p-4">
           <IconButton
             className="!text-center !font-bold !text-3xl !text-white"
             onClick={() => setOpenModal(true)}
@@ -133,39 +145,27 @@ export default function Page() {
         </div>
       )}
       {openModal && (
-        <SwipeableDrawerComponent
-          title={isReviewed ? "Reavaliar" : "Avaliar"}
-          subtitle="Com base no que você viu do projeto, avaliar:"
-          question={[
-            {
-              description: "Como foi a organização do grupo?",
-              responseType: "Rating",
-              isRequired: true,
-            },
-            {
-              description: "Como foi a ideia do grupo?",
-              responseType: "Rating",
-              isRequired: true,
-            },
-            {
-              description: "Como foi a apresentação do grupo?",
-              responseType: "Rating",
-              isRequired: true,
-            },
-            {
-              description: "Como foi a execução do grupo?",
-              responseType: "Rating",
-              isRequired: true,
-            },
-            {
-              description: "Deixe um comentário para o grupo",
-              responseType: "Comment",
-              isRequired: false,
-            },
-          ]}
-          open={openModal}
-          setOpen={setOpenModal}
-        />
+          <SwipeableDrawerComponent
+            exhibitionId={exhibitionId}
+            title={isReviewed ? "Reavaliar" : "Avaliar"}
+            subtitle="Com base no que você viu do projeto, avaliar:"
+            question={getExhibitionCurrentData!.criteria
+              .map(
+                (item) =>
+                  ({
+                    description: item.name,
+                    responseType: "Rating",
+                    isRequired: true,
+                  } as IQuestion)
+              )
+              .concat({
+                description: "Deixe um comentário para o grupo",
+                responseType: "Comment",
+                isRequired: false,
+              })}
+            open={openModal}
+            setOpen={setOpenModal}
+          />
       )}
       {/* Loader */}
       <Backdrop
@@ -178,6 +178,6 @@ export default function Page() {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-    </Container>
+    </div>
   );
 }

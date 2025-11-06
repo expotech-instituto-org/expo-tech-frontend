@@ -21,24 +21,25 @@ export default function ProjectCard({
   onFavoriteToggle,
 }: IProjectProps) {
   const router = useRouter();
+
   return (
-    <div className=" h-[107px] bg-[url(/images/BackgroundCardProject.png)] bg-cover bg-center rounded-[10px] flex justify-left">
+    <div className="w-full h-[107px] bg-[url(/images/BackgroundCardProject.png)] bg-cover bg-center rounded-[var(--rounded-sm)] flex justify-left">
       <img
         src={imageUrl}
         alt="Project Image"
         height={90}
         width={90}
-        className="rounded-[10px] h-[90px] w-[90px] ml-[8px] mt-[8px]"
+        className="rounded-[var(--rounded-sm)] h-[90px] w-[30%] ml-[8px] mt-[8px]"
       />
-      <div
-        className="flex flex-row justify-between w-full p-2"
-        onClick={() => router.push(`/visitante/projeto/${project_id}`)}
-      >
-        <div className="flex flex-col">
-          <h1 className="text-[var(--azul-primario)] font-bold  ml-[14px] text-[22px]display:inline">
+      <div className="flex flex-row justify-between px-2 w-[70%] pr-5">
+        <div
+          className="flex flex-col w-full gap-2 mt-2"
+          onClick={() => router.push(`/visitante/projeto/${project_id}`)}
+        >
+          <h1 className="text-[var(--azul-primario)] font-bold  text-[15px]">
             {title}
           </h1>
-          <p className="mt-[10px] ml-[14px] text-[var(--text)] text-[12px]">
+          <p className="text-[var(--text)] text-[12px]  overflow-hidden whitespace-nowrap text-ellipsis ">
             {subtitle}
           </p>
         </div>

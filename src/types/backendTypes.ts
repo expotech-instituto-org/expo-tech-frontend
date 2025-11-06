@@ -52,6 +52,39 @@ export interface IGetUsersResponse {
   };
 }
 
+export interface IUpdateUserBody {
+  user: {
+    profile_picture?: string;
+    phone?: string;
+    favorited_projects?: string[];
+    role: {
+      _id: string;
+      name: string;
+    };
+    class?: string;
+    project?: {
+      _id: string;
+      company_name: string;
+      logo: string;
+      name: string;
+    };
+    _id: string;
+    reviews?: {
+      _id: string;
+      comment: string;
+      exhibition_id: string;
+      project_id: string;
+    }[];
+
+    password: string;
+    email: string;
+    company?: string;
+    knowledge?: string;
+    age: number;
+  };
+  profile_picture: string | File | null;
+}
+
 export interface IGetReadUsersMe {
   username: string;
   role: string;
@@ -59,20 +92,13 @@ export interface IGetReadUsersMe {
 
 export interface ICreateReviewBody {
   comment: string;
-  exhibition_id: {
-    id: string;
-    name: string;
-  };
+  exhibition_id: string;
   grades: {
     name: string;
     score: number;
-    weight: number;
   }[];
 
-  project: {
-    id: string;
-    name: string;
-  };
+  project_id: string;
 }
 
 export interface IGetReviewsResponse {
@@ -134,7 +160,7 @@ export interface ICreateExhibitionBody {
       weight: number;
     }[];
   };
-  image: string;
+  image: File;
 }
 
 export interface IGetAllExhibitionsResponse {
@@ -147,6 +173,31 @@ export interface IGetAllExhibitionsResponse {
 
 export interface IGetExhibitionCurrentResponse {
   _id: string;
+  criteria: {
+    name: string;
+    weight: number;
+  }[];
+  date?: string;
+  end_date: string;
+  start_date: string;
+  description?: string;
+  image?: string;
+  name: string;
+  projects?: {
+    _id: string;
+    company_name: string;
+    logo: string;
+    name: string;
+    description: string;
+    coordinates: number;
+  }[];
+
+  roles: {
+    _id: string;
+    name: string;
+    weight: number;
+  }[];
+  banner: string[];
 }
 
 export interface IUpdateExhibitionBody {
@@ -166,6 +217,7 @@ export interface IUpdateExhibitionBody {
     company_name: string;
     logo: string;
     name: string;
+    description: string;
     coordinates: number;
   }[];
 
@@ -174,6 +226,7 @@ export interface IUpdateExhibitionBody {
     name: string;
     weight: number;
   }[];
+  banner: string[];
 }
 
 export interface IGetProjectsParams {
@@ -192,10 +245,13 @@ export interface IGetProjectsResponse {
     _id: string;
     name: string;
     profile_picture: string;
+    class: string;
   }[];
   images: string[];
   logo: string;
   name: string;
+  is_rated?: boolean;
+  is_favorited?: boolean;
 }
 
 export interface ICreateProjectBody {
