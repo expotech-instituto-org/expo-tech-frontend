@@ -49,6 +49,9 @@ export default function Page() {
   }, [searchByName]);
   return (
     <div className="flex flex-col gap-4 mt-[33%]">
+          <h1 className="text-[var(--azul-primario)] font-bold text-[1.7rem]">
+              Escolha a feira que está visitando!
+        </h1>  
       <TextField
         value={searchByName}
         onChange={(e) => setSearchByName(e.target.value)}
@@ -57,6 +60,7 @@ export default function Page() {
         size="small"
         className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-full"
       />
+  
       {getExhibitionsData?.map((exhibition) => (
         <Button
           key={exhibition.id}
@@ -68,8 +72,8 @@ export default function Page() {
               exhibition.end_date
             )
           }
-        >
-          <ProjectCard
+        >        
+            <ProjectCard
             project_id={exhibition.id}
             title={exhibition.name}
             imageUrl={exhibition.image}
