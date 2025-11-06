@@ -31,12 +31,12 @@ export default function ProjectCard({
         width={90}
         className="rounded-[var(--rounded-sm)] h-[90px] w-[30%] ml-[8px] mt-[8px]"
       />
-      <div
-        className="flex flex-col-reverse sm:flex-row sm:justify-between justify-end p-2 w-[60%] sm:w-[50%] md:w-[60%]"
-        onClick={() => router.push(`/visitante/projeto/${project_id}`)}
-      >
-        <div className="flex flex-col w-full ">
-          <h1 className="text-[var(--azul-primario)] font-bold  text-[15px] display:inline">
+      <div className="flex flex-row justify-between px-2 w-[70%] pr-5">
+        <div
+          className="flex flex-col w-full gap-2 mt-2"
+          onClick={() => router.push(`/visitante/projeto/${project_id}`)}
+        >
+          <h1 className="text-[var(--azul-primario)] font-bold  text-[15px]">
             {title}
           </h1>
           <p className="text-[var(--text)] text-[12px]  overflow-hidden whitespace-nowrap text-ellipsis ">
