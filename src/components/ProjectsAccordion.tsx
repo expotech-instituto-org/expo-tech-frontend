@@ -65,7 +65,7 @@ export function ProjectsAccordion(props: IProps) {
   useEffect(() => {
     if (deleteExhibitionData) {
       toast.error("exposição excluida com sucesso");
-      query.invalidateQueries({ queryKey: ["/exhibitions"] });
+      query.invalidateQueries({ queryKey: ["/feiras"] });
       setTimeout(() => {
         setOpenModal(false);
       }, 3500);

@@ -52,15 +52,11 @@ export default function ProjectCard({
 
       <div className="flex flex-row justify-between flex-1 items-start gap-2">
         <div
-          className="
-            flex flex-col 
-            gap-1 sm:gap-2 
-            cursor-pointer 
-            overflow-hidden 
-            flex-1
-          "
+          className="flex flex-col w-full gap-2 mt-2"
           onClick={() =>
-            type !== "1" ? router.push(`/visitante/projeto/${project_id}`) : null
+            type !== "1"
+              ? router.push(`/visitante/exhibitions/${project_id}`)
+              : null
           }
         >
           <h1

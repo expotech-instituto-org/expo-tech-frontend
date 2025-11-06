@@ -147,7 +147,7 @@ export default function Home() {
             className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
             variant="contained"
             onClick={() =>
-              router.push(`/visitante/exhibitions/home/${params.id}/qrcode`)
+              router.push(`/visitante/feiras/home/${params.id}/qrcode`)
             }
           >
             <QrCodeScanner className="mr-[0.31rem]" /> Ler QR Code

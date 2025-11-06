@@ -8,7 +8,7 @@ export const useGetExhibitionCurrent = ({ enabled }: { enabled: boolean }) => {
     AxiosResponse<IGetExhibitionCurrentResponse>,
     AxiosError<{ message: string }>
   >({
-    queryKey: ["/exhibitions/current"],
+    queryKey: ["/feiras/current"],
     queryFn: () => ExpoApiService.getExhibitionsCurrent(),
     enabled,
   });
