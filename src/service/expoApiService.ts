@@ -121,7 +121,7 @@ class Service {
   deleteClass = ({ class_id }: { class_id: string }) =>
     api.delete(`/classes/${class_id}`);
 
-  getExhibitionsCurrent = () => api.get("/feiras/current/");
+  getExhibitionsCurrent = () => api.get("/exhibitions/current/");
   getExhibitions = ({
     name,
     start_date,
@@ -129,7 +129,7 @@ class Service {
     name?: string;
     start_date?: string;
   }) =>
-    api.get("/feiras", {
+    api.get("/exhibitions", {
       params: {
         name,
         start_date,
@@ -142,7 +142,7 @@ class Service {
     formData.append("exhibition", JSON.stringify(body.exhibition));
     formData.append("image", body.image); // precisa ser um File vindo do input
 
-    return api.post("/feiras", formData, {
+    return api.post("/exhibitions", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -156,7 +156,7 @@ class Service {
     exhibition_id: string;
     body: ICreateExhibitionBody;
   }) =>
-    api.put(`/feiras/${exhibition_id}`, body, {
+    api.put(`/exhibitions/${exhibition_id}`, body, {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
@@ -164,10 +164,10 @@ class Service {
     });
 
   getExhibitionById = ({ exhibition_id }: { exhibition_id: string }) =>
-    api.get(`/feiras/${exhibition_id}`);
+    api.get(`/exhibitions/${exhibition_id}`);
 
   deleteExhibition = ({ exhibition_id }: { exhibition_id: string }) =>
-    api.delete(`/feiras/${exhibition_id}`);
+    api.delete(`/exhibitions/${exhibition_id}`);
 
   getProjects = ({
     company_name,
