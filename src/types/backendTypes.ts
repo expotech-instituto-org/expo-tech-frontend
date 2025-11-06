@@ -173,6 +173,31 @@ export interface IGetAllExhibitionsResponse {
 
 export interface IGetExhibitionCurrentResponse {
   _id: string;
+  criteria: {
+    name: string;
+    weight: number;
+  }[];
+  date?: string;
+  end_date: string;
+  start_date: string;
+  description?: string;
+  image?: string;
+  name: string;
+  projects?: {
+    _id: string;
+    company_name: string;
+    logo: string;
+    name: string;
+    description: string;
+    coordinates: number;
+  }[];
+
+  roles: {
+    _id: string;
+    name: string;
+    weight: number;
+  }[];
+  banner: string[];
 }
 
 export interface IUpdateExhibitionBody {
@@ -227,10 +252,6 @@ export interface IGetProjectsResponse {
   name: string;
   is_rated?: boolean;
   is_favorited?: boolean;
-  criterias: {
-    name: string;
-    score: number;
-  }[];
 }
 
 export interface ICreateProjectBody {

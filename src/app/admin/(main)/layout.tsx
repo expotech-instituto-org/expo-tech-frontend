@@ -22,7 +22,7 @@ export default function LayoutAdmin({
   return (
     <>
       <nav className="w-full h-20 bg-[url(/images/navbarBg.png)] bg-cover bg-left mb-14"></nav>
-      <Container maxWidth="xl">{children}</Container>
+      <Container maxWidth="xl" className="!p-0">{children}</Container>
     </>
   );
 }
