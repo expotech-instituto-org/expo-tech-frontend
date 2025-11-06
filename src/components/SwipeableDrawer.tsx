@@ -1,3 +1,4 @@
+"use client";
 import { createSchemaFromQuestions } from "@/schemas";
 import { usePostCreateReview } from "@/service/hooks/usePostCreateReview";
 import { IQuestion } from "@/types/question";
@@ -6,7 +7,6 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
   Button,
   Rating,
-  Skeleton,
   SwipeableDrawer,
   TextareaAutosize,
 } from "@mui/material";
@@ -28,10 +28,9 @@ export type TFormValues = {
   [key: string]: number | string | undefined;
 };
 
-interface IValues {
+interface IGrade {
   name: string;
   score: number;
-  description: any;
 }
 
 export function SwipeableDrawerComponent({
@@ -44,13 +43,11 @@ export function SwipeableDrawerComponent({
 }: IDrawerProps) {
   const { project_id } = useParams();
   const dynamicSchema = createSchemaFromQuestions(question);
-  const [body, setBody] = useState<IValues[]>([]);
-  const {
-    postCreateReview,
-    postCreateReviewData,
-    postCreateReviewError,
-    postCreateReviewRest,
-  } = usePostCreateReview();
+  const [grades, setGrades] = useState<IGrade[]>([]);
+  const [comment, setComment] = useState<string>("");
+
+  const { postCreateReview, postCreateReviewData, postCreateReviewError } =
+    usePostCreateReview();
 
   const {
     handleSubmit,
@@ -63,121 +60,121 @@ export function SwipeableDrawerComponent({
   });
 
   const onSubmit = (data: TFormValues) => {
-    const newBody = question.map((item) => ({
-      name: item.responseType !== "Comment" ? item.description : "",
-      score:
-        item.responseType !== "Comment" ? Number(data[item.description]) : 0,
-      description:
-        item.responseType === "Comment" ? data[item.description] : "",
-    }));
+    const newGrades: IGrade[] = [];
+    let newComment = "";
 
-    setBody(newBody);
+    question.forEach((item) => {
+      if (item.responseType === "Comment") {
+        newComment = String(data[item.description] || "");
+      } else {
+        newGrades.push({
+          name: item.description,
+          score: Number(data[item.description]) || 0,
+        });
+      }
+    });
+
+    setGrades(newGrades);
+    setComment(newComment);
   };
 
   useEffect(() => {
-    console.log(body);
-    body.length > 0 &&
-      postCreateReview({
-        body: {
-          comment: body.filter((item) => item.score === 0)[0].description,
-          exhibition_id: exhibitionId,
-          project_id: project_id!.toString(),
-          grades: body.filter(
-            (item) =>
-              item.score !== 0 && {
-                name: item.name,
-                score: Number(item.score),
-              }
-          ),
-        },
-      });
-  }, [body]);
+    if (grades.length === 0 && !comment) return;
+
+    const body = {
+      comment,
+      exhibition_id: exhibitionId,
+      project_id: project_id!.toString(),
+      grades,
+    };
+
+    console.log("Body enviado ao backend:", body);
+
+    postCreateReview({ body });
+  }, [grades, comment]);
 
   useEffect(() => {
-    console.log(errors);
-  }, [errors]);
+    if (postCreateReviewData) {
+      toast.success("Avaliação enviada com sucesso!");
+      setOpen(false);
+    }
+
+    if (postCreateReviewError) {
+      toast.error("Erro ao enviar avaliação.");
+    }
+  }, [postCreateReviewData, postCreateReviewError]);
 
   return (
-    <>
-      <SwipeableDrawer
-        anchor="bottom"
-        open={open}
-        onOpen={() => setOpen(true)}
-        onClose={() => setOpen(false)}
-        swipeAreaWidth={56}
-        disableSwipeToOpen={false}
-        keepMounted
-      >
-        <div className=" flex flex-col gap-[1.2rem] px-[3rem] top-[-56] rounded-t-[8] visible right-0 left-0 bg-[var(--background)] ">
-          <div
-            className="w-[30rem] h-[6rem] bg-grey rounded-[3rem] absolute top-[8]
-          left-[(calc(50%) - 15px)]"
-          ></div>
-          <div className="flex flex-col gap-[.2rem]">
-            <Button
-              onClick={() => setOpen(false)}
-              variant="text"
-              className="!bg-transparent"
-            >
-              <h1 className="text-[var(--azul-primario)] font-bold text-[24px] text-center !capitalize">
-                {title} <KeyboardArrowDownIcon className="!text-[24px]" />
-              </h1>
-            </Button>
-            <h2 className="text-[1rem] text-center">{subtitle}</h2>
-          </div>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-9"
+    <SwipeableDrawer
+      anchor="bottom"
+      open={open}
+      onOpen={() => setOpen(true)}
+      onClose={() => setOpen(false)}
+      swipeAreaWidth={56}
+      disableSwipeToOpen={false}
+      keepMounted
+    >
+      <div className="flex flex-col gap-[1.2rem] px-[3rem] rounded-t-[8] bg-[var(--background)]">
+        <div className="flex flex-col gap-[.2rem]">
+          <Button
+            onClick={() => setOpen(false)}
+            variant="text"
+            className="!bg-transparent"
           >
-            {question.map((q, idx) => (
-              <div key={idx} className="space-y-2">
-                <label
-                  htmlFor={q.description}
-                  className="block text-sm font-medium text-gray-700 text-[20px]"
-                >
-                  {q.description}
-                  {q.isRequired && <span className="text-red-500"> *</span>}
-                </label>
-                {q.responseType === "Rating" && (
-                  <Controller
-                    name={q.description}
-                    control={control}
-                    render={({ field }) => (
-                      <div className="flex items-center space-x-2">
-                        <Rating
-                          className="!text-4xl"
-                          name={q.description}
-                          value={Number(field.value) || 0}
-                          onChange={(event, newValue) => {
-                            field.onChange(newValue || 0);
-                          }}
-                          precision={1}
-                        />
-                      </div>
-                    )}
-                  />
-                )}
+            <h1 className="text-[var(--azul-primario)] font-bold text-[24px] text-center !capitalize">
+              {title} <KeyboardArrowDownIcon className="!text-[24px]" />
+            </h1>
+          </Button>
+          <h2 className="text-[1rem] text-center">{subtitle}</h2>
+        </div>
 
-                {q.responseType === "Comment" && (
-                  <TextareaAutosize
-                    className="!w-full border-1 border-[var(--azul-primario)] border-solid p-2"
-                    id={q.description}
-                    {...register(q.description)}
-                    aria-label="minimum height"
-                    minRows={7}
-                    style={{ width: 200 }}
-                  />
-                )}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-9">
+          {question.map((q, idx) => (
+            <div key={idx} className="space-y-2">
+              <label
+                htmlFor={q.description}
+                className="block text-sm font-medium text-gray-700 text-[20px]"
+              >
+                {q.description}
+                {q.isRequired && <span className="text-red-500"> *</span>}
+              </label>
 
-                {/* Exibição de Erros */}
-                {errors[idx] && (
-                  <p className="text-sm text-red-600">
-                    {errors[idx]?.message as string}
-                  </p>
-                )}
-              </div>
-            ))}
-          </form>
+              {q.responseType === "Rating" && (
+                <Controller
+                  name={q.description}
+                  control={control}
+                  render={({ field }) => (
+                    <Rating
+                      className="!text-4xl"
+                      name={q.description}
+                      value={Number(field.value) || 0}
+                      onChange={(event, newValue) => {
+                        field.onChange(newValue || 0);
+                      }}
+                      precision={1}
+                    />
+                  )}
+                />
+              )}
+
+              {q.responseType === "Comment" && (
+                <TextareaAutosize
+                  className="!w-full border-1 border-[var(--azul-primario)] border-solid p-2"
+                  id={q.description}
+                  {...register(q.description)}
+                  minRows={7}
+                  style={{ width: "100%" }}
+                />
+              )}
+
+              {errors[q.description] && (
+                <p className="text-sm text-red-600">
+                  {errors[q.description]?.message as string}
+                </p>
+              )}
+            </div>
+          ))}
+
           <div className="w-full flex flex-row justify-end gap-[1rem] !pb-[2rem]">
             <Button
               variant="outlined"
@@ -190,20 +187,12 @@ export function SwipeableDrawerComponent({
               variant="contained"
               type="submit"
               className="!bg-[var(--azul-primario)]"
-              onClick={() => {
-                handleSubmit(onSubmit);
-                setOpen(false);
-                toast.success("Avaliação enviada com sucesso!");
-              }}
             >
               Enviar
             </Button>
           </div>
-        </div>
-        <div className="absoulute top-[-56] rounded-t-[8] visible right-0 left-0 bg-white px-[2] pb-[2] h-full overflow-auto">
-          <Skeleton variant="rectangular" height="100%" />
-        </div>
-      </SwipeableDrawer>
-    </>
+        </form>
+      </div>
+    </SwipeableDrawer>
   );
 }
