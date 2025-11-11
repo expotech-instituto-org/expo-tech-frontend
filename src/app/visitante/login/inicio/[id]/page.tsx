@@ -257,7 +257,9 @@ export default function Page() {
                 <span className="text-red-500">{errors.password.message}</span>
               )}
               {isLogin && loginErrorMessage && (
-                <span className="text-red-500 text-sm mt-1">{loginErrorMessage}</span>
+                <span className="text-red-500 text-sm mt-1">
+                  {loginErrorMessage}
+                </span>
               )}
             </FormControl>
 
@@ -412,13 +414,16 @@ export default function Page() {
                       field.onChange(e);
                       const value = e.target.value;
 
-                      if (value === "2") {        // Visitante
+                      if (value === "2") {
+                        // Visitante
                         setIsVisitor(true);
                         setIsFromCompany(false);
-                      } else if (value === "3") { // Aluno
+                      } else if (value === "3") {
+                        // Aluno
                         setIsVisitor(false);
                         setIsFromCompany(false);
-                      } else if (value === "1") { // Empresa/colaborador
+                      } else if (value === "1") {
+                        // Empresa/colaborador
                         setIsVisitor(false);
                         setIsFromCompany(true);
                       }
@@ -455,7 +460,9 @@ export default function Page() {
                           className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
                           label="Empresa"
                         >
-                          <MenuItem value="0" disabled>Selecione</MenuItem>
+                          <MenuItem value="0" disabled>
+                            Selecione
+                          </MenuItem>
                           {getCompaniesData?.map((company) => (
                             <MenuItem key={company._id} value={company._id}>
                               {company.name}
@@ -484,7 +491,9 @@ export default function Page() {
                           className="[&_fieldset]:!border-[var(--azul-primario)] w-[20rem]"
                           label="Turma"
                         >
-                          <MenuItem value="0" disabled>Selecione</MenuItem>
+                          <MenuItem value="0" disabled>
+                            Selecione
+                          </MenuItem>
                           {getClassesData?.map((classe) => (
                             <MenuItem key={classe._id} value={classe._id}>
                               {classe.name}
@@ -515,7 +524,7 @@ export default function Page() {
           <Button
             variant="outlined"
             onClick={() => {
-              router.push(`/visitante/login/inicio`);
+              router.push(`/inicio`);
             }}
             className="!border-[var(--azul-primario)] !text-[var(--azul-primario)] w-[20rem]"
           >

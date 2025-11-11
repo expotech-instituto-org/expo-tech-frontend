@@ -78,7 +78,9 @@ export default function Contribuicao() {
           className="mx-auto flex flex-row items-center justify-center gap-4 my-4 cursor-pointer hover:opacity-80 transition"
           onClick={handleCopy}
         >
-          <h2 className="text-3xl font-bold text-center select-none">Copiar Pix</h2>
+          <h2 className="text-3xl font-bold text-center select-none">
+            Copiar Pix
+          </h2>
           {copied ? (
             <CheckIcon
               sx={{ color: "green", fontSize: 32, transition: "0.3s ease" }}

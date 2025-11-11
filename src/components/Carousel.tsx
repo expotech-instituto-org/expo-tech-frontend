@@ -8,6 +8,8 @@ import "swiper/css/pagination";
 import { Box, Card, CardMedia } from "@mui/material";
 
 export default function Carousel({ images }: { images: string[] }) {
+  const showPagination = images.length <= 6;
+
   return (
     <Box
       sx={{
@@ -18,10 +20,10 @@ export default function Carousel({ images }: { images: string[] }) {
       <Swiper
         modules={[Autoplay, Pagination]}
         autoplay={{ delay: 3500 }}
-        pagination={{ clickable: true }}
+        pagination={showPagination ? { clickable: true } : false}
         loop
         spaceBetween={10}
-        style={{ paddingBottom: "30px" }}
+        style={{ paddingBottom: showPagination ? "30px" : "0px" }}
       >
         {images.map((img, i) => (
           <SwiperSlide key={i}>
@@ -43,24 +45,26 @@ export default function Carousel({ images }: { images: string[] }) {
         ))}
       </Swiper>
 
-      <style jsx global>{`
-        .swiper-pagination {
-          position: absolute;
-          bottom: 0;
-          transform: translateY(10px);
-        }
-        .swiper-pagination-bullet {
-          width: 12px;
-          height: 12px;
-          background-color: #bbb;
-          opacity: 1;
-          margin: 0 6px;
-          transition: all 0.3s ease;
-        }
-        .swiper-pagination-bullet-active {
-          background-color: var(--azul-primario);
-        }
-      `}</style>
+      {showPagination && (
+        <style jsx global>{`
+          .swiper-pagination {
+            position: absolute;
+            bottom: 0;
+            transform: translateY(10px);
+          }
+          .swiper-pagination-bullet {
+            width: 12px;
+            height: 12px;
+            background-color: #bbb;
+            opacity: 1;
+            margin: 0 6px;
+            transition: all 0.3s ease;
+          }
+          .swiper-pagination-bullet-active {
+            background-color: var(--azul-primario);
+          }
+        `}</style>
+      )}
     </Box>
   );
 }

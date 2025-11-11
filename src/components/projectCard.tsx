@@ -55,7 +55,7 @@ export default function ProjectCard({
           className="flex flex-col w-full gap-2 mt-2"
           onClick={() =>
             type !== "1"
-              ? router.push(`/visitante/exhibitions/${project_id}`)
+              ? router.push(`/visitante/projeto/${project_id}`)
               : null
           }
         >
