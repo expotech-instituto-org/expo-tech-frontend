@@ -9,8 +9,8 @@ export default function Login() {
 
   useEffect(() => {
     setTimeout(() => {
-      router.push(pathname + "/inicio");
-    }, 5000);
+      router.push("/inicio");
+    }, 3500);
   }, []);
 
   return (

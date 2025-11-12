@@ -27,7 +27,7 @@ export default function AutenticationPage() {
         <Button
           variant="contained"
           className="!bg-[var(--azul-primario)] !text-white w-full max-w-[250px]"
-          onClick={() => router.push("/visitante/login/inicio")}
+          onClick={() => router.push("/inicio")}
         >
           Voltar ao login
         </Button>

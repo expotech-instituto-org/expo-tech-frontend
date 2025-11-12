@@ -17,7 +17,7 @@ export default function Login() {
         <Button
           variant="contained"
           onClick={() => {
-            router.push(`${path}/login`);
+            router.push(`/login`);
           }}
           className="!bg-[var(--azul-primario)] w-[15rem]"
         >
@@ -26,7 +26,7 @@ export default function Login() {
         <Button
           variant="outlined"
           onClick={() => {
-            router.push(`${path}/cadastro`);
+            router.push(`/cadastro`);
           }}
           className="!border-[var(--azul-primario)] !text-[var(--azul-primario)]"
         >

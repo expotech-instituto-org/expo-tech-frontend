@@ -3,7 +3,8 @@
 import { Html5Qrcode } from "html5-qrcode";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-
+import { Container, IconButton } from "@mui/material";
+import ArrowBack from "@mui/icons-material/ArrowBack";
 export default function QRCodePage() {
   const router = useRouter();
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -27,17 +28,15 @@ export default function QRCodePage() {
 
       const html5QrCode = new Html5Qrcode("qr-reader");
       scannerRef.current = html5QrCode;
-      
-      const cameraConfig = isIOS
-        ? { facingMode: "environment" }
-        : backCamera;
+
+      const cameraConfig = isIOS ? { facingMode: "environment" } : backCamera;
 
       await html5QrCode.start(
         cameraConfig,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
-          disableFlip: true
+          disableFlip: true,
         },
         (decodedText) => {
           stopScanner();
@@ -77,15 +76,25 @@ export default function QRCodePage() {
   }, []);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Leitor de QR Code</h1>
+    <Container maxWidth="sm" className="h-fit pb-30 mt-32 text-black">
+      <div className="flex items-center justify-between pt-3 mb-6">
+        <div className="flex items-center gap-2">
+          <IconButton onClick={() => history.back()}>
+            <ArrowBack className="text-[var(--azul-primario)]" />
+          </IconButton>
+          <h1 className="text-[var(--azul-primario)] font-bold text-[2rem]">
+            Leitor de QR Code
+          </h1>
+        </div>
+      </div>
+      <div style={{ padding: 10 }}>
+        {!result && <p>Aponte a câmera para um QR Code</p>}
 
-      {!result && <p>Aponte a câmera para um QR Code</p>}
-
-      <div
-        id="qr-reader"
-        style={{ width: "100%", maxWidth: 400, marginTop: 20 }}
-      />
-    </div>
+        <div
+          id="qr-reader"
+          style={{ width: "100%", maxWidth: 400, marginTop: 20 }}
+        />
+      </div>
+    </Container>
   );
 }
