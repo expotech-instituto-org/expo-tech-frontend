@@ -10,14 +10,12 @@ export default function InfoPage() {
   const router = useRouter();
   const { exhibitionId } = useContext(DataContext);
 
-  const { getExhibitionByIdData, getExhibitionByIdRest } = useGetExhibitionById(
-    {
-      exhibition_id: exhibitionId,
-      enabled: true,
-    }
-  );
+  const { getExhibitionByIdData, getExhibitionByIdRest } = useGetExhibitionById({
+    exhibition_id: exhibitionId,
+    enabled: true,
+  });
 
-  const TOTAL_POSITIONS = 24;
+  const TOTAL_POSITIONS = 13;
   const grid = Array(TOTAL_POSITIONS).fill(null);
 
   if (getExhibitionByIdData?.projects) {
@@ -29,11 +27,19 @@ export default function InfoPage() {
     });
   }
 
-  const blocks = [0, 1, 2];
+  const leftColumn = grid.slice(0, 7).reverse();
+  // pega as posições A8..A13 em ordem crescente e anexa o número da coordenada a cada slot
+  const rightSlice: Array<{ slot: any; coord: number | null }> = grid
+    .slice(7, 13)
+    .map((slot, idx) => ({ slot, coord: 8 + idx }));
+  // inserir um marcador de 'gap' entre A10 e A11 (após o índice 2: A8(0),A9(1),A10(2),A11(3))
+  rightSlice.splice(3, 0, { slot: "GAP", coord: null });
+  // inverter para manter o layout com `flex-col-reverse` (comportamento anterior)
+  const rightColumn = rightSlice.reverse();
   const formatCoordinate = (n: number) => `A${n}`;
 
   return (
-    <div className="pb-5">
+  <div className="pb-5 overflow-x-hidden">
       {/* Header fixa */}
       <div className="w-full flex gap-4 items-center px-[8px] !bg-[var(--background)] backdrop-blur-sm mb-8">
         <button
@@ -47,86 +53,108 @@ export default function InfoPage() {
           Mapa da Feira
         </h1>
       </div>
-      <div className="relative w-full h-screen bg-[url('/images/Mapa.svg')] bg-no-repeat bg-center bg-[length:365px_770px] px-[30px]">
-        {/* Corpo do mapa */}
-        <div className="absolute inset-0 flex justify-center items-center z-0">
-          <div className="flex flex-col gap-10 h-full align-center justify-center ">
-            {blocks.map((blockIndex) => {
-              const start = blockIndex * 8;
-              const cells = grid.slice(start, start + 8).reverse();
 
-              return (
-                <div
-                  key={blockIndex}
-                  className="w-[260px] h-[140px] p-[6px] grid grid-cols-4 grid-rows-2 gap-2 relative"
-                >
-                  {cells.map((project, i) => {
-                    const isBottomRow = i >= 4;
-                    const coordinateNumber = 8 * blockIndex + (8 - i);
+      {/* Corpo do mapa */}
+      <div className="relative w-full flex justify-center items-start px-[5vw]">
+        <div
+          className="relative w-full max-w-full sm:max-w-[450px] aspect-[365/770] bg-[url('/images/Mapa.svg')] bg-no-repeat bg-contain bg-top"
+          style={{
+            marginTop: "-15px", // move o mapa mais pra cima
+          }}
+        >
+          {/* Cards alinhados ao SVG */}
+          <div className="absolute inset-0 flex justify-between items-center px-[20%]">
+            {/* Coluna esquerda */}
+            <div className="flex flex-col-reverse justify-center gap-[4vw] items-center">
+              {leftColumn.map((project, i) => (
+                <div key={i} className="relative flex flex-col items-center">
+                  {project && (
+                    <span className="absolute -left-[70px] text-[0.6rem] font-semibold text-[var(--azul-primario)] w-[60px] text-right truncate">
+                      {project.name}
+                    </span>
+                  )}
 
-                    return (
+                  <div
+                    className={`w-[25vw] max-w-[60px] aspect-square rounded-md bg-[#7A8CE0] flex items-center justify-center shadow-md transition-transform hover:scale-105 ${
+                      project ? "cursor-pointer" : "cursor-default"
+                    }`}
+                    onClick={() =>
+                      project?._id &&
+                      router.push(`/visitante/projeto/${project._id}`)
+                    }
+                  >
+                    {project && (
                       <div
-                        key={i}
-                        className="relative flex flex-col items-center"
-                      >
-                        {/* Nome do projeto fora do card */}
-                        {project && !isBottomRow && (
-                          <span className="absolute -top-5 text-[9px] font-semibold text-[var(--azul-primario)] text-center w-full truncate">
-                            {project.name}
-                          </span>
-                        )}
+                        className="w-[65%] h-[65%] bg-gray-300 rounded-sm bg-cover bg-center border border-white"
+                        style={{
+                          backgroundImage: `url(${project.logo})`,
+                        }}
+                      ></div>
+                    )}
 
-                        {/* Quadradinho azul clicável */}
-                        <div
-                          className={`w-[55px] h-[55px] rounded-md bg-[#7A8CE0] flex items-center justify-center relative shadow-md transition-transform hover:scale-105 ${
-                            project ? "cursor-pointer" : "cursor-default"
-                          }`}
-                          onClick={() =>
-                            project?._id &&
-                            router.push(`/visitante/projeto/${project._id}`)
-                          }
-                        >
-                          {/* Imagem central */}
-                          {project && (
-                            <div
-                              className="w-[35px] h-[35px] bg-gray-300 rounded-sm bg-cover bg-center border border-white"
-                              style={{
-                                backgroundImage: `url(${project.logo})`,
-                              }}
-                            ></div>
-                          )}
-
-                          {/* Texto da coordenada */}
-                          <span className="absolute bottom-[3px] right-[5px] text-[9px] font-bold text-white drop-shadow-md">
-                            {formatCoordinate(
-                              project?.coordinates || coordinateNumber
-                            )}
-                          </span>
-                        </div>
-
-                        {/* Nome do projeto na parte de baixo */}
-                        {project && isBottomRow && (
-                          <span className="absolute -bottom-5 text-[9px] font-semibold text-[var(--azul-primario)] text-center w-full truncate">
-                            {project.name}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
+                    <span className="absolute bottom-[3px] right-[5px] text-[0.6rem] font-bold text-white drop-shadow-md">
+                      {formatCoordinate(project?.coordinates || i + 1)}
+                    </span>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              ))}
+            </div>
 
-        {/* Tela de carregamento */}
-        {getExhibitionByIdRest.isPending && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm">
-            <p className="text-lg font-semibold text-[var(--azul-primario)]">
-              Carregando mapa...
-            </p>
+            {/* Coluna direita */}
+            <div className="flex flex-col-reverse justify-center gap-[4vw] items-center">
+              {rightColumn.map((item, i) => (
+                <div key={i} className="relative flex flex-col items-center">
+                  {/* nome do projeto à direita quando existir */}
+                  {item.slot && typeof item.slot !== "string" && (
+                    <span className="absolute -right-[70px] text-[0.6rem] font-semibold text-[var(--azul-primario)] w-[60px] text-left truncate">
+                      {item.slot.name}
+                    </span>
+                  )}
+
+                  {/* bloco especial de gap entre A10 e A11 */}
+                  {item.slot === "GAP" ? (
+                    <div className="w-[25vw] max-w-[60px] aspect-square opacity-0 pointer-events-none shadow-none bg-transparent"></div>
+                  ) : (
+                    <div
+                      className={`w-[25vw] max-w-[60px] aspect-square rounded-md bg-[#7A8CE0] flex items-center justify-center shadow-md transition-transform hover:scale-105 ${
+                        item.slot ? "cursor-pointer" : "cursor-default"
+                      }`}
+                      onClick={() =>
+                        item.slot && typeof item.slot !== "string" && item.slot._id &&
+                        router.push(`/visitante/projeto/${item.slot._id}`)
+                      }
+                    >
+                      {item.slot && typeof item.slot !== "string" && (
+                        <div
+                          className="w-[65%] h-[65%] bg-gray-300 rounded-sm bg-cover bg-center border border-white"
+                          style={{
+                            backgroundImage: `url(${item.slot.logo})`,
+                          }}
+                        ></div>
+                      )}
+
+                      {/* mostrar a coordenada usando o coord do slot (ou fallback ao project.coordinates) */}
+                      {item.coord !== null && (
+                        <span className="absolute bottom-[3px] right-[5px] text-[0.6rem] font-bold text-white drop-shadow-md">
+                          {formatCoordinate(item.coord)}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        )}
+
+          {/* Tela de carregamento */}
+          {getExhibitionByIdRest.isPending && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+              <p className="text-lg font-semibold text-[var(--azul-primario)]">
+                Carregando mapa...
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
