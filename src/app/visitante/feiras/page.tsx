@@ -4,7 +4,6 @@ import { useGetExhibitions } from "@/service/hooks/useGetExhibitions";
 import { Backdrop, Button, CircularProgress, TextField } from "@mui/material";
 import { DateTime } from "luxon";
 import { usePathname, useRouter } from "next/navigation";
-import { datetime } from "node_modules/zod/v4/core/regexes.cjs";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -47,11 +46,38 @@ export default function Page() {
   useEffect(() => {
     getExhibitions();
   }, [searchByName]);
+
+  function verificarFimFeira(start_date: string, end_date: string): string {
+    let end = DateTime.fromISO(end_date);
+    let hoje = DateTime.now();
+
+    if (hoje > end) {
+      return "Esta feira já acabou";
+    } else {
+      return (
+        DateTime.fromISO(start_date).toFormat("dd/MM/yyyy") +
+        " - " +
+        DateTime.fromISO(end_date).toFormat("dd/MM/yyyy")
+      );
+    }
+  }
+
+  function verificarFimFeiraBool(start_date: string, end_date: string): boolean {
+    let end = DateTime.fromISO(end_date);
+    let hoje = DateTime.now();
+
+    if (hoje > end) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4 mt-[33%]">
-          <h1 className="text-[var(--azul-primario)] font-bold text-[1.7rem]">
-              Escolha a feira que está visitando!
-        </h1>  
+      <h1 className="text-[var(--azul-primario)] font-bold text-[1.7rem]">
+        Escolha a feira que está visitando!
+      </h1>
       <TextField
         value={searchByName}
         onChange={(e) => setSearchByName(e.target.value)}
@@ -60,7 +86,7 @@ export default function Page() {
         size="small"
         className="[&_fieldset]:!border-[var(--azul-primario)] [&>*]:!text-[var(--azul-primario)] w-full"
       />
-  
+
       {getExhibitionsData?.map((exhibition) => (
         <Button
           key={exhibition.id}
@@ -72,17 +98,17 @@ export default function Page() {
               exhibition.end_date
             )
           }
-        >        
-            <ProjectCard
+        >
+          <ProjectCard
             project_id={exhibition.id}
             title={exhibition.name}
             imageUrl={exhibition.image}
-            subtitle={
-              DateTime.fromISO(exhibition.start_date).toFormat("dd/MM/yyyy") +
-              " - " +
-              DateTime.fromISO(exhibition.end_date).toFormat("dd/MM/yyyy")
-            }
+            subtitle={verificarFimFeira(
+              exhibition.start_date,
+              exhibition.end_date
+            )}
             type="1"
+            subtitleRed={verificarFimFeiraBool(exhibition.start_date,exhibition.end_date)}
           />
         </Button>
       ))}

@@ -135,22 +135,29 @@ export default function Home() {
         </div>
 
         {/* Botões principais */}
-        <div className="mt-[0.88rem] flex justify-between px-[1.19rem]">
+        <div className="mt-2 flex justify-between gap-2">
           <Button
-            className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
+            className="!bg-[var(--azul-primario)]  !rounded-[0.625rem]"
             variant="contained"
             onClick={() => router.push("/visitante/info")}
           >
-            <MapOutlined className="mr-[0.31rem]" /> Mapa da Feira
+            <MapOutlined className="mr-1" /> Mapa da Feira
           </Button>
           <Button
-            className="!bg-[var(--azul-primario)] w-[48%] !rounded-[0.625rem]"
+            className="!bg-[var(--azul-primario)] !rounded-[0.625rem]"
+            variant="contained"
+            onClick={() => router.push("/visitante/feiras")}
+          >
+            <MapOutlined className="mr-1" /> Feiras Anteriores
+          </Button>
+          <Button
+            className="!bg-[var(--azul-primario)]  !rounded-[0.625rem]"
             variant="contained"
             onClick={() =>
               router.push(`/visitante/feiras/home/${params.id}/qrcode`)
             }
           >
-            <QrCodeScanner className="mr-[0.31rem]" /> Ler QR Code
+            <QrCodeScanner className="mr-1" /> Ler QR Code
           </Button>
         </div>
 

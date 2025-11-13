@@ -9,6 +9,7 @@ interface IProjectProps {
   imageUrl: string;
   title: string;
   subtitle?: string;
+  subtitleRed?: boolean;
   type?: string;
   onFavoriteToggle?: () => void;
 }
@@ -19,6 +20,7 @@ export default function ProjectCard({
   imageUrl,
   title,
   subtitle,
+  subtitleRed,
   type,
   onFavoriteToggle,
 }: IProjectProps) {
@@ -70,7 +72,19 @@ export default function ProjectCard({
           >
             {title}
           </h1>
-          {subtitle && (
+          {subtitleRed == true ? (
+            <p
+              className="
+                text-[var(--error)] 
+                font-bold
+                text-xs sm:text-[12px] md:text-[13px] 
+                line-clamp-2 sm:line-clamp-3 
+                overflow-hidden
+              "
+            >
+              {subtitle}
+            </p>
+          ) : (
             <p
               className="
                 text-[var(--text)] 
@@ -83,36 +97,37 @@ export default function ProjectCard({
             </p>
           )}
         </div>
+        {type !== "1" && (
+          <div className="flex flex-row gap-2 items-start mt-1 sm:mt-2">
+            {rated && (
+              <Grade className="text-[var(--amarelo)] text-sm sm:text-base" />
+            )}
 
-        <div className="flex flex-row gap-2 items-start mt-1 sm:mt-2">
-          {rated && (
-            <Grade className="text-[var(--amarelo)] text-sm sm:text-base" />
-          )}
-
-          {favorited ? (
-            <Favorite
-              className="
+            {favorited ? (
+              <Favorite
+                className="
                 text-[var(--error)] 
                 cursor-pointer 
                 text-sm sm:text-base 
                 transition-transform duration-200 
                 hover:scale-110
               "
-              onClick={onFavoriteToggle}
-            />
-          ) : (
-            <FavoriteBorder
-              className="
+                onClick={onFavoriteToggle}
+              />
+            ) : (
+              <FavoriteBorder
+                className="
                 text-[var(--error)] 
                 cursor-pointer 
                 text-sm sm:text-base 
                 transition-transform duration-200 
                 hover:scale-110
               "
-              onClick={onFavoriteToggle}
-            />
-          )}
-        </div>
+                onClick={onFavoriteToggle}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
