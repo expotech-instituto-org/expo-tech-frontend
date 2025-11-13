@@ -1,12 +1,15 @@
 "use client";
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
+import { Suspense } from "react";
 import { useGetExhibitionById } from "@/service/hooks/useGetExhibitionById";
 import { useRouter, useSearchParams } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useContext, useEffect } from "react";
 import { DataContext } from "@/dataContext";
 
-export default function InfoPage() {
+function InfoPageInner() {
   const router = useRouter();
   const { exhibitionId } = useContext(DataContext);
   const searchParams = useSearchParams();
@@ -189,5 +192,13 @@ export default function InfoPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function InfoPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <InfoPageInner />
+    </Suspense>
   );
 }
