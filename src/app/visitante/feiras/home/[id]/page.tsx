@@ -265,7 +265,7 @@ export default function Home() {
       >
         <div className="flex flex-row gap-2 items-center ">
           <Image src="/images/beca.png" width={26} height={26} alt="Beca" />
-          <h2 className="text-[1rem] select-none">Doe agora!</h2>
+          <h2 className="text-[1rem] select-none text-white">Doe agora!</h2>
         </div>
       </div>
 

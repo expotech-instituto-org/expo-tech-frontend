@@ -1,17 +1,18 @@
 "use client";
 import ProjectCard from "@/components/projectCard";
+import { DataContext } from "@/dataContext";
 import { useGetExhibitions } from "@/service/hooks/useGetExhibitions";
 import { Backdrop, Button, CircularProgress, TextField } from "@mui/material";
 import { DateTime } from "luxon";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function Page() {
   const [searchByName, setSearchByName] = useState<string>("");
   const path = usePathname();
   const router = useRouter();
-
+  const { role } = useContext(DataContext);
   const {
     getExhibitionsData,
     getExhibitions,
@@ -25,15 +26,16 @@ export default function Page() {
     const now = DateTime.now();
     const startDate = DateTime.fromISO(start);
     const endDate = DateTime.fromISO(end);
+    if (role.name.toLocaleLowerCase() != "admin") {
+      if (now < startDate) {
+        toast.error("A feira ainda não iniciou");
+        return;
+      }
 
-    if (now < startDate) {
-      toast.error("A feira ainda não iniciou");
-      return;
-    }
-
-    if (now > endDate) {
-      toast.error("A feira já terminou");
-      return;
+      if (now > endDate) {
+        toast.error("A feira já terminou");
+        return;
+      }
     }
 
     router.push(path + "/home/" + id);
@@ -62,7 +64,10 @@ export default function Page() {
     }
   }
 
-  function verificarFimFeiraBool(start_date: string, end_date: string): boolean {
+  function verificarFimFeiraBool(
+    start_date: string,
+    end_date: string
+  ): boolean {
     let end = DateTime.fromISO(end_date);
     let hoje = DateTime.now();
 
@@ -108,7 +113,10 @@ export default function Page() {
               exhibition.end_date
             )}
             type="1"
-            subtitleRed={verificarFimFeiraBool(exhibition.start_date,exhibition.end_date)}
+            subtitleRed={verificarFimFeiraBool(
+              exhibition.start_date,
+              exhibition.end_date
+            )}
           />
         </Button>
       ))}
