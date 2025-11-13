@@ -12,7 +12,7 @@ export default function LayoutLogin({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { setUserId } = useContext(DataContext);
+  const { setUserId, setRole } = useContext(DataContext);
   const router = useRouter();
   useEffect(() => {
     const decodedToken: IToken = jwtDecode(Cookies.get("visitante-token")!);
@@ -21,13 +21,13 @@ export default function LayoutLogin({
       Cookies.remove("visitante-token");
       return router.push("/visitante/login");
     }
+    setRole(decodedToken.role);
     return setUserId(decodedToken.user_id);
   }, []);
 
   return (
     <div>
-      <div className="bg-[url(/images/banner.jpg)] bg-cover bg-left mb-2 w-full h-30 fixed top-0 left-0 z-30">
-      </div>
+      <div className="bg-[url(/images/banner.jpg)] bg-cover bg-left mb-2 w-full h-30 fixed top-0 left-0 z-30"></div>
       <Container maxWidth="sm">{children}</Container>
     </div>
   );
