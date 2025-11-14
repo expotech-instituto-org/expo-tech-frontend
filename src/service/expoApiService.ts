@@ -233,7 +233,7 @@ class Service {
   deleteKnowledge = ({ knowledge_id }: { knowledge_id: string }) =>
     api.delete(`/knowledge/${knowledge_id}`);
 
-  getCompanies = () => api.get("/companies");
+  getCompanies = () => api.get("/companies/");
 
   postCreateCompanies = ({ body }: { body: { name: string } }) =>
     api.post("/companies", body);
