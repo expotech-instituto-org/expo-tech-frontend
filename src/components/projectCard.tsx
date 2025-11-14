@@ -37,6 +37,7 @@ export default function ProjectCard({
         p-2 sm:p-3 
         gap-3 
         min-h-[90px] sm:min-h-[110px] 
+        relative
       "
     >
       <img
@@ -67,10 +68,13 @@ export default function ProjectCard({
               font-bold 
               text-sm sm:text-[15px] md:text-[16px]
               leading-tight
-              truncate
+              break-words
+              line-clamp-2
+              max-h-[3.2em]
+              overflow-hidden
             "
           >
-            {title}
+            {title.length > 70 ? `${title.slice(0, 70)}...` : title}
           </h1>
           {subtitleRed == true ? (
             <p
@@ -97,38 +101,37 @@ export default function ProjectCard({
             </p>
           )}
         </div>
-        {type !== "1" && (
-          <div className="flex flex-row gap-2 items-start mt-1 sm:mt-2">
-            {rated && (
-              <Grade className="text-[var(--amarelo)] text-sm sm:text-base" />
-            )}
-
-            {favorited ? (
-              <Favorite
-                className="
-                text-[var(--error)] 
-                cursor-pointer 
-                text-sm sm:text-base 
-                transition-transform duration-200 
-                hover:scale-110
-              "
-                onClick={onFavoriteToggle}
-              />
-            ) : (
-              <FavoriteBorder
-                className="
-                text-[var(--error)] 
-                cursor-pointer 
-                text-sm sm:text-base 
-                transition-transform duration-200 
-                hover:scale-110
-              "
-                onClick={onFavoriteToggle}
-              />
-            )}
-          </div>
-        )}
       </div>
+      {type !== "1" && (
+        <div className="absolute right-4 top-4 flex flex-row gap-2 items-center">
+          {rated && (
+            <Grade className="text-[var(--amarelo)] text-sm sm:text-base" />
+          )}
+          {favorited ? (
+            <Favorite
+              className="
+                text-[var(--error)]
+                cursor-pointer 
+                text-sm sm:text-base 
+                transition-transform duration-200 
+                hover:scale-110
+              "
+              onClick={onFavoriteToggle}
+            />
+          ) : (
+            <FavoriteBorder
+              className="
+                text-[var(--error)]
+                cursor-pointer 
+                text-sm sm:text-base 
+                transition-transform duration-200 
+                hover:scale-110
+              "
+              onClick={onFavoriteToggle}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

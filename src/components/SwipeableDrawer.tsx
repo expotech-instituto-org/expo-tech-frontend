@@ -39,8 +39,7 @@ export function SwipeableDrawerComponent({
   question,
   title,
   subtitle,
-  exhibitionId,
-}: IDrawerProps) {
+                                         }: IDrawerProps) {
   const { project_id } = useParams();
   const dynamicSchema = createSchemaFromQuestions(question);
   const [grades, setGrades] = useState<IGrade[]>([]);
@@ -83,7 +82,7 @@ useEffect(() => {
   postCreateReview({
     body: {
       comment,
-      exhibition_id: "7f6ecb5b-dec2-48c0-951c-bb5492591482",
+      exhibition_id: "b2e2f820-f59b-42f5-a9f4-51fab8585577",
       project_id: project_id!.toString(),
       grades,
     },

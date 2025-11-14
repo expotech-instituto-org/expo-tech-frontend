@@ -29,7 +29,7 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
 
-    if (status === 401 || status === 403) {
+    if (status === 403) {
       const path = window.location.pathname;
       const loginPath = path.startsWith("/admin")
         ? "/admin/login"
