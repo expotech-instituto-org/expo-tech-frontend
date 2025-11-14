@@ -26,9 +26,9 @@ jobs:
         run: |
           IMAGE_BASE="${{ secrets.DOCKERHUB_USERNAME }}/expo_tech_front"
           echo "Build & Push das imagens blue e green"
-          docker build --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} -t "${IMAGE_BASE}:blue" .
+          docker build --build-arg CACHEBUST=$(date +%s) --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} -t "${IMAGE_BASE}:blue" .
           docker push "${IMAGE_BASE}:blue"
-          docker build --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} -t "${IMAGE_BASE}:green" .
+          docker build --build-arg CACHEBUST=$(date +%s) --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} -t "${IMAGE_BASE}:green" .
           docker push "${IMAGE_BASE}:green"
 
       - name: Copy Compose & Nginx to VM
