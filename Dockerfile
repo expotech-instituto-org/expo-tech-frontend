@@ -9,6 +9,9 @@
     ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 
     COPY . .
+    
+    RUN rm -rf .next
+
     RUN npm run build
 
     FROM node:20-alpine AS runtime
